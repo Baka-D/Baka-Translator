@@ -1,0 +1,7 @@
+{
+  "id": "general",
+  "name": "常规",
+  "description": "适合新闻、博客、论坛和日常网页，兼顾准确与流畅。",
+  "translationPrompt": "For general web content, use natural, contemporary {{targetLanguage}} suited to the source: concise UI labels, conversational posts or factual prose. Preserve the author's register, humor and emphasis without summarizing or embellishing. Use consistent names, terminology and forms of address. Write quotations with the normal double quotation marks of {{targetLanguage}}, such as “ ” in Chinese.",
+  "polishPrompt": "For general web content, use idiomatic {{targetLanguage}} suited to the source's register, humor, emphasis and rhythm. Keep UI labels concise and retain distinctive informal wording. Write quotations with the normal double quotation marks of {{targetLanguage}}, such as “ ” in Chinese."
+}

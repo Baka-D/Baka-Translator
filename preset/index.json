@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "defaultPresetId": "general",
+  "presets": [
+    {
+      "id": "general",
+      "name": "常规",
+      "description": "适合新闻、博客、论坛和日常网页，兼顾准确与流畅。",
+      "file": "general.json"
+    },
+    {
+      "id": "academic",
+      "name": "学术",
+      "description": "适合论文、技术文档与教程，强调术语、论证和引用准确。",
+      "file": "academic.json"
+    },
+    {
+      "id": "light-novel",
+      "name": "轻小说",
+      "description": "适合日轻、网文与小说，保留叙述口吻、对白节奏与角色语气。",
+      "file": "light-novel.json"
+    }
+  ]
+}

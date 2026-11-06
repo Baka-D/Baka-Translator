@@ -1,0 +1,354 @@
+// Settings-page options.
+import { FEEDBACK_CLEAR_MS, KEYS, languages, modelsTools, novelUtils, visionTools, state, ui } from './context.mjs';
+import { handleDeleteProviderClick, handleSaveCustomProvider } from './custom-provider.mjs';
+import { handleClearKeyClick, handleSaveKey, handleTestConnection, handleToggleKeyVisibility } from './keys.mjs';
+import { handleAddModel, handleFetchModels } from './provider-models.mjs';
+import { renderProviders, startAddProvider } from './providers.mjs';
+import { applyCustomProviders, applyModelSelection, applyPolishProvider, applyResolvedModel, applyTranslationProvider, followStoredModels, loadRegistry, normalizePolishSelection, persistModels, renderModelArea } from './model-selection.mjs';
+import { polishInheritsModel, polishModel, providerNameById, translationModel } from './models.mjs';
+import { handlePresetChange, handleResetPrompts, handleSavePrompts, loadPresetIndex } from './presets.mjs';
+import { handleBilingualChange, handleResetUsageClick, handleTargetChange, populateTargetSelect, renderDefaultSettings, renderUsage } from './settings.mjs';
+import { handleAddSite, renderSiteSettings } from './sites.mjs';
+import { initGlossaries, wireGlossaryEvents } from './glossaries.mjs';
+import { loadStoredData, persistDefaultsIfMissing, readConfigSnapshot, resolvePreset } from './storage.mjs';
+import { effortLabel, getVersion, isObject, normalizeProviderKeys, normalizeUsage, persist, setFeedback } from './utils.mjs';
+
+/* ---------- 选项卡 ---------- */
+
+export function applyTab(tabId, options) {
+  const opts = options || {};
+  const next = tabId === 'advanced' ? 'advanced' : 'general';
+  state.activeTab = next;
+  const generalSelected = next === 'general';
+  ui.tabGeneral.setAttribute('aria-selected', String(generalSelected));
+  ui.tabAdvanced.setAttribute('aria-selected', String(!generalSelected));
+  ui.tabGeneral.tabIndex = generalSelected ? 0 : -1;
+  ui.tabAdvanced.tabIndex = generalSelected ? -1 : 0;
+  ui.panelGeneral.hidden = !generalSelected;
+  ui.panelAdvanced.hidden = generalSelected;
+  if (opts.focus !== false) {
+    const target = generalSelected ? ui.tabGeneral : ui.tabAdvanced;
+    if (target && typeof target.focus === 'function') target.focus();
+  }
+  if (opts.updateHash && typeof history !== 'undefined' && history.replaceState) {
+    try {
+      history.replaceState(null, '', generalSelected ? '#general' : '#advanced');
+    } catch (_error) {
+      // file:// 等受限上下文忽略。
+    }
+  }
+}
+
+export function readTabFromHash() {
+  if (typeof location !== 'undefined' && typeof location.hash === 'string') {
+    return location.hash.replace('#', '') === 'advanced' ? 'advanced' : 'general';
+  }
+  return 'general';
+}
+
+export function wireTabs() {
+  ui.tabGeneral.addEventListener('click', () => applyTab('general', { updateHash: true }));
+  ui.tabAdvanced.addEventListener('click', () => applyTab('advanced', { updateHash: true }));
+  const onKeydown = (event) => {
+    const key = event && event.key;
+    if (key === 'ArrowLeft' || key === 'ArrowRight') {
+      if (event.preventDefault) event.preventDefault();
+      applyTab(state.activeTab === 'general' ? 'advanced' : 'general', { updateHash: true });
+    } else if (key === 'Home') {
+      if (event.preventDefault) event.preventDefault();
+      applyTab('general', { updateHash: true });
+    } else if (key === 'End') {
+      if (event.preventDefault) event.preventDefault();
+      applyTab('advanced', { updateHash: true });
+    }
+  };
+  ui.tabGeneral.addEventListener('keydown', onKeydown);
+  ui.tabAdvanced.addEventListener('keydown', onKeydown);
+}
+
+/* ---------- 事件绑定 ---------- */
+
+export function wireEvents() {
+  ui.apiKeyInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      void handleSaveKey();
+    }
+  });
+  ui.toggleKeyVisibility.addEventListener('click', handleToggleKeyVisibility);
+  ui.saveKeyButton.addEventListener('click', () => void handleSaveKey());
+  ui.clearKeyButton.addEventListener('click', handleClearKeyClick);
+  ui.testConnectionButton.addEventListener('click', () => void handleTestConnection());
+  ui.addProviderButton.addEventListener('click', startAddProvider);
+  ui.addUserModelButton.addEventListener('click', () => void handleAddModel());
+  ui.fetchProviderModelsButton.addEventListener('click', () => void handleFetchModels());
+  ui.userModelInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      void handleAddModel();
+    }
+  });
+  ui.saveCustomProviderButton.addEventListener('click', () => {
+    void handleSaveCustomProvider();
+  });
+  ui.deleteProviderButton.addEventListener('click', () => void handleDeleteProviderClick());
+  ui.translationProviderSelect.addEventListener('change', () => {
+    const providerIdValue = ui.translationProviderSelect.value;
+    if (!providerIdValue) return;
+    applyTranslationProvider(providerIdValue)?.then(
+      () => {
+        const model = translationModel();
+        setFeedback(
+          ui.behaviorFeedback,
+          `翻译服务商已切换为 ${providerNameById(providerIdValue)}${
+            model ? `，模型：${model.name}` : ''
+          }。`,
+          'success',
+          FEEDBACK_CLEAR_MS
+        );
+      },
+      () => {
+        setFeedback(ui.behaviorFeedback, '保存翻译服务商失败，请重试。', 'error');
+      }
+    );
+  });
+  ui.polishProviderSelect.addEventListener('change', () => {
+    const providerIdValue = ui.polishProviderSelect.value;
+    applyPolishProvider(providerIdValue)?.then(
+      () => {
+        const model = polishModel();
+        setFeedback(
+          ui.behaviorFeedback,
+          providerIdValue
+            ? `润色服务商已切换为 ${providerNameById(providerIdValue)}${
+                model ? `，模型：${model.name}` : ''
+              }。`
+            : '润色模型已改为跟随翻译模型。',
+          'success',
+          FEEDBACK_CLEAR_MS
+        );
+      },
+      () => {
+        setFeedback(ui.behaviorFeedback, '保存润色服务商失败，请重试。', 'error');
+      }
+    );
+  });
+  ui.modelSelect.addEventListener('change', () => {
+    applyModelSelection(ui.modelSelect.value)?.then(
+      () => {
+        const model = translationModel();
+        setFeedback(
+          ui.behaviorFeedback,
+          model ? `翻译模型已切换：${model.name}。` : '翻译模型已切换。',
+          'success',
+          FEEDBACK_CLEAR_MS
+        );
+      },
+      () => {
+        setFeedback(ui.behaviorFeedback, '保存翻译模型失败，请重试。', 'error');
+      }
+    );
+  });
+  ui.polishModelSelect.addEventListener('change', () => {
+    state.polishModelIdRaw = ui.polishModelSelect.value;
+    normalizePolishSelection();
+    renderModelArea();
+    persistModels('polish').then(
+      () => {
+        const model = polishModel();
+        setFeedback(
+          ui.behaviorFeedback,
+          polishInheritsModel()
+            ? '润色模型已改为跟随翻译模型。'
+            : `润色模型已切换：${model ? model.name : '—'}。`,
+          'success',
+          FEEDBACK_CLEAR_MS
+        );
+      },
+      () => {
+        setFeedback(ui.behaviorFeedback, '保存润色模型失败，请重试。', 'error');
+      }
+    );
+  });
+  ui.effortSelect.addEventListener('change', () => {
+    const value = ui.effortSelect.value;
+    state.effortLevel = value;
+    renderModelArea();
+    persistModels('translation').then(
+      () => {
+        setFeedback(
+          ui.behaviorFeedback,
+          `翻译思考强度已保存：${effortLabel(value)}。`,
+          'success',
+          FEEDBACK_CLEAR_MS
+        );
+      },
+      () => {
+        setFeedback(ui.behaviorFeedback, '保存翻译思考强度失败，请重试。', 'error');
+      }
+    );
+  });
+  ui.polishEffortSelect.addEventListener('change', () => {
+    const value = ui.polishEffortSelect.value;
+    state.polishEffortRaw = value;
+    renderModelArea();
+    persistModels('polish').then(
+      () => {
+        setFeedback(
+          ui.behaviorFeedback,
+          value ? `润色思考强度已保存：${effortLabel(value)}。` : '润色思考强度已改为跟随翻译/使用模型默认值。',
+          'success',
+          FEEDBACK_CLEAR_MS
+        );
+      },
+      () => {
+        setFeedback(ui.behaviorFeedback, '保存润色思考强度失败，请重试。', 'error');
+      }
+    );
+  });
+  ui.presetSelect.addEventListener('change', handlePresetChange);
+  ui.savePromptsButton.addEventListener('click', () => {
+    void handleSavePrompts();
+  });
+  ui.resetPromptsButton.addEventListener('click', () => {
+    void handleResetPrompts();
+  });
+  ui.addSiteButton.addEventListener('click', handleAddSite);
+  ui.siteHostInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      handleAddSite();
+    }
+  });
+  ui.defaultTargetSelect.addEventListener('change', handleTargetChange);
+  ui.defaultBilingualToggle.addEventListener('change', handleBilingualChange);
+  ui.resetUsageButton.addEventListener('click', handleResetUsageClick);
+  wireGlossaryEvents();
+  if (ui.reloadModelsButton) {
+    ui.reloadModelsButton.addEventListener('click', () => {
+      void (async () => {
+        await loadRegistry();
+        applyResolvedModel();
+        await resolvePreset();
+        setFeedback(
+          ui.keyFeedback,
+          state.registryError || '模型清单已重新加载。',
+          state.registryError ? 'warning' : 'success',
+          FEEDBACK_CLEAR_MS
+        );
+      })();
+    });
+  }
+
+  if (chrome.storage && chrome.storage.onChanged) {
+    chrome.storage.onChanged.addListener((changes, areaName) => {
+      if (areaName !== 'local' || !changes) return;
+      if (Object.prototype.hasOwnProperty.call(changes, KEYS.TARGET) && changes[KEYS.TARGET]) {
+        state.targetLang = languages.normalizeTarget(changes[KEYS.TARGET].newValue);
+        ui.defaultTargetSelect.value = state.targetLang;
+      }
+      if (Object.prototype.hasOwnProperty.call(changes, KEYS.BILINGUAL) && changes[KEYS.BILINGUAL]) {
+        state.bilingual = changes[KEYS.BILINGUAL].newValue === true;
+        ui.defaultBilingualToggle.checked = state.bilingual;
+      }
+      if (Object.prototype.hasOwnProperty.call(changes, KEYS.USAGE) && changes[KEYS.USAGE]) {
+        state.usage = normalizeUsage(changes[KEYS.USAGE].newValue);
+        renderUsage();
+      }
+      if (Object.prototype.hasOwnProperty.call(changes, KEYS.API_KEY) && changes[KEYS.API_KEY]) {
+        // Track a cleared legacy key so the fallback below cannot resurrect it.
+        const legacy = changes[KEYS.API_KEY].newValue;
+        state.legacyApiKey = typeof legacy === 'string' ? legacy.trim() : '';
+      }
+      if (
+        Object.prototype.hasOwnProperty.call(changes, KEYS.PROVIDER_KEYS) &&
+        changes[KEYS.PROVIDER_KEYS]
+      ) {
+        state.providerKeys = normalizeProviderKeys(changes[KEYS.PROVIDER_KEYS].newValue);
+        if (!state.providerKeys.deepseek && state.legacyApiKey) {
+          state.providerKeys.deepseek = state.legacyApiKey;
+        }
+        renderProviders();
+      }
+      if (Object.prototype.hasOwnProperty.call(changes, KEYS.CUSTOM_PROVIDERS) && changes[KEYS.CUSTOM_PROVIDERS]) {
+        state.customProviders = modelsTools.normalizeCustomProviders(changes[KEYS.CUSTOM_PROVIDERS].newValue);
+        applyCustomProviders();
+        renderModelArea();
+      }
+      if (Object.prototype.hasOwnProperty.call(changes, KEYS.USER_MODELS) && changes[KEYS.USER_MODELS]) {
+        state.userModels = modelsTools.normalizeUserModels(changes[KEYS.USER_MODELS].newValue);
+        applyCustomProviders();
+        renderModelArea();
+      }
+      if (changes[KEYS.VISION_CAPABILITIES] && visionTools) {
+        state.visionCapabilities = visionTools.normalizeCache(changes[KEYS.VISION_CAPABILITIES].newValue);
+        applyCustomProviders();
+        renderModelArea();
+      }
+      // After the branches above: another tab's pick may be a model they just registered.
+      followStoredModels(changes);
+      if (changes[KEYS.PROMPT_OVERRIDES]) {
+        // The editor stays as it is: reloading it would wipe unsaved typing.
+        // shortcut: this tab's next save still wins for the preset it has open, warn if that bites.
+        const overrides = changes[KEYS.PROMPT_OVERRIDES].newValue;
+        state.promptOverrides = isObject(overrides) ? overrides : {};
+      }
+      if (
+        Object.prototype.hasOwnProperty.call(changes, KEYS.SITE_SETTINGS) &&
+        changes[KEYS.SITE_SETTINGS]
+      ) {
+        state.siteSettings = isObject(changes[KEYS.SITE_SETTINGS].newValue)
+          ? changes[KEYS.SITE_SETTINGS].newValue
+          : {};
+        renderSiteSettings();
+      }
+    });
+  }
+}
+
+/* ---------- 启动 ---------- */
+
+export function showMeta() {
+  const version = getVersion();
+  if (ui.versionChip) ui.versionChip.textContent = version ? `v${version}` : '—';
+  if (ui.versionText) ui.versionText.textContent = version || '未知';
+  if (ui.modelText) ui.modelText.textContent = '—';
+}
+
+export function renderNovelSupportNote() {
+  if (!ui.novelSupportNote) return;
+  const adapters =
+    novelUtils && novelUtils.SITE_ADAPTERS ? Object.values(novelUtils.SITE_ADAPTERS) : [];
+  if (adapters.length === 0) return;
+  const sites = adapters
+    .map((adapter) => {
+      const host = Array.isArray(adapter.hosts) && adapter.hosts.length > 0 ? adapter.hosts[0] : '';
+      return host ? `${host}（${adapter.name}）` : adapter.name;
+    })
+    .join('、');
+  ui.novelSupportNote.textContent = `轻小说模式：适配 ${sites}，自动识别章节与下一页链接；同一作品章节数超过 2 后会在本地建立术语库。目前仅支持以上站点。`;
+}
+
+export async function init() {
+  populateTargetSelect();
+  showMeta();
+  renderNovelSupportNote();
+  wireTabs();
+  wireEvents();
+  applyTab(readTabFromHash(), { focus: false, updateHash: false });
+
+  state.snapshot = await readConfigSnapshot();
+  await loadStoredData();
+  renderDefaultSettings();
+  renderUsage();
+  renderSiteSettings();
+  await initGlossaries();
+
+  await Promise.all([loadRegistry(), loadPresetIndex()]);
+  applyResolvedModel();
+  await resolvePreset();
+  await persistDefaultsIfMissing();
+  renderSiteSettings();
+}
+
+void init();

@@ -1,0 +1,7 @@
+/**
+ * Baka Translator · Popup 样式
+ * 380px 宽；白底深墨色文字、细边框、克制圆角；不使用外部字体或网络资源。
+ */
+
+@import "./popup-base.css";
+@import "./popup-controls.css";

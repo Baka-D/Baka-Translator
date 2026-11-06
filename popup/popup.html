@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Baka Translator</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <img class="brand-icon" src="../assets/icons/icon48.png" alt="" width="24" height="24">
+      <div class="brand-copy">
+        <h1 class="brand-title">Baka Translator</h1>
+        <p class="brand-sub">整页 · 选词 · 图片 · 润色</p>
+      </div>
+      <button id="openOptionsTop" class="icon-button" type="button" aria-label="打开扩展设置" title="设置">
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+          <path d="M2.5 4.5h6.1M11.4 4.5h2.1M2.5 11.5h2.1M7.4 11.5h6.1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none"></path>
+          <circle cx="10.1" cy="4.5" r="1.6" stroke="currentColor" stroke-width="1.4" fill="none"></circle>
+          <circle cx="5.9" cy="11.5" r="1.6" stroke="currentColor" stroke-width="1.4" fill="none"></circle>
+        </svg>
+      </button>
+    </header>
+
+    <section class="status-card" aria-label="当前页面状态">
+      <div class="status-line">
+        <span id="statusDot" class="status-dot" data-tone="idle" aria-hidden="true"></span>
+        <p id="statusText" class="status-text" role="status" aria-live="polite" aria-atomic="true">正在读取页面状态…</p>
+      </div>
+      <p class="status-meta">
+        <span>检测语言 <strong id="sourceLabel" class="meta-strong">—</strong></span>
+        <span class="meta-sep" aria-hidden="true">·</span>
+        <span>目标 <strong id="targetLabel" class="meta-strong">中文</strong></span>
+        <span id="costItem" class="cost-item" hidden><span class="meta-sep" aria-hidden="true">·</span> 本页 <strong id="costLabel" class="meta-strong">—</strong></span>
+      </p>
+      <div id="progressTrack" class="progress-track" role="progressbar" aria-label="翻译进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-hidden="true">
+        <div id="progressFill" class="progress-fill"></div>
+      </div>
+    </section>
+
+    <div id="keyNotice" class="notice notice-warning" role="status" aria-live="polite" hidden>
+      <p id="keyNoticeText" class="notice-text">尚未配置所选模型的 API Key，翻译功能暂不可用，请切换至其他模型。</p>
+      <button id="keyNoticeAction" class="notice-action" type="button">打开设置</button>
+    </div>
+
+    <div id="pageNotice" class="notice notice-info" role="status" aria-live="polite" hidden>
+      <p id="pageNoticeText" class="notice-text"></p>
+    </div>
+
+    <section class="settings" aria-label="翻译设置">
+      <div class="settings-row">
+        <div class="field field-target">
+          <label class="field-label" for="targetSelect">目标语言</label>
+          <span class="select-wrap">
+            <select id="targetSelect" class="select" aria-label="目标语言"></select>
+          </span>
+        </div>
+        <div class="field field-bilingual">
+          <span class="field-label" id="bilingualLabel">保留原文</span>
+          <label class="switch">
+            <input id="bilingualToggle" type="checkbox" role="switch" aria-labelledby="bilingualLabel" aria-describedby="bilingualHint">
+            <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+          </label>
+        </div>
+      </div>
+      <p id="bilingualHint" class="hint">双语显示：译文下方保留原文，便于对照。</p>
+
+      <div class="settings-row settings-row-switches">
+        <div class="field field-switch">
+          <span class="field-label" id="polishLabel">本站润色</span>
+          <label class="switch">
+            <input id="polishToggle" type="checkbox" role="switch" aria-labelledby="polishLabel" aria-describedby="polishHint">
+            <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+          </label>
+        </div>
+        <div class="field field-switch">
+          <span class="field-label" id="pretranslateLabel">预翻译下一章</span>
+          <label class="switch">
+            <input id="pretranslateToggle" type="checkbox" role="switch" aria-labelledby="pretranslateLabel" aria-describedby="polishHint">
+            <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+          </label>
+        </div>
+      </div>
+      <p id="polishHint" class="hint">润色与预翻译仅对当前站点生效。</p>
+
+      <div class="compact-field">
+        <label class="field-label" for="sitePresetSelect">本站预设</label>
+        <span class="select-wrap compact-select">
+          <select id="sitePresetSelect" class="select" aria-label="本站提示词预设"></select>
+        </span>
+      </div>
+    </section>
+
+    <section class="actions" aria-label="页面操作">
+      <button id="mainButton" class="button button-primary" type="button">翻译此页面</button>
+      <div class="action-row">
+        <button id="selectionButton" class="button button-secondary" type="button">翻译选中文本</button>
+        <button id="imagesButton" class="button button-secondary" type="button">翻译画面图片<span class="tag">实验性</span></button>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <p class="privacy">页面文字仅发送至所选模型服务；API Key 只保存在本机。</p>
+      <div class="footer-meta">
+        <span id="usageSummary" class="usage-summary" title="累计 Token 使用量（按服务商返回的 usage 统计，仅供参考）">
+          <span class="usage-label">累计</span>
+          <strong id="usageTokens" class="usage-value">—</strong>
+          <span class="usage-unit">tokens</span>
+        </span>
+        <button id="openOptionsFooter" class="link-button" type="button">设置</button>
+      </div>
+    </footer>
+  </div>
+
+  <script src="../shared/config.js"></script>
+  <script src="../shared/languages.js"></script>
+  <script src="../shared/usage.js"></script>
+  <script src="../shared/billing.js"></script>
+  <script src="../shared/glossary.js"></script>
+  <script src="../shared/novel.js"></script>
+  <script src="../shared/presets.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

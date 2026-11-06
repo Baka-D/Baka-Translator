@@ -1,0 +1,65 @@
+{
+  "id": "xai",
+  "name": "xAI Grok",
+  "endpoint": "https://api.x.ai/v1",
+  "completionsPath": "/chat/completions",
+  "modelsPath": "/models",
+  "protocol": "openai",
+  "requestShape": "openai",
+  "imageDetail": false,
+  "apiKeyLabel": "xAI API Key",
+  "apiKeyPlaceholder": "xai-...",
+  "docsUrl": "https://console.x.ai/team/default/api-keys",
+  "models": [
+    {
+      "id": "grok-4.7",
+      "name": "Grok 4.7",
+      "model": "grok-4.7",
+      "endpoint": "https://api.x.ai/v1",
+      "contextWindow": 500000,
+      "maxOutputTokens": 128000,
+      "effortLevels": ["low", "medium", "high", "xhigh"],
+      "defaultEffort": "low",
+      "thinkingParam": null,
+      "effortParam": "reasoning_effort",
+      "supportsVision": true,
+      "supportsJson": true,
+      "maxTokensParam": "max_completion_tokens",
+      "pricing": {
+        "currency": "USD",
+        "unit": "per_million_tokens",
+        "flat": {
+          "inputCacheHit": 0.5,
+          "inputCacheMiss": 2.0,
+          "output": 6.0
+        },
+        "source": "https://docs.x.ai/docs/models"
+      }
+    },
+    {
+      "id": "grok-4.20-0309-non-reasoning",
+      "name": "Grok 4.20 Non-Reasoning",
+      "model": "grok-4.20-0309-non-reasoning",
+      "endpoint": "https://api.x.ai/v1",
+      "contextWindow": 1000000,
+      "maxOutputTokens": 128000,
+      "effortLevels": ["none"],
+      "defaultEffort": "none",
+      "thinkingParam": null,
+      "effortParam": null,
+      "supportsVision": false,
+      "supportsJson": true,
+      "maxTokensParam": "max_completion_tokens",
+      "pricing": {
+        "currency": "USD",
+        "unit": "per_million_tokens",
+        "flat": {
+          "inputCacheHit": 0.2,
+          "inputCacheMiss": 1.25,
+          "output": 2.5
+        },
+        "source": "https://docs.x.ai/docs/models"
+      }
+    }
+  ]
+}

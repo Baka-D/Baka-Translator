@@ -1,0 +1,9 @@
+/**
+ * Baka Translator · 设置页样式
+ * 文档式布局：白底、细分割线、克制圆角；窄屏自适应；无外部字体或网络资源。
+ */
+
+@import "./options-base.css";
+@import "./options-general.css";
+@import "./options-advanced.css";
+@import "./options-providers.css";

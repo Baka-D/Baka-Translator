@@ -1,0 +1,32 @@
+node_modules/
+dist/
+*.zip
+.DS_Store
+Thumbs.db
+/tests/
+__pycache__/
+AGENTS.md
+
+# Local experiments, reports and browser-test output.
+/.tmp/
+/tmp/
+/temp/
+/scratch/
+/artifacts/
+/test-results/
+/coverage/
+/scripts/local/
+/docs/local/
+/docs/reports/
+*.log
+.env
+.env.*
+!.env.example
+
+# Local icon artwork/tooling and performance investigation notes.
+/docs/icon-source.webp
+/scripts/make_icons.py
+/docs/polish-performance.md
+
+# Local screenshots.
+/docs/screenshots/

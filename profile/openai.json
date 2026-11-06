@@ -1,0 +1,65 @@
+{
+  "id": "openai",
+  "name": "OpenAI / ChatGPT",
+  "endpoint": "https://api.openai.com/v1",
+  "completionsPath": "/chat/completions",
+  "modelsPath": "/models",
+  "protocol": "openai",
+  "requestShape": "openai",
+  "apiKeyLabel": "OpenAI API Key",
+  "apiKeyPlaceholder": "sk-...",
+  "apiKeyPrefix": "sk-",
+  "docsUrl": "https://platform.openai.com/api-keys",
+  "models": [
+    {
+      "id": "gpt-6.1-terra",
+      "name": "GPT-6.1 Terra",
+      "model": "gpt-6.1-terra",
+      "endpoint": "https://api.openai.com/v1",
+      "contextWindow": 1050000,
+      "maxOutputTokens": 128000,
+      "effortLevels": ["none", "low", "medium", "high", "max"],
+      "defaultEffort": "none",
+      "thinkingParam": null,
+      "effortParam": "reasoning_effort",
+      "supportsVision": true,
+      "supportsJson": true,
+      "maxTokensParam": "max_completion_tokens",
+      "pricing": {
+        "currency": "USD",
+        "unit": "per_million_tokens",
+        "flat": {
+          "inputCacheHit": 0.05,
+          "inputCacheMiss": 1.0,
+          "output": 5.0
+        },
+        "source": "https://developers.openai.com/api/docs/pricing"
+      }
+    },
+    {
+      "id": "gpt-6.1-sol",
+      "name": "GPT-6.1 Sol",
+      "model": "gpt-6.1-sol",
+      "endpoint": "https://api.openai.com/v1",
+      "contextWindow": 1050000,
+      "maxOutputTokens": 128000,
+      "effortLevels": ["low", "medium", "high", "max"],
+      "defaultEffort": "low",
+      "thinkingParam": null,
+      "effortParam": "reasoning_effort",
+      "supportsVision": true,
+      "supportsJson": true,
+      "maxTokensParam": "max_completion_tokens",
+      "pricing": {
+        "currency": "USD",
+        "unit": "per_million_tokens",
+        "flat": {
+          "inputCacheHit": 0.1,
+          "inputCacheMiss": 2.0,
+          "output": 10.0
+        },
+        "source": "https://developers.openai.com/api/docs/pricing"
+      }
+    }
+  ]
+}

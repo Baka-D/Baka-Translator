@@ -1,0 +1,93 @@
+{
+  "id": "gemini",
+  "name": "Google Gemini",
+  "endpoint": "https://generativelanguage.googleapis.com/v1beta/openai",
+  "completionsPath": "/chat/completions",
+  "modelsPath": "/models",
+  "protocol": "openai",
+  "requestShape": "openai",
+  "imageDetail": false,
+  "apiKeyLabel": "Gemini API Key",
+  "apiKeyPlaceholder": "AIza...",
+  "docsUrl": "https://aistudio.google.com/apikey",
+  "models": [
+    {
+      "id": "gemini-4-argon",
+      "name": "Gemini 4 Argon",
+      "model": "gemini-4-argon",
+      "endpoint": "https://generativelanguage.googleapis.com/v1beta/openai",
+      "contextWindow": 1048576,
+      "maxOutputTokens": 65536,
+      "outputFloor": 32000,
+      "effortLevels": ["low", "medium", "high"],
+      "defaultEffort": "low",
+      "thinkingParam": null,
+      "effortParam": "reasoning_effort",
+      "supportsVision": true,
+      "supportsJson": false,
+      "maxTokensParam": "max_tokens",
+      "pricing": {
+        "currency": "USD",
+        "unit": "per_million_tokens",
+        "flat": {
+          "inputCacheHit": 0.2,
+          "inputCacheMiss": 4.0,
+          "output": 20.0
+        },
+        "source": "https://ai.google.dev/gemini-api/docs/pricing"
+      }
+    },
+    {
+      "id": "gemini-3.8-flash",
+      "name": "Gemini 3.8 Flash",
+      "model": "gemini-3.8-flash",
+      "endpoint": "https://generativelanguage.googleapis.com/v1beta/openai",
+      "contextWindow": 1048576,
+      "maxOutputTokens": 65536,
+      "outputFloor": 32000,
+      "effortLevels": ["low", "medium", "high"],
+      "defaultEffort": "low",
+      "thinkingParam": null,
+      "effortParam": "reasoning_effort",
+      "supportsVision": true,
+      "supportsJson": false,
+      "maxTokensParam": "max_tokens",
+      "pricing": {
+        "currency": "USD",
+        "unit": "per_million_tokens",
+        "flat": {
+          "inputCacheHit": 0.15,
+          "inputCacheMiss": 1.5,
+          "output": 7.5
+        },
+        "source": "https://ai.google.dev/gemini-api/docs/pricing"
+      }
+    },
+    {
+      "id": "gemini-3.1-flash-lite",
+      "name": "Gemini 3.1 Flash-Lite",
+      "model": "gemini-3.1-flash-lite",
+      "endpoint": "https://generativelanguage.googleapis.com/v1beta/openai",
+      "contextWindow": 1048576,
+      "maxOutputTokens": 65536,
+      "outputFloor": 32000,
+      "effortLevels": ["low", "medium", "high"],
+      "defaultEffort": "low",
+      "thinkingParam": null,
+      "effortParam": "reasoning_effort",
+      "supportsVision": true,
+      "supportsJson": false,
+      "maxTokensParam": "max_tokens",
+      "pricing": {
+        "currency": "USD",
+        "unit": "per_million_tokens",
+        "flat": {
+          "inputCacheHit": 0.025,
+          "inputCacheMiss": 0.25,
+          "output": 1.5
+        },
+        "source": "https://ai.google.dev/gemini-api/docs/pricing"
+      }
+    }
+  ]
+}

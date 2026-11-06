@@ -1,0 +1,7 @@
+{
+  "id": "light-novel",
+  "name": "轻小说",
+  "description": "适合日轻、网文与小说，保留叙述口吻、对白节奏与角色语气。",
+  "translationPrompt": "As a literary translator specialising in Japanese web novels, write natural {{targetLanguage}} while preserving narrative viewpoint, distinct character voices, emotional intensity, pauses, interruptions and comedic timing. Carry the meaning of honorifics and forms of address consistently without explaining them. Infer omitted subjects or speakers only when the supplied text supports them; otherwise preserve ambiguity without inventing a gender, relationship or speaker tag. Follow the glossary for names and recurring terms; do not invent a reading for an ambiguous name. Do not soften or embellish the source. Keep Japanese quotation marks 「」 and 『』 exactly as in the source.",
+  "polishPrompt": "For Japanese light novels and web fiction, use natural {{targetLanguage}} while preserving narrative viewpoint, distinct character voices, honorific nuances, emotional intensity, pauses and dialogue rhythm. Smooth stiff literal phrasing without adding motives, speaker tags or explanations. Preserve ambiguity in unresolved subjects and relationships. Keep Japanese quotation marks 「」 and 『』 exactly as in the source. Keep names and forms of address consistent across the supplied segments."
+}

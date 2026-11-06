@@ -1,0 +1,99 @@
+{
+  "id": "deepseek",
+  "name": "DeepSeek",
+  "endpoint": "https://api.deepseek.com",
+  "completionsPath": "/chat/completions",
+  "modelsPath": "/models",
+  "protocol": "openai",
+  "requestShape": "deepseek",
+  "apiKeyLabel": "DeepSeek API Key",
+  "apiKeyPlaceholder": "sk-...",
+  "apiKeyPrefix": "sk-",
+  "docsUrl": "https://platform.deepseek.com/api_keys",
+  "models": [
+    {
+      "id": "deepseek-flash",
+      "name": "DeepSeek V4.1 Flash",
+      "model": "deepseek-flash",
+      "endpoint": "https://api.deepseek.com",
+      "contextWindow": 1000000,
+      "maxOutputTokens": 384000,
+      "effortLevels": ["none", "low", "high", "max"],
+      "defaultEffort": "none",
+      "thinkingParam": "deepseek",
+      "effortParam": "reasoning_effort",
+      "supportsVision": true,
+      "supportsJson": true,
+      "maxTokensParam": "max_tokens",
+      "pricing": {
+        "currency": "USD",
+        "unit": "per_million_tokens",
+        "peakWindowsUtc": [
+          {
+            "start": 1,
+            "end": 4
+          },
+          {
+            "start": 6,
+            "end": 10
+          }
+        ],
+        "peakWeekdays": [1, 2, 3, 4, 5],
+        "holidayDates": [],
+        "peak": {
+          "inputCacheHit": 0.006,
+          "inputCacheMiss": 0.3,
+          "output": 1.2
+        },
+        "offPeak": {
+          "inputCacheHit": 0.003,
+          "inputCacheMiss": 0.15,
+          "output": 0.6
+        },
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/"
+      }
+    },
+    {
+      "id": "deepseek-v4-pro",
+      "name": "DeepSeek V4 Pro",
+      "model": "deepseek-v4-pro",
+      "endpoint": "https://api.deepseek.com",
+      "contextWindow": 1000000,
+      "maxOutputTokens": 384000,
+      "effortLevels": ["none", "low", "high", "max"],
+      "defaultEffort": "none",
+      "thinkingParam": "deepseek",
+      "effortParam": "reasoning_effort",
+      "supportsVision": false,
+      "supportsJson": true,
+      "maxTokensParam": "max_tokens",
+      "pricing": {
+        "currency": "USD",
+        "unit": "per_million_tokens",
+        "peakWindowsUtc": [
+          {
+            "start": 1,
+            "end": 4
+          },
+          {
+            "start": 6,
+            "end": 10
+          }
+        ],
+        "peakWeekdays": [1, 2, 3, 4, 5],
+        "holidayDates": [],
+        "peak": {
+          "inputCacheHit": 0.044,
+          "inputCacheMiss": 1.32,
+          "output": 3.96
+        },
+        "offPeak": {
+          "inputCacheHit": 0.022,
+          "inputCacheMiss": 0.66,
+          "output": 1.98
+        },
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/"
+      }
+    }
+  ]
+}

@@ -1,0 +1,102 @@
+{
+  "manifest_version": 3,
+  "name": "Baka Translator",
+  "short_name": "BakaTslt",
+  "version": "1.0.0",
+  "description": "Baka Translator：一个网页翻译与润色扩展，支持整页、划词、图片翻译。",
+  "minimum_chrome_version": "116",
+  "permissions": [
+    "activeTab",
+    "contextMenus",
+    "scripting",
+    "storage",
+    "unlimitedStorage"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background/service-worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://ncode.syosetu.com/*", "https://kakuyomu.jp/*"],
+      "js": [
+        "shared/config.js",
+        "shared/languages.js",
+        "shared/detect.js",
+        "shared/text.js",
+        "shared/glossary.js",
+        "shared/novel.js",
+        "content/overlay-style-base.js",
+        "content/overlay-style-images.js",
+        "content/overlay-ui.js",
+        "content/overlay-panel.js",
+        "content/overlay-bubble.js",
+        "content/overlay-images.js",
+        "content/overlay-image-frame.js",
+        "content/overlay.js",
+        "content/content-runtime.js",
+        "content/content-ruby.js",
+        "content/content-dom.js",
+        "content/content-captions.js",
+        "content/content-page-ui.js",
+        "content/content-page.js",
+        "content/content-polish.js",
+        "content/content-novel.js",
+        "content/content-pretranslation.js",
+        "content/content-dynamic.js",
+        "content/content-selection.js",
+        "content/content-images.js",
+        "content/content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["content/image-results.html"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "action": {
+    "default_title": "Baka Translator",
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "assets/icons/icon16.png",
+      "32": "assets/icons/icon32.png",
+      "48": "assets/icons/icon48.png",
+      "128": "assets/icons/icon128.png"
+    }
+  },
+  "options_ui": {
+    "page": "options/options.html",
+    "open_in_tab": true
+  },
+  "icons": {
+    "16": "assets/icons/icon16.png",
+    "32": "assets/icons/icon32.png",
+    "48": "assets/icons/icon48.png",
+    "128": "assets/icons/icon128.png"
+  },
+  "commands": {
+    "toggle-page-translation": {
+      "suggested_key": {
+        "default": "Alt+Shift+Y"
+      },
+      "description": "翻译 / 还原当前页面"
+    },
+    "translate-selection": {
+      "suggested_key": {
+        "default": "Alt+Shift+S"
+      },
+      "description": "翻译选中的文本"
+    },
+    "translate-images": {
+      "suggested_key": {
+        "default": "Alt+Shift+U"
+      },
+      "description": "翻译当前画面中的图片"
+    }
+  }
+}

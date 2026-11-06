@@ -1,0 +1,32 @@
+{
+  "id": "custom",
+  "name": "自定义 OpenAI 兼容接口",
+  "endpoint": "",
+  "completionsPath": "/chat/completions",
+  "modelsPath": "/models",
+  "protocol": "openai",
+  "requestShape": "openai",
+  "requiresEndpoint": true,
+  "apiKeyRequired": false,
+  "apiKeyLabel": "自定义接口 API Key",
+  "apiKeyPlaceholder": "可选，按服务要求填写",
+  "docsUrl": "",
+  "models": [
+    {
+      "id": "custom-model",
+      "name": "自定义模型",
+      "model": "",
+      "endpoint": "",
+      "contextWindow": 128000,
+      "maxOutputTokens": 16384,
+      "effortLevels": ["none", "low", "medium", "high"],
+      "defaultEffort": "none",
+      "thinkingParam": null,
+      "effortParam": "reasoning_effort",
+      "supportsVision": true,
+      "supportsJson": true,
+      "maxTokensParam": "max_tokens",
+      "pricing": null
+    }
+  ]
+}
