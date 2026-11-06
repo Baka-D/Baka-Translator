@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Baka Translator 隐私政策</title>
+<style>body{margin:0;background:#fff;color:#202532;font:16px/1.85 system-ui,"Microsoft YaHei",sans-serif}main{max-width:880px;margin:48px auto;padding:0 28px 56px}h1{font-size:30px;line-height:1.4}h2{margin-top:32px;font-size:21px}p{overflow-wrap:anywhere}a{color:#3151d3}footer{margin-top:40px;border-top:1px solid #ddd;padding-top:18px;font-size:14px;color:#596273}</style>
+</head>
+<body>
+<main>
+<h1>Baka Translator 隐私政策</h1>
+<section>
+<h2>政策范围</h2>
+<p>生效日期：2026 年 11 月 7 日。适用版本：1.0.0。</p>
+<p>Baka Translator 使用您自行选择的模型服务提供网页翻译、划词翻译、译文润色、图片翻译及轻小说辅助阅读功能。本政策说明扩展处理哪些信息、处理目的、接收方、本地保留方式及您的控制方式。</p>
+<p>扩展没有开发者自建的内容中转服务器，也不向开发者发送使用分析或广告追踪数据。但翻译等功能需要处理网页内容，并将相关内容发送到您选择的第三方模型服务。</p>
+</section>
+<section>
+<h2>处理的信息与用途</h2>
+<p>连接与功能设置：您填写的 API Key、服务商和模型选择、自定义接口地址、思考强度、提示词、目标语言、双语显示及按网站设置，用于执行您的配置并连接模型服务。</p>
+<p>网站内容：需要翻译的网页正文或选中文字、初译、必要的前文或前章上下文、作品标题及相关术语，用于翻译、润色、术语提取和章节预翻译。</p>
+<p>图片内容：主动使用图片翻译时产生的当前标签页可见区域截图、裁剪图片、识别原文和译文，用于识别与展示图片文字。</p>
+<p>站点与章节记录：当前网站域名、小说站点和作品标识、章节标识、章节 URL、标题、原文与译文缓存、处理时间及相关设置，用于站点配置、缓存匹配和轻小说阅读。扩展不建立覆盖您全部浏览活动的历史库。</p>
+<p>本地用量汇总：API 请求次数、Token 用量、缓存用量、估算费用和更新时间，用于在扩展中展示使用情况；这些汇总不作为使用分析上传给开发者。扩展不记录点击、按键、鼠标位置或滚动轨迹。</p>
+<p>如果您主动翻译网页邮件、聊天或其他通信内容，其中显示的文字或图片可能作为网站内容被处理和发送。扩展不连接邮箱 API，也不在后台同步邮件或消息。您选择的内容还可能包含个人或敏感信息；扩展不为姓名、健康、支付或信用状况等类别另外抽取建档。</p>
+</section>
+<section>
+<h2>何时处理内容</h2>
+<p>一般网页的翻译请求由工具栏、快捷键、右键菜单或扩展界面操作触发。图片截图仅在您使用图片翻译功能时生成。</p>
+<p>在小説家になろう和カクヨム等已支持的章节页面，扩展会自动加载随包提供的内容脚本以识别章节。您启用相应设置后，轻小说流程可读取或应用本地章节缓存、取得相关上下文、提取术语并预翻译下一章。已启动的后台预翻译任务可以在页面导航后继续执行。</p>
+</section>
+<section>
+<h2>发送给哪些接收方</h2>
+<p>当您调用模型、测试连接或获取模型列表时，API Key 会按照接口要求作为认证信息发送到您选择的服务商或自定义端点。API Key 保存在本机，不表示它只在本机使用；扩展不会将已保存的 API Key 插入翻译正文或提示词。</p>
+<p>内置服务包括 DeepSeek、OpenAI、Anthropic、xAI 和 Google。自定义接口的接收方由您配置的端点地址决定。翻译与润色可以选择不同服务商，因此原文、初译、必要上下文、提示词及相关术语可能分别发送给不同的接收方。</p>
+<p>图片翻译会先在本机对当前标签页的可见区域截图，按图片位置裁剪、缩放和压缩，再将裁剪结果发送给所选视觉模型。裁剪区域可能含有少量邻近页面像素。</p>
+<p>模型 API 请求显式不携带浏览器 Cookie。轻小说功能读取原小说网站的相邻章节时，浏览器可能向该网站附带已有登录会话，以取得您有权访问的内容；扩展不通过 Cookie API 读取或导出 Cookie 值。</p>
+<p>接收方可能获得请求内容、认证信息，以及 IP 地址、请求时间等正常网络请求信息。服务商的数据保留、日志、训练使用、人工审核、处理地区和删除规则取决于该服务商的条款及您的账户设置，本扩展不能替第三方保证不保存或不用于训练。请在使用前核实所选服务，尤其是自定义端点。</p>
+</section>
+<section>
+<h2>本地存储与保留</h2>
+<p>API Key、设置、模型记录、术语库、作品元信息、章节缓存和用量汇总保存在本机浏览器的 chrome.storage.local 中。扩展不使用 chrome.storage.sync 主动同步这些数据。</p>
+<p>API Key 没有额外的应用层密钥加密；本地数据的保护依赖浏览器配置、操作系统访问控制和设备安全。</p>
+<p>章节缓存有效期设为 30 天，并在读取或后续缓存操作时检查与整理过期记录。这不是到期立即执行的定时物理删除。每部作品缓存有数量上限；设置、术语库及作品元信息没有统一的自动到期时间。</p>
+<p>完整标签页截图、裁剪图片及图片识别结果不会通过扩展的本地存储功能持久保存，而是用于当前任务和界面展示。关闭图片结果面板会清空该面板持有的结果；内存释放仍由浏览器管理。</p>
+</section>
+<section>
+<h2>您的控制与删除方式</h2>
+<p>您可以在设置中更换或清除已保存的 API Key，修改模型与提示词，关闭相应网站功能，清零用量统计，或清空某个作品的术语库。各项清除操作只作用于对应数据，不等于一键删除全部本地数据。</p>
+<p>您可以通过浏览器管理扩展的网站访问权限，也可以卸载扩展以清除其本地扩展存储。</p>
+<p>清除本机 API Key 不会在服务商处撤销该密钥，也不会撤回已经发送的请求。扩展不能删除服务商已接收的数据；服务商端的密钥撤销、留存设置或删除请求需要向相应服务商办理。</p>
+</section>
+<section>
+<h2>传输与有限使用</h2>
+<p>内置远程服务端点使用 HTTPS。扩展也允许配置 localhost 或 127.0.0.1 的本机 HTTP 接口；此类本地 HTTP 连接不提供 TLS 传输加密，因此不能将所有自定义连接都视为加密连接。</p>
+<p>Baka Translator 对通过扩展取得的信息的使用和转移，仅限于提供或改进用户使用的翻译及直接相关功能，并遵循 Chrome Web Store 用户数据政策，包括 Limited Use 要求。扩展本身不将这些信息出售，不用于定向广告、广告画像、信用评估或放贷判断，也不由开发者收集用于训练通用人工智能模型。</p>
+<p>按您的选择向模型服务发送必要数据，是提供翻译功能的组成部分，并不表示扩展向开发者上传数据。第三方服务的处理仍需由您结合其政策与账户配置确认。</p>
+</section>
+<section>
+<h2>政策更新与联系</h2>
+<p>数据处理方式变化时，本政策会相应更新，并标注新的生效日期。</p>
+<p>项目维护与反馈：<a href="https://github.com/Baka-D/Baka-Translator/issues">https://github.com/Baka-D/Baka-Translator/issues</a> 。请勿在公开反馈中附上 API Key 或敏感网页内容。</p>
+<p>项目主页：<a href="https://github.com/Baka-D/Baka-Translator">https://github.com/Baka-D/Baka-Translator</a> 。Chrome Web Store 用户数据政策：<a href="https://developer.chrome.com/docs/webstore/program-policies/policies#protecting-user-privacy">https://developer.chrome.com/docs/webstore/program-policies/policies#protecting-user-privacy</a> 。</p>
+</section>
+</main>
+</body>
+</html>
