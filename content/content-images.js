@@ -323,6 +323,14 @@
       imageJob.subtitle = `${items.length} 张图片`;
       imageJob.running = true;
       renderImagePanel();
+      // Sandboxed pages stop the results window from running: fail before paying for OCR.
+      const panelReady = await overlay.waitImagePanel(5000);
+      if (runId !== imageJob.runId) return;
+      if (!panelReady) {
+        closeImagePanel();
+        overlay.showToast('当前页面的安全策略不允许显示结果窗口，图片未发送。', 'error');
+        return;
+      }
 
       let cursor = 0;
       const worker = async () => {
@@ -391,8 +399,8 @@
       imageJob.running = false;
       imageJob.items = [];
       imageJob.subtitle = '请保持页面在前台后重试。';
-      renderImagePanel();
       overlay.showToast('图片翻译失败，请在图片结果面板查看详情。', 'error');
+      renderImagePanel();
     } finally {
       if (captureMode) overlay.setCaptureMode(false);
     }

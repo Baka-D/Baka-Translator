@@ -80,7 +80,7 @@
       const remainingMs = deadline - Date.now();
       if (remainingMs <= 0) throw new ApiError('获取模型超时，请稍后重试。', { code: 'TIMEOUT' });
       const data = await requestJson(url.toString(), {
-        method: 'GET', headers, redirect: 'error', fetchImpl: opts.fetchImpl,
+        method: 'GET', headers, fetchImpl: opts.fetchImpl,
         timeoutMs: remainingMs, providerName: provider.name || provider.id
       }).catch((error) => {
         // Providers may echo even arbitrary gateway keys in their error details.

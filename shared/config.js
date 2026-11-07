@@ -131,6 +131,7 @@
       CAPTURE_SCREENSHOT: 'dsht:captureScreenshot',
       IMAGE_PANEL_UPDATE: 'dsht:imagePanelUpdate',
       IMAGE_PANEL_CLOSED: 'dsht:imagePanelClosed',
+      IMAGE_PANEL_READY: 'dsht:imagePanelReady',
       TRANSLATE_BATCH: 'dsht:translateBatch',
       POLISH_SEGMENTS: 'dsht:polishSegments',
       EXTRACT_TERMS: 'dsht:extractTerms',

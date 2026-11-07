@@ -160,6 +160,10 @@
       if (/Extension context invalidated/i.test(String(error && error.message))) {
         error.code = 'EXTENSION_RELOADED';
         error.message = '扩展已更新或重新加载，请刷新页面后重试。';
+      } else if (/message (channel|port) closed|Receiving end does not exist/i.test(String(error && error.message))) {
+        error.code = 'WORKER_RESTARTED';
+        error.retryable = true;
+        error.message = '扩展后台已重启，请重试。';
       }
       throw error;
     });

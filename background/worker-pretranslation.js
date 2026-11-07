@@ -132,6 +132,10 @@ function savePretranslationCache(job, polished) {
   return pretranslationCacheWrites;
 }
 
+function addPretranslationCost(job, billing) {
+  if (billing && billing.available) job.costUsd += Number(billing.costUsd) || 0;
+}
+
 function addPretranslationResult(job, result, segments) {
   const expected = new Set(segments.map((segment) => segment.id));
   for (const item of Array.isArray(result.translations) ? result.translations : []) {
@@ -140,8 +144,9 @@ function addPretranslationResult(job, result, segments) {
       expected.delete(String(item.id));
     }
   }
+  addPretranslationCost(job, result.billing);
+  for (const billing of result.discardedBilling || []) addPretranslationCost(job, billing);
   if (expected.size) throw new PageAccessError('INCOMPLETE_TRANSLATION', '下一章翻译结果不完整。');
-  if (result.billing && result.billing.available) job.costUsd += Number(result.billing.costUsd) || 0;
 }
 
 function mergeTranslationBatchResults(first, second) {
@@ -151,6 +156,10 @@ function mergeTranslationBatchResults(first, second) {
     translations: [
       ...((first && first.translations) || []),
       ...((second && second.translations) || [])
+    ],
+    discardedBilling: [
+      ...((first && first.discardedBilling) || []),
+      ...((second && second.discardedBilling) || [])
     ],
     billing: {
       available: Boolean(left.available || right.available),
@@ -176,6 +185,7 @@ async function translatePretranslationBatch(job, batch, depth = 0) {
       context
     }, job.sender, () => !pretranslationActive(job), job.translationRuntime);
   } catch (error) {
+    for (const billing of error?.discardedBilling || []) addPretranslationCost(job, billing);
     // A long batch can come back incomplete (usually output truncation or a
     // malformed id). Retrying the same large batch often fails the same way;
     // split it so the successful halves can still be saved.
@@ -252,7 +262,10 @@ async function polishPretranslation(job) {
     }, job.sender, () => !pretranslationActive(job), job.polishRuntime);
     if (!pretranslationActive(job)) return;
     // Surface the provider's real failure instead of a generic incomplete-result error.
-    if (result.polishError) throw new PageAccessError('POLISH_FAILED', result.polishError);
+    if (result.polishError) {
+      addPretranslationCost(job, result.billing);
+      throw new PageAccessError('POLISH_FAILED', result.polishError);
+    }
     addPretranslationResult(job, result, chunk);
     job.progress.done += chunk.length;
   }
@@ -303,6 +316,8 @@ async function runPretranslation(job) {
   } catch (error) {
     if (job.cancelled || pretranslationOwners.get(job.cacheKey) !== job) return;
     const detail = errorPayload(error);
+    // The draft was saved before polish was billed; the record should carry that cost too.
+    if (job.hasDraft) await savePretranslationCache(job, false).catch(() => {});
     job.status = job.hasDraft ? 'ready' : 'error';
     job.note = job.hasDraft
       ? `下一章初译已缓存，润色未完成：${detail.message}`

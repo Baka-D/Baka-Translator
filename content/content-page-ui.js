@@ -182,7 +182,7 @@
         subtitle: `${sourceLabel} → ${targetLabel}${page.proofreadEnabled && !page.polishError ? ' · 已润色' : ''} · ${page.progress.total} 个片段${costText ? ` · ${costText}` : ''}`,
         showProgress: pretranslation.active && pretranslation.showProgress,
         progressRatio: pretranslation.ratio,
-        actions: [{ id: 'restore', label: '还原原文', variant: 'primary' }],
+        actions: finishedActions(),
         showDismiss: true,
         note: notes.join('\n')
       });
@@ -202,7 +202,7 @@
         subtitle: `${page.error || `${page.progress.failed} 个片段未完成`}${costText ? ` · ${costText}` : ''}`,
         showProgress: pretranslation.active && pretranslation.showProgress,
         progressRatio: pretranslation.ratio,
-        actions: [{ id: 'restore', label: '还原原文', variant: 'primary' }],
+        actions: finishedActions(),
         showDismiss: true,
         note: notes.join('\n')
       });
@@ -231,6 +231,13 @@
     });
   }
 
+  /** Chapters reopen from cache, so this is the only way to apply a new glossary to one. */
+  function finishedActions() {
+    const actions = [{ id: 'restore', label: '还原原文', variant: 'primary' }];
+    if (page.novelMode) actions.unshift({ id: 'retranslate', label: '重新翻译', variant: 'ghost' });
+    return actions;
+  }
+
   function handlePanelAction(action) {
     if (action === 'cancel' || action === 'restore') {
       app.restorePage({ silent: false });
@@ -241,7 +248,7 @@
       overlay.hidePanel();
       return;
     }
-    if (action === 'retry') {
+    if (action === 'retry' || action === 'retranslate') {
       // A run that failed before resolving its target falls back to the saved settings.
       const request = page.targetCode
         ? { targetCode: page.targetCode, bilingual: page.bilingual, force: true }

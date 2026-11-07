@@ -61,6 +61,7 @@ const state = {
   tabId: null,
   tabUrl: '',
   hasApiKey: false,
+  modelError: '',
   supportsVision: true,
   modelName: '',
   modelKey: '',

@@ -201,6 +201,16 @@
       error.code = 'MISSING_CUSTOM_PROVIDER';
       throw error;
     }
+    if (opts.modelId && !getModel(registry, opts.modelId)) {
+      const error = new Error('所选模型已不存在，请在设置页改选其他模型。');
+      error.code = 'MISSING_MODEL';
+      throw error;
+    }
+    if (opts.modelId && !getModel(registry, opts.modelId)) {
+      const error = new Error('所选模型已不存在，请在设置页改选其他模型。');
+      error.code = 'MISSING_MODEL';
+      throw error;
+    }
     const model = getModel(registry, opts.modelId) || getModel(registry, registry && registry.defaultModelId);
     if (!model) {
       const error = new Error('没有可用的模型，请检查 profile/ 下的模型配置。');

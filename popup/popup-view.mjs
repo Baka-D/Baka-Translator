@@ -6,8 +6,9 @@ import { renderSiteToggles, renderCost } from './popup-site.mjs';
 
 function renderKeyNotice() {
   const show = state.configLoaded && !state.hasApiKey;
-  if (show && ui.keyNoticeText.textContent !== KEY_NOTICE_TEXT) {
-    ui.keyNoticeText.textContent = KEY_NOTICE_TEXT;
+  const notice = state.modelError || KEY_NOTICE_TEXT;
+  if (show && ui.keyNoticeText.textContent !== notice) {
+    ui.keyNoticeText.textContent = notice;
   }
   ui.keyNotice.hidden = !show;
 }

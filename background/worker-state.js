@@ -74,14 +74,15 @@ async function getConfigSnapshot() {
         },
         hasApiKey: Boolean(apiKey) || resolved.provider.apiKeyRequired === false
       };
-    } catch (_error) {
+    } catch (error) {
       return {
         purpose: selection.purpose,
         modelId: selection.modelId,
         effortLevel: selection.effortLevel,
         model: null,
         provider: null,
-        hasApiKey: false
+        hasApiKey: false,
+        modelError: error.message
       };
     }
   }
@@ -105,6 +106,7 @@ async function getConfigSnapshot() {
     translationProvider: translation.provider,
     polishProvider: polish.provider,
     translationHasApiKey: translation.hasApiKey,
+    translationModelError: translation.modelError || '',
     polishUsesTranslationModel: polishSelection.inheritsModel,
     polishUsesTranslationEffort: polishSelection.inheritsEffort,
     // Legacy aliases: translation is the default/primary model.

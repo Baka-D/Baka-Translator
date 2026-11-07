@@ -69,7 +69,7 @@
     function relayoutHost() {
       if (!host) return;
       const parent = document.fullscreenElement || document.documentElement;
-      if (parent && host.parentNode !== parent) parent.appendChild(host);
+      if (parent && host.parentNode !== parent) images.reattach(() => parent.appendChild(host));
     }
 
     function buildToast(layer) {
@@ -146,7 +146,7 @@
     return Object.freeze({
       renderPanel, hidePanel: panel.hide,
       renderBubble, hideBubble: bubble.hide, positionBubble: bubble.position,
-      renderImagePanel, hideImagePanel: images.hide,
+      renderImagePanel, hideImagePanel: images.hide, waitImagePanel: images.ready,
       setCaptureMode, showToast
     });
   }

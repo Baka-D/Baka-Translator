@@ -61,6 +61,7 @@ async function readConfig() {
     return {
       ok: true,
       hasApiKey: response.hasApiKey,
+      modelError: response.translationModelError || '',
       supportsVision: response.model?.supportsVision !== false,
       modelName: response.model?.name || response.model?.model || '',
       modelKey: JSON.stringify([response.provider?.id, response.model?.endpoint,

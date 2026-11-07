@@ -2,8 +2,9 @@
  * Background service worker: context menus, keyboard commands, page access,
  * screenshot capture and all model API calls.
  *
- * The API key stays inside chrome.storage.local and this worker. It is never
- * sent to a content script, a web page or an extension popup.
+ * Only this worker uses the API key, and no message carries it to a content
+ * script, a web page or the popup. chrome.storage.local itself stays readable
+ * from content scripts, which keep their settings and novel data there.
  */
 importScripts(
   chrome.runtime.getURL('shared/config.js'),

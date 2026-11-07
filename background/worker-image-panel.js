@@ -22,6 +22,11 @@ function sameImagePanelOwner(a, b) {
   return a.tabId === b.tabId && a.frameId === b.frameId && a.documentId === b.documentId;
 }
 
+function tellImagePanelOwner(session, type) {
+  void chrome.tabs.sendMessage(session.owner.tabId, { type, sessionId: session.id },
+    { documentId: session.owner.documentId }).catch(() => {});
+}
+
 function forgetImagePanel(session, notifyOwner = false) {
   if (imagePanelSessions.get(session.id) !== session) return;
   imagePanelSessions.delete(session.id);
@@ -32,11 +37,7 @@ function forgetImagePanel(session, notifyOwner = false) {
   if (port) {
     try { port.disconnect(); } catch (_error) { /* Already disconnected. */ }
   }
-  if (notifyOwner) {
-    void chrome.tabs.sendMessage(session.owner.tabId, {
-      type: imagePanelConfig.MSG.IMAGE_PANEL_CLOSED, sessionId: session.id
-    }, { documentId: session.owner.documentId }).catch(() => {});
-  }
+  if (notifyOwner) tellImagePanelOwner(session, imagePanelConfig.MSG.IMAGE_PANEL_CLOSED);
 }
 
 function imagePanelModel(model) {
@@ -118,8 +119,10 @@ chrome.runtime.onConnect.addListener((port) => {
   port.onMessage.addListener((message) => {
     if (message?.type === 'close') forgetImagePanel(session, true);
   });
-  try { port.postMessage({ type: 'model', model: session.model }); }
-  catch (_error) { forgetImagePanel(session, true); }
+  try {
+    port.postMessage({ type: 'model', model: session.model });
+    tellImagePanelOwner(session, imagePanelConfig.MSG.IMAGE_PANEL_READY);
+  } catch (_error) { forgetImagePanel(session, true); }
 });
 
 function forgetTabImagePanels(tabId) {
@@ -128,7 +131,6 @@ function forgetTabImagePanels(tabId) {
   }
 }
 
-chrome.tabs.onUpdated.addListener((tabId, change) => {
-  if (change.status === 'loading') forgetTabImagePanels(tabId);
-});
+// No onUpdated cleanup: it also fires for pushState and hash changes, which keep the panel.
+// Real navigation unloads the iframe, so the port disconnect above releases the session.
 chrome.tabs.onRemoved.addListener(forgetTabImagePanels);

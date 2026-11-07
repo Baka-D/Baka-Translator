@@ -123,6 +123,7 @@
       if (runId !== page.runId) return;
       app.addPageCost(response.billing);
       for (const billing of response.reviewBilling || []) app.addPageCost(billing);
+      app.addDiscardedCost(response);
       meta = {
         ...meta,
         extractedChapterIds: meta.extractedChapterIds.includes(page.novel.chapterId)
@@ -131,8 +132,12 @@
       };
       await saveNovelGlossary(page.novel, meta, response.terms || [], targetCode);
       app.renderPagePanel();
-    } catch (_error) {
+    } catch (error) {
       // Glossary extraction is best-effort and must not break translation.
+      if (runId === page.runId) {
+        app.addDiscardedCost(error);
+        app.renderPagePanel();
+      }
     }
   }
 

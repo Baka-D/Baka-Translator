@@ -11,7 +11,8 @@ const extensionId = 'abcdefghijklmnopabcdefghijklmnop';
 const extensionUrl = `chrome-extension://${extensionId}/`;
 const sessionId = '12345678-1234-4234-8234-123456789abc';
 const otherId = '12345678-1234-4234-8234-123456789def';
-const MSG = { IMAGE_PANEL_UPDATE: 'dsht:imagePanelUpdate', IMAGE_PANEL_CLOSED: 'dsht:imagePanelClosed' };
+const MSG = { IMAGE_PANEL_UPDATE: 'dsht:imagePanelUpdate', IMAGE_PANEL_CLOSED: 'dsht:imagePanelClosed',
+  IMAGE_PANEL_READY: 'dsht:imagePanelReady' };
 const secret = 'sensitive OCR result';
 const model = { visible: true, items: [{ status: 'done', hasText: true,
   thumbnail: 'data:image/jpeg;base64,AA==', original: secret, translation: secret }] };
@@ -91,21 +92,20 @@ test('close never forwards viewer payload, clears buffers and targets only the o
   accepted.port.onMessage.emit({ type: 'close', model, tabId: 99, documentId: 'attacker' });
   await Promise.resolve();
   assert.equal(accepted.port.disconnected, true);
-  assert.deepEqual(JSON.parse(JSON.stringify(broker.sent)), [[7,
-    { type: MSG.IMAGE_PANEL_CLOSED, sessionId }, { documentId: owner.documentId }]]);
+  assert.deepEqual(JSON.parse(JSON.stringify(broker.sent.at(-1))), [7,
+    { type: MSG.IMAGE_PANEL_CLOSED, sessionId }, { documentId: owner.documentId }]);
   const reopened = viewer();
   broker.connect.emit(reopened.port);
   assert.equal(reopened.port.disconnected, true);
   assert.equal(reopened.messages.length, 0);
 });
 
-test('owner navigation, renderer disconnect and unclaimed-session expiry release models', () => {
-  for (const cleanup of ['navigation', 'disconnect', 'expiry', 'removed']) {
+test('renderer disconnect, tab removal and unclaimed-session expiry release models', () => {
+  for (const cleanup of ['disconnect', 'expiry', 'removed']) {
     const broker = loadBroker();
     broker.update({});
     const accepted = viewer();
     if (cleanup !== 'expiry') broker.connect.emit(accepted.port);
-    if (cleanup === 'navigation') broker.updated.emit(7, { status: 'loading' });
     if (cleanup === 'removed') broker.removed.emit(7);
     if (cleanup === 'disconnect') accepted.port.disconnect();
     if (cleanup === 'expiry') for (const expire of [...broker.timers]) expire();
@@ -114,6 +114,27 @@ test('owner navigation, renderer disconnect and unclaimed-session expiry release
     assert.equal(after.port.disconnected, true, cleanup);
     assert.equal(after.messages.length, 0, cleanup);
   }
+});
+
+test('same-document navigation keeps the session and its port', () => {
+  const broker = loadBroker();
+  broker.update({});
+  const accepted = viewer();
+  broker.connect.emit(accepted.port);
+  broker.updated.emit(7, { status: 'loading' });
+  assert.ok(!accepted.port.disconnected);
+  const received = accepted.messages.length;
+  broker.update({});
+  assert.equal(accepted.messages.length, received + 1, 'the session still reaches its renderer');
+});
+
+test('the owner hears the window is ready only once its renderer connected', () => {
+  const broker = loadBroker();
+  broker.update({});
+  assert.equal(broker.sent.length, 0);
+  broker.connect.emit(viewer().port);
+  assert.deepEqual(JSON.parse(JSON.stringify(broker.sent)), [[7,
+    { type: MSG.IMAGE_PANEL_READY, sessionId }, { documentId: owner.documentId }]]);
 });
 
 function node(tag) {
@@ -129,8 +150,12 @@ function node(tag) {
 function loadBridge(sendMessage) {
   const messages = event(), pagehide = event();
   const layer = node('div');
-  const context = vm.createContext({ crypto: { randomUUID: (() => { let count = 0;
-    return () => count++ ? otherId : sessionId; })() },
+  const bytesOf = (id) => id.replaceAll('-', '').match(/../g).map((pair) => parseInt(pair, 16));
+  const nextId = (() => { let count = 0; return () => count++ ? otherId : sessionId; })();
+  const context = vm.createContext({
+    // Only getRandomValues: crypto.randomUUID does not exist on http pages.
+    crypto: { getRandomValues(bytes) { bytes.set(bytesOf(nextId())); return bytes; } },
+    setTimeout, clearTimeout,
     document: { createElement: node }, addEventListener(type, fn) { if (type === 'pagehide') pagehide.addListener(fn); },
     DSHT: { config: { MSG }, overlayParts: { setImportant() {} } },
     chrome: { runtime: { id: extensionId, getURL: (file) => extensionUrl + file,
@@ -138,7 +163,8 @@ function loadBridge(sendMessage) {
   vm.runInContext(fs.readFileSync(path.join(root, 'content/overlay-image-frame.js'), 'utf8'), context);
   const bridge = context.DSHT.overlayParts.createImageFrame({});
   bridge.build(layer);
-  return { bridge, layer, messages, pagehide };
+  const fromWorker = (message) => messages.emit(message, { id: extensionId });
+  return { bridge, layer, messages, pagehide, fromWorker };
 }
 
 const tick = () => new Promise(setImmediate);
@@ -184,6 +210,67 @@ test('bridge absorbs runtime errors and pagehide closes the private session', as
   await tick();
   assert.equal(active.layer.children.length, 0);
   assert.equal(updates.at(-1).model.visible, false);
+});
+
+test('a generated session id is a valid v4 UUID without randomUUID', async () => {
+  const updates = [];
+  const context = vm.createContext({ crypto: { getRandomValues: (bytes) => bytes.fill(0xff) },
+    document: { createElement: node }, addEventListener() {},
+    DSHT: { config: { MSG }, overlayParts: { setImportant() {} } },
+    chrome: { runtime: { id: extensionId, getURL: (file) => extensionUrl + file, onMessage: event(),
+      sendMessage: async (message) => { updates.push(message); return { ok: true }; } } } });
+  vm.runInContext(fs.readFileSync(path.join(root, 'content/overlay-image-frame.js'), 'utf8'), context);
+  const bridge = context.DSHT.overlayParts.createImageFrame({});
+  bridge.build(node('div'));
+  bridge.render(model);
+  await tick();
+  assert.equal(updates[0].sessionId, 'ffffffff-ffff-4fff-bfff-ffffffffffff');
+});
+
+test('ready waits for the renderer and reports a window that never connects', async () => {
+  const active = loadBridge(async () => ({ ok: true }));
+  active.bridge.render(model);
+  await tick();
+  const waiting = active.bridge.ready(1000);
+  active.fromWorker({ type: MSG.IMAGE_PANEL_READY, sessionId });
+  assert.equal(await waiting, true);
+  assert.equal(await active.bridge.ready(1000), true);
+  const blocked = loadBridge(async () => ({ ok: true }));
+  blocked.bridge.render(model);
+  await tick();
+  assert.equal(await blocked.bridge.ready(1), false);
+});
+
+test('a finished wait cannot cancel the next one', async () => {
+  const { bridge, fromWorker } = loadBridge(async () => ({ ok: true }));
+  bridge.render(model);
+  await tick();
+  const first = bridge.ready(1);
+  const second = bridge.ready(1000);
+  assert.equal(await first, false);
+  fromWorker({ type: MSG.IMAGE_PANEL_READY, sessionId });
+  assert.equal(await second, true);
+});
+
+test('a window that failed to register ends the wait at once', async () => {
+  const { bridge } = loadBridge(async () => { throw new Error('no worker'); });
+  bridge.render(model);
+  const waiting = bridge.ready(60000);
+  await tick();
+  assert.equal(await waiting, false);
+});
+
+test('moving the host rebuilds the window around the same model', async () => {
+  const updates = [];
+  const { bridge, layer } = loadBridge(async (message) => { updates.push(message); return { ok: true }; });
+  bridge.render(model);
+  await tick();
+  let attachedWhileMoving = null;
+  bridge.reattach(() => { attachedWhileMoving = layer.children.length; });
+  await tick();
+  assert.equal(attachedWhileMoving, 0, 'the old iframe is gone before the move');
+  assert.equal(layer.children[0].src, `${extensionUrl}content/image-results.html#${otherId}`);
+  assert.equal(updates.at(-1).model.items[0].original, secret);
 });
 
 test('renderer uses a private runtime port and clears its DOM when disconnected', () => {

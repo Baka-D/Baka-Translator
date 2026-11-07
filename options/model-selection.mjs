@@ -118,6 +118,10 @@ export function normalizeTranslationSelection() {
       '原先选用的自定义服务商或模型已不存在：翻译会停用，直到你在「常规 → 服务商」重新添加它或在此改选其他模型。',
       'warning'
     );
+  } else if (state.modelId && !modelsTools.getModel(state.registry, state.modelId)) {
+    // shortcut: re-picking the model shown here fires no change event, add a stale placeholder
+    // option if a release ever removes a built-in model.
+    setFeedback(ui.behaviorFeedback, '原先选用的模型已不存在：翻译会停用，直到你在此改选模型并保存。', 'warning');
   }
   let model = modelsTools.getModel(state.registry, state.modelId);
   if (!model) model = modelsTools.getModel(state.registry, snapshotFallbackModelId('translation'));

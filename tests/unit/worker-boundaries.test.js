@@ -65,6 +65,7 @@ function loadWorker(options = {}) {
           state.contentReady = true;
           return [];
         }
+        if (request.target.allFrames) return options.frames || [];
         state.probes += 1;
         if (options.probe) await options.probe({ state, events });
         const frameId = request.target.frameIds[0];
@@ -207,4 +208,36 @@ test('ordinary page messages and injection explicitly target only frame zero', a
   await worker.context.sendToContent(5, { type: config.MSG.TRANSLATE_IMAGES });
   assert.deepEqual(JSON.parse(JSON.stringify(worker.injections)), [{ tabId: 5, frameIds: [0] }]);
   assert.ok(worker.messages.every((entry) => entry.recipient.frameId === 0 && !entry.recipient.documentId));
+});
+
+const frame = (frameId, documentId, selected, focused) => ({ frameId, documentId, result: { selected, focused } });
+
+test('shortcut selection goes to the document that holds it', async () => {
+  const worker = loadWorker({ frames: [frame(0, 'top-doc', false, false), frame(3, 'child-doc', true, true)] });
+  const recipient = await worker.context.selectionRecipient(5);
+  assert.deepEqual(JSON.parse(JSON.stringify(recipient)), { documentId: 'child-doc' });
+});
+
+test('the focused frame wins over a selection left behind in the top frame', async () => {
+  const worker = loadWorker({ frames: [frame(0, 'top-doc', true, false), frame(3, 'child-doc', true, true)] });
+  assert.equal((await worker.context.selectionRecipient(5)).documentId, 'child-doc');
+});
+
+test('a stale selection in a frame is never sent while another frame has the focus', async () => {
+  const worker = loadWorker({ frames: [frame(0, 'top-doc', false, true), frame(3, 'child-doc', true, false)] });
+  assert.deepEqual(JSON.parse(JSON.stringify(await worker.context.selectionRecipient(5))), { frameId: 0 });
+});
+
+test('the popup holds the focus, so the selection decides: top frame first', async () => {
+  const child = loadWorker({ frames: [frame(0, 'top-doc', false, false), frame(3, 'child-doc', true, false)] });
+  assert.equal((await child.context.selectionRecipient(5)).documentId, 'child-doc');
+  const top = loadWorker({ frames: [frame(0, 'top-doc', true, false), frame(3, 'child-doc', true, false)] });
+  assert.equal((await top.context.selectionRecipient(5)).frameId, 0);
+});
+
+test('with no selection, or no frame access, selection stays on frame zero', async () => {
+  for (const frames of [[], [frame(0, 'top-doc', false, true)]]) {
+    const worker = loadWorker({ frames });
+    assert.deepEqual(JSON.parse(JSON.stringify(await worker.context.selectionRecipient(5))), { frameId: 0 });
+  }
 });

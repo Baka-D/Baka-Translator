@@ -131,7 +131,8 @@ def main() -> int:
     version = manifest_version()
     DIST.mkdir(parents=True, exist_ok=True)
     target = DIST / f"baka-translator-v{version}.zip"
-    top = f"baka-translator-v{version}"
+    # Unpacked extension IDs follow the folder path, so upgrades must land in the same folder.
+    top = "baka-translator"
 
     with zipfile.ZipFile(target, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
         for path in iter_runtime_files():

@@ -120,9 +120,8 @@ OpenAI `prompt_tokens_details.cached_tokens`），按缓存命中价、缓存未
 
 1. 在设置 → 常规 → 服务商点「＋ 添加服务商」；
 2. 填写名称、base URL（例如 `https://api.example.com/v1`）和真实 model 名称；
-3. 点击保存时扩展会请求该域名的 host 权限；
-4. 保存后在同一面板填写 API Key（服务不需要时可留空）并测试连接；
-5. 在设置 → 高级 → 模型行为中把翻译或润色切换到该服务商。
+3. 保存后在同一面板填写 API Key（服务不需要时可留空）并测试连接；
+4. 在设置 → 高级 → 模型行为中把翻译或润色切换到该服务商。
 
 用户添加的服务商保存在 `chrome.storage.local` 的 `customProviders`（`[{id, name, endpoint, model}]`）中，
 不写入本目录。`custom.json` 只作为模板：每个添加的服务商复制一份，模型 id 为 `<服务商 id>-model`。

@@ -403,6 +403,7 @@ async function handleExtractTerms(message, sender) {
   const stopped = pageRunStopped(sender);
   const request = validateTermMessage(message);
   const runtime = await resolveRuntime('translation', hostnameFromSender(sender));
+  const discardedBilling = [];
   const result = await withWorkerKeepalive(() => api.extractTerms({
     apiKey: runtime.apiKey,
     model: runtime.resolved.model,
@@ -412,8 +413,11 @@ async function handleExtractTerms(message, sender) {
     targetCode: request.targetCode,
     glossary: request.glossary,
     stopped,
-    onDiscardedUsage: discardedUsageRecorder(runtime)
-  }));
+    onDiscardedUsage: discardedUsageRecorder(runtime, (billing) => discardedBilling.push(billing))
+  })).catch((error) => {
+    error.discardedBilling = discardedBilling;
+    throw error;
+  });
   const enriched = attachBilling(runtime, result);
   await recordUsage(enriched.usage, enriched.billing);
   const reviewBilling = [];
@@ -422,5 +426,5 @@ async function handleExtractTerms(message, sender) {
     await recordUsage(billed.usage, billed.billing);
     reviewBilling.push(billed.billing);
   }
-  return { ...enriched, reviewBilling };
+  return { ...enriched, reviewBilling, discardedBilling };
 }

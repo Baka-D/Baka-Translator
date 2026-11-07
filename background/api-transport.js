@@ -221,8 +221,15 @@
         signal: controller.signal,
         credentials: 'omit',
         cache: 'no-store',
-        redirect: opts.redirect || 'follow'
+        redirect: 'manual'
       });
+      // Page text must not follow a redirect to a host the user never chose.
+      if (response.type === 'opaqueredirect') {
+        throw new ApiError(
+          `${opts.providerName || '模型服务'} 的接口地址发生了跳转，请在设置中填写跳转后的最终地址。`,
+          { code: 'REDIRECT_BLOCKED' }
+        );
+      }
       const { text, payload } = await readResponseBody(response, opts.providerName);
       if (!response.ok) {
         throw mapHttpError(

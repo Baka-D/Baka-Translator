@@ -88,6 +88,23 @@ async function ensureContentScript(tabId, recipient = { frameId: 0 }) {
   throw pageError('NO_PAGE_ACCESS');
 }
 
+/** The frame holding the selection, by document so a navigation cannot receive the request. */
+async function selectionRecipient(tabId) {
+  const results = await chrome.scripting.executeScript({
+    target: { tabId, allFrames: true },
+    injectImmediately: true,
+    // hasFocus() is also true for the ancestors of a focused frame.
+    func: () => ({ selected: Boolean(getSelection()?.toString().trim()),
+      focused: document.hasFocus() && !/^I?FRAME$/.test(document.activeElement?.tagName || '') })
+  }).catch(() => []);
+  const selected = results.filter((item) => item.result?.selected && item.documentId);
+  // The popup holds the focus itself, so there the selection alone has to decide.
+  const focused = results.find((item) => item.result?.focused);
+  const frame = focused ? selected.find((item) => item === focused)
+    : selected.find((item) => item.frameId === 0) || selected[0];
+  return frame && frame.frameId !== 0 ? { documentId: frame.documentId } : { frameId: 0 };
+}
+
 async function sendToContent(tabId, message, recipient = { frameId: 0 }) {
   await ensureContentScript(tabId, recipient);
   return chrome.tabs.sendMessage(tabId, message, recipient);
@@ -118,7 +135,7 @@ async function setupContextMenus() {
   await createMenu({
     id: MENU_IDS.ROOT,
     title: 'Baka Translator',
-    contexts: ['page', 'selection']
+    contexts: ['page', 'selection', 'image']
   });
   await createMenu({
     id: MENU_IDS.SELECTION,
@@ -142,7 +159,7 @@ async function setupContextMenus() {
     id: MENU_IDS.IMAGES,
     parentId: MENU_IDS.ROOT,
     title: '翻译当前画面中的图片',
-    contexts: ['page']
+    contexts: ['page', 'image']
   });
   await syncVisionContextMenu();
 }
@@ -216,6 +233,8 @@ async function reportActionError(tabId, error) {
     'AUTH_FAILED',
     'INVALID_API_KEY_FORMAT',
     'MODEL_CONFIG_ERROR',
+    'MISSING_MODEL',
+    'MISSING_CUSTOM_PROVIDER',
     'MISSING_CUSTOM_ENDPOINT',
     'MISSING_MODEL_NAME'
   ]);
@@ -281,10 +300,10 @@ async function handlePageCommand(message, sender) {
     }, { frameId: 0 });
   }
   if (command === 'selection') {
-    return chrome.tabs.sendMessage(tabId, {
+    return sendToContent(tabId, {
       type: MSG.TRANSLATE_SELECTION,
       targetCode
-    }, { frameId: 0 });
+    }, await selectionRecipient(tabId));
   }
   if (command === 'images') {
     return chrome.tabs.sendMessage(tabId, {
@@ -352,7 +371,7 @@ async function handleCommand(command, tab) {
     }
     if (command === 'translate-selection') {
       await requireRuntimeReady('translation', hostnameFromUrl(tab && tab.url));
-      await sendToContent(tab.id, { type: MSG.TRANSLATE_SELECTION });
+      await sendToContent(tab.id, { type: MSG.TRANSLATE_SELECTION }, await selectionRecipient(tab.id));
       return;
     }
     if (command === 'translate-images') {

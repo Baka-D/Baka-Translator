@@ -15,6 +15,7 @@ for (const failure of [config.MSG.CAPTURE_SCREENSHOT, config.MSG.TRANSLATE_IMAGE
     const app = {
       config, MSG: config.MSG, LIMITS: config.LIMITS, imageJob,
       overlay: { setCaptureMode() {}, renderImagePanel: model => panels.push(model),
+        waitImagePanel: async () => true,
         showToast: message => toasts.push(message) },
       isSettingsError: () => true,
       sendRuntime: async message => {

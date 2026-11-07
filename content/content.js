@@ -11,7 +11,7 @@
 (function initContent() {
   'use strict';
 
-  if (globalThis.__DSHT_CONTENT_LOADED__) return;
+  if (globalThis.__DSHT_CONTENT_LOADED__ === true) return;
   const {
     config,
     languages,
@@ -28,6 +28,7 @@
 
   const FATAL_ERROR_CODES = new Set([
     'MISSING_API_KEY',
+    'MISSING_MODEL',
     'AUTH_FAILED',
     'INSUFFICIENT_BALANCE',
     'INVALID_API_KEY_FORMAT'
@@ -35,6 +36,7 @@
 
   const SETTINGS_ERROR_CODES = new Set([
     'MISSING_API_KEY',
+    'MISSING_MODEL',
     'AUTH_FAILED',
     'INSUFFICIENT_BALANCE',
     'INVALID_API_KEY_FORMAT'
@@ -65,6 +67,7 @@
     initialTranslations: new Map(),
     translationMemory: new Map(),
     translationKey: '',
+    translatedRoute: '',
     captions: new Set(),
     panelDismissed: false,
     observers: [],

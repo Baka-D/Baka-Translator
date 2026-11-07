@@ -107,9 +107,10 @@
    */
   async function translateSegments(job, segments, lastPass) {
     const { plan, targetCode, sourceHint, runId } = job;
+    const divisor = lastPass ? 2 : 1;
     const batches = textUtils.createBatches(segments, {
-      maxChars: LIMITS.TEXT_MAX_BATCH_CHARS,
-      maxItems: LIMITS.TEXT_MAX_BATCH_ITEMS
+      maxChars: LIMITS.TEXT_MAX_BATCH_CHARS / divisor,
+      maxItems: LIMITS.TEXT_MAX_BATCH_ITEMS / divisor
     });
     const retry = [];
     let cursor = 0;
@@ -149,7 +150,8 @@
           if (runId !== page.runId) return;
           addDiscardedCost(error);
           const fatal = FATAL_ERROR_CODES.has(String(error.code || ''));
-          if (!lastPass && !fatal && error.retryable === true) {
+          const splittable = error.code === 'OUTPUT_TRUNCATED' && batch.length > 1;
+          if (!lastPass && !fatal && (error.retryable === true || splittable)) {
             retry.push(...batch);
             continue;
           }
@@ -249,6 +251,7 @@
     const runId = page.runId;
     page.status = 'running';
     page.phase = 'translating';
+    page.translatedRoute = app.currentRoute();
     page.panelDismissed = false;
     page.error = '';
     page.errorCode = '';
@@ -457,6 +460,7 @@
   }
 
   return {
+    addDiscardedCost,
     requestGlossary,
     rememberTranslation,
     applyTranslationsForBatch,

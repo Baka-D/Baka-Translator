@@ -119,6 +119,7 @@ export async function handleSaveCustomProvider() {
   setCustomBusy(true);
   setFeedback(ui.customProviderFeedback, '', '');
   let saved = null;
+  let moved = false;
   try {
     await refreshCustomProviders();
     if (!adding && !storedEntry(current.id)) {
@@ -130,6 +131,8 @@ export async function handleSaveCustomProvider() {
       return;
     }
     const id = adding ? nextCustomId() : current.id;
+    const previous = adding ? null : storedEntry(id);
+    moved = Boolean(previous?.endpoint) && new URL(previous.endpoint).origin !== new URL(validation.endpoint).origin;
     const name = ui.providerNameInput.value.trim().slice(0, 60) || defaultName(id);
     const entry = { id, name, endpoint: validation.endpoint, model: validation.model };
     const list = adding
@@ -143,11 +146,15 @@ export async function handleSaveCustomProvider() {
       delete nextModels[id];
       state.userModels = nextModels;
     }
+    // A key belongs to the host it was issued by; a path change on the same host keeps it.
+    if (moved) delete nextKeys[id];
     await commitCustomProviders(
       list,
-      adding ? { [KEYS.PROVIDER_KEYS]: nextKeys, [KEYS.USER_MODELS]: nextModels } : undefined
+      adding
+        ? { [KEYS.PROVIDER_KEYS]: nextKeys, [KEYS.USER_MODELS]: nextModels }
+        : moved ? { [KEYS.PROVIDER_KEYS]: nextKeys } : undefined
     );
-    if (adding) state.providerKeys = nextKeys;
+    if (adding || moved) state.providerKeys = nextKeys;
     saved = entry;
   } catch (_error) {
     setFeedback(ui.customProviderFeedback, '保存服务商失败，请重试。', 'error');
@@ -161,7 +168,8 @@ export async function handleSaveCustomProvider() {
   renderModelArea();
   setFeedback(
     ui.customProviderFeedback,
-    adding ? `已添加 ${saved.name}，可继续填写 API Key。` : `已保存 ${saved.name}。`,
+    adding ? `已添加 ${saved.name}，可继续填写 API Key。`
+      : moved ? `已保存 ${saved.name}。接口地址换了主机，原 API Key 已清除，请重新填写。` : `已保存 ${saved.name}。`,
     'success',
     FEEDBACK_CLEAR_MS
   );

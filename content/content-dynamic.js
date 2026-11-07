@@ -3,15 +3,17 @@
   'use strict';
   const modules = globalScope.DSHT.contentModules ||= {};
   modules['dynamic'] = function createModule(app) {
-  const { textUtils, MSG, LIMITS, BILINGUAL_ATTR, FATAL_ERROR_CODES, page } = app;
+  const { textUtils, MSG, LIMITS, BILINGUAL_ATTR, FATAL_ERROR_CODES, page, overlay } = app;
   const REVEAL_ATTRIBUTES = ['class', 'style', 'hidden', 'open'];
   let observedRoots = new WeakSet();
+  let frameUrls = new WeakMap();
   const revealed = new Set();
   let composedRoots = [];
   let rootsChanged = false;
 
   function disconnectDynamicObserver() {
     observedRoots = new WeakSet();
+    frameUrls = new WeakMap();
     composedRoots = [];
     revealed.clear();
     rootsChanged = false;
@@ -45,8 +47,45 @@
     page.dynamicQueue.clear();
   }
 
+  function isInPageAnchor(hash) {
+    let id = hash.slice(1);
+    try {
+      id = decodeURIComponent(id);
+    } catch (_error) {
+      // Browsers also match the fragment as written.
+    }
+    return Boolean(document.getElementById(id)) || document.getElementsByName(id).length > 0;
+  }
+
+  /** A hash that names no element belongs to a router (#inbox, #/mail), so it is a route. */
+  function currentRoute() {
+    const { origin, pathname, search, hash } = globalScope.location;
+    return origin + pathname + search + (!hash || isInPageAnchor(hash) ? '' : hash);
+  }
+
+  function stopForNewRoute() {
+    stopDynamicTranslation();
+    overlay.showToast('页面已切换，新内容不再自动翻译。需要时请还原后重新翻译。', 'info');
+  }
+
+  /** Consent covers the page the user translated, not wherever an SPA goes next. */
+  function leftTranslatedRoute() {
+    if (currentRoute() === page.translatedRoute) return false;
+    stopForNewRoute();
+    return true;
+  }
+
+  function frameUrl(frame) {
+    try {
+      return frame.contentWindow.location.href;
+    } catch (_error) {
+      return '';
+    }
+  }
+
   function handleMutations(records) {
     if (page.status !== 'done' && page.status !== 'partial') return;
+    if (leftTranslatedRoute()) return;
     if (page.abortFatal || dynamicBudgetReached()) {
       stopDynamicTranslation();
       return;
@@ -87,6 +126,12 @@
 
   function handleFrameLoad(event) {
     if (event.target.tagName !== 'IFRAME') return;
+    // Mail apps open each message in a same-origin frame: a new document is a new page.
+    const previous = frameUrls.get(event.target);
+    if (previous && previous !== frameUrl(event.target)) {
+      stopForNewRoute();
+      return;
+    }
     rootsChanged = true;
     scheduleDynamicFlush();
   }
@@ -102,6 +147,7 @@
       observedRoots.add(root);
       try {
         const view = root.ownerDocument && root.ownerDocument.defaultView;
+        if (view && view.frameElement) frameUrls.set(view.frameElement, view.location.href);
         const ObserverCtor = (view && view.MutationObserver) || MutationObserver;
         const observer = new ObserverCtor(handleMutations);
         observer.observe(root, options);
@@ -152,7 +198,7 @@
 
   function startDynamicObserver() {
     disconnectDynamicObserver();
-    if (!document.body || dynamicBudgetReached()) return;
+    if (!document.body || dynamicBudgetReached() || leftTranslatedRoute()) return;
 
     try {
       observeRoots(page.novelMode
@@ -161,6 +207,11 @@
     } catch (_error) {
       page.observers = [];
     }
+    // Nothing observed the run, so sweep for what it missed. Truncated or failed text stays out.
+    if (page.status !== 'done' || page.truncated || page.novelMode) return;
+    for (const root of composedRoots) page.dynamicQueue.add(root);
+    rootsChanged = true;
+    scheduleDynamicFlush();
   }
 
   function scheduleDynamicFlush() {
@@ -169,6 +220,15 @@
       page.dynamicTimer = 0;
       void flushDynamicQueue();
     }, 750);
+  }
+
+  /** A caption read from such an anchor would present translated text as the original. */
+  function holdsTranslation(anchor) {
+    const walker = anchor.ownerDocument.createTreeWalker(anchor, NodeFilter.SHOW_TEXT);
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      if (page.translatedNodes.has(node)) return true;
+    }
+    return false;
   }
 
   /** Originals of the translated text right before the plan, oldest first. */
@@ -194,6 +254,7 @@
   async function flushDynamicQueue() {
     if (page.dynamicBusy) return;
     if (page.status !== 'done' && page.status !== 'partial') return;
+    if (leftTranslatedRoute()) return;
     if (page.abortFatal || dynamicBudgetReached()) {
       stopDynamicTranslation();
       return;
@@ -211,7 +272,7 @@
       const seenNodes = new Set();
       for (const root of roots) {
         if (!root || !root.isConnected) continue;
-        const collected = app.collectTargets(root, { bilingual: false });
+        const collected = app.collectTargets(root, { bilingual: page.bilingual });
         for (const target of collected.targets) {
           if (seenNodes.has(target.node)) continue;
           seenNodes.add(target.node);
@@ -235,8 +296,9 @@
         return;
       }
 
-      const plan = app.buildPagePlan(limited, false);
+      const plan = app.buildPagePlan(limited, page.bilingual);
       if (plan.segments.length === 0) return;
+      const captions = plan.anchors.filter((record) => !holdsTranslation(record.anchor));
       const recalled = textUtils.recallTranslations(plan.segments, page.translationMemory);
       const batches = textUtils.createBatches(recalled.fresh, {
         maxChars: LIMITS.TEXT_MAX_BATCH_CHARS,
@@ -250,7 +312,7 @@
 
       const worker = async () => {
         while (true) {
-          if (runId !== page.runId || page.abortFatal) return;
+          if (runId !== page.runId || page.abortFatal || currentRoute() !== page.translatedRoute) return;
           const index = cursor;
           cursor += 1;
           if (index >= batches.length) return;
@@ -270,11 +332,13 @@
             });
             if (runId !== page.runId) return;
             app.addPageCost(response.billing);
+            app.addDiscardedCost(response);
             appliedTargets += app.applyTranslationsForBatch(batch, response.translations, plan, {
               updateProgress: false
             });
           } catch (error) {
             if (runId !== page.runId) return;
+            app.addDiscardedCost(error);
             if (FATAL_ERROR_CODES.has(String(error.code || ''))) {
               page.abortFatal = true;
               page.error = error.message || page.error;
@@ -291,6 +355,7 @@
       );
       await Promise.all(Array.from({ length: workerCount }, () => worker()));
       if (runId !== page.runId) return;
+      if (captions.length > 0) app.applyBilingualCaptions(captions);
 
       page.dynamicNodeCount += Math.max(appliedTargets, 0);
       page.dynamicCharCount += chars;
@@ -308,6 +373,7 @@
   }
 
   return {
+    currentRoute,
     disconnectDynamicObserver,
     dynamicBudgetReached,
     stopDynamicTranslation,

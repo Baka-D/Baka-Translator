@@ -14,6 +14,7 @@ async function refreshModelConfig() {
   const settings = await readConfig();
   if (request === modelConfigRequest && settings.ok) {
     state.hasApiKey = settings.hasApiKey;
+    state.modelError = settings.modelError || '';
     state.polishHasApiKey = settings.polishHasApiKey;
     state.supportsVision = settings.supportsVision;
     state.modelName = settings.modelName;
@@ -190,6 +191,7 @@ async function init() {
       return;
     }
     state.hasApiKey = settings.hasApiKey;
+    state.modelError = settings.modelError || '';
     state.settings.targetCode = settings.targetCode;
     state.settings.bilingual = settings.bilingual;
     state.usage = settings.usage;

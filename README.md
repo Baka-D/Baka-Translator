@@ -22,10 +22,12 @@
 
 ## 安装
 
-1. 将扩展压缩包解压到一个固定文件夹；已有本项目文件夹也可直接使用。
-2. 在浏览器地址栏打开对应页面，开启「开发者模式」。
+1. 从 [Releases](https://github.com/Baka-D/Baka-Translator/releases) 下载 zip，解压到一个固定文件夹；已有本项目文件夹也可直接使用。
+2. 在地址栏打开 `chrome://extensions`（Brave 为 `brave://extensions`，Edge 为 `edge://extensions`），开启「开发者模式」。
 3. 点击「加载已解压的扩展程序」，选择包含 `manifest.json` 的文件夹。
 4. 将 Baka Translator 固定到工具栏，方便随时使用。
+
+升级时用新版本覆盖原文件夹，再在扩展管理页点击「重新加载」。解压到新文件夹会被当作另一个扩展，看不到原有的 API Key 和术语库。
 
 ## 开始使用
 
