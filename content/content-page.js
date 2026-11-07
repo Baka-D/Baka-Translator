@@ -101,18 +101,21 @@
     for (const billing of discardedBilling || []) app.addPageCost(billing);
   }
 
-  /**
-   * Send `segments` in batches. Unless this is the last pass, what came back
-   * empty or failed with a retryable error is returned for one more try.
-   */
-  async function translateSegments(job, segments, lastPass) {
-    const { plan, targetCode, sourceHint, runId } = job;
-    const divisor = lastPass ? 2 : 1;
-    const batches = textUtils.createBatches(segments, {
+  function pageBatches(segments, divisor = 1) {
+    return textUtils.createBatches(segments, {
       maxChars: LIMITS.TEXT_MAX_BATCH_CHARS / divisor,
       maxItems: LIMITS.TEXT_MAX_BATCH_ITEMS / divisor
     });
-    const retry = [];
+  }
+
+  /**
+   * Send `batches`. Unless this is the last pass, what came back empty is returned for
+   * one more try, and a batch that failed is returned in halves: resending it whole often
+   * fails the same way.
+   */
+  async function translateSegments(job, batches, lastPass) {
+    const { plan, targetCode, sourceHint, runId } = job;
+    const retry = { segments: [], batches: [] };
     let cursor = 0;
 
     const worker = async () => {
@@ -143,16 +146,17 @@
             .filter((item) => item && typeof item.text === 'string' && item.text.trim())
             .map((item) => String(item.id)));
           const unanswered = lastPass ? [] : batch.filter((segment) => !answered.has(String(segment.id)));
-          retry.push(...unanswered);
+          retry.segments.push(...unanswered);
           const settled = batch.filter((segment) => !unanswered.includes(segment));
           applyTranslationsForBatch(settled, response.translations, plan, { updateProgress: true });
         } catch (error) {
           if (runId !== page.runId) return;
           addDiscardedCost(error);
           const fatal = FATAL_ERROR_CODES.has(String(error.code || ''));
-          const splittable = error.code === 'OUTPUT_TRUNCATED' && batch.length > 1;
-          if (!lastPass && !fatal && (error.retryable === true || splittable)) {
-            retry.push(...batch);
+          const truncated = error.code === 'OUTPUT_TRUNCATED' && batch.length > 1;
+          if (!lastPass && !fatal && (error.retryable === true || truncated)) {
+            const middle = Math.ceil(batch.length / 2);
+            retry.batches.push(...[batch.slice(0, middle), batch.slice(middle)].filter((half) => half.length > 0));
             continue;
           }
           page.progress.done += batch.length;
@@ -200,8 +204,8 @@
       if (recalled.known.length > 0) {
         applyTranslationsForBatch(recalled.known, recalled.translations, plan, { updateProgress: true });
       }
-      const retry = await translateSegments(job, recalled.fresh, false);
-      await translateSegments(job, retry, true);
+      const retry = await translateSegments(job, pageBatches(recalled.fresh), false);
+      await translateSegments(job, [...pageBatches(retry.segments, 2), ...retry.batches], true);
 
       if (runId !== page.runId) return;
 
@@ -315,6 +319,7 @@
       const roots = page.novelMode
         ? app.collectNovelRoots(document, novelChapter)
         : app.collectComposedTextRoots(document);
+      page.translatedDocuments = new WeakSet(roots.map((root) => root.ownerDocument || document));
       if (roots.length === 0) {
         throw new Error('页面还没有可翻译的内容。');
       }

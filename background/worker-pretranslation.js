@@ -314,10 +314,12 @@ async function runPretranslation(job) {
     job.status = 'ready';
     job.note = job.polish ? '下一章预翻译及润色已完成。' : '下一章预翻译已完成。';
   } catch (error) {
-    if (job.cancelled || pretranslationOwners.get(job.cacheKey) !== job) return;
+    const superseded = () => job.cancelled || pretranslationOwners.get(job.cacheKey) !== job;
+    if (superseded()) return;
     const detail = errorPayload(error);
     // The draft was saved before polish was billed; the record should carry that cost too.
     if (job.hasDraft) await savePretranslationCache(job, false).catch(() => {});
+    if (superseded()) return;
     job.status = job.hasDraft ? 'ready' : 'error';
     job.note = job.hasDraft
       ? `下一章初译已缓存，润色未完成：${detail.message}`

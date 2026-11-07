@@ -68,6 +68,7 @@
     translationMemory: new Map(),
     translationKey: '',
     translatedRoute: '',
+    translatedDocuments: new WeakSet(),
     captions: new Set(),
     panelDismissed: false,
     observers: [],

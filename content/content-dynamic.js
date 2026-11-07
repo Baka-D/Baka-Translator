@@ -6,14 +6,14 @@
   const { textUtils, MSG, LIMITS, BILINGUAL_ATTR, FATAL_ERROR_CODES, page, overlay } = app;
   const REVEAL_ATTRIBUTES = ['class', 'style', 'hidden', 'open'];
   let observedRoots = new WeakSet();
-  let frameUrls = new WeakMap();
+  let frameNoticeShown = false;
   const revealed = new Set();
   let composedRoots = [];
   let rootsChanged = false;
 
   function disconnectDynamicObserver() {
     observedRoots = new WeakSet();
-    frameUrls = new WeakMap();
+    frameNoticeShown = false;
     composedRoots = [];
     revealed.clear();
     rootsChanged = false;
@@ -63,24 +63,12 @@
     return origin + pathname + search + (!hash || isInPageAnchor(hash) ? '' : hash);
   }
 
-  function stopForNewRoute() {
-    stopDynamicTranslation();
-    overlay.showToast('页面已切换，新内容不再自动翻译。需要时请还原后重新翻译。', 'info');
-  }
-
   /** Consent covers the page the user translated, not wherever an SPA goes next. */
   function leftTranslatedRoute() {
     if (currentRoute() === page.translatedRoute) return false;
-    stopForNewRoute();
+    stopDynamicTranslation();
+    overlay.showToast('页面已切换，新内容不再自动翻译。需要时请还原后重新翻译。', 'info');
     return true;
-  }
-
-  function frameUrl(frame) {
-    try {
-      return frame.contentWindow.location.href;
-    } catch (_error) {
-      return '';
-    }
   }
 
   function handleMutations(records) {
@@ -126,18 +114,21 @@
 
   function handleFrameLoad(event) {
     if (event.target.tagName !== 'IFRAME') return;
-    // Mail apps open each message in a same-origin frame: a new document is a new page.
-    const previous = frameUrls.get(event.target);
-    if (previous && previous !== frameUrl(event.target)) {
-      stopForNewRoute();
-      return;
-    }
     rootsChanged = true;
     scheduleDynamicFlush();
   }
 
   /** Observe the roots not seen yet and return them. */
-  function observeRoots(roots) {
+  function observeRoots(allRoots) {
+    // A frame document that appeared after the run was never asked for. A frame that keeps its
+    // document while its content changes cannot be told apart from new text on the same page.
+    const inScope = (root) => page.translatedDocuments.has(root?.ownerDocument);
+    const roots = allRoots.filter(inScope);
+    const refused = allRoots.filter((root) => root && !inScope(root));
+    if (!frameNoticeShown && refused.some((root) => app.collectTargets(root, {}).targets.length > 0)) {
+      frameNoticeShown = true;
+      overlay.showToast('新载入的内嵌内容不会自动翻译。需要时请还原后重新翻译。', 'info');
+    }
     composedRoots = roots;
     const options = { childList: true, characterData: true, subtree: true };
     if (!page.novelMode) options.attributeFilter = REVEAL_ATTRIBUTES;
@@ -147,7 +138,6 @@
       observedRoots.add(root);
       try {
         const view = root.ownerDocument && root.ownerDocument.defaultView;
-        if (view && view.frameElement) frameUrls.set(view.frameElement, view.location.href);
         const ObserverCtor = (view && view.MutationObserver) || MutationObserver;
         const observer = new ObserverCtor(handleMutations);
         observer.observe(root, options);
@@ -306,9 +296,9 @@
       });
       let cursor = 0;
       const earlier = page.requestContext ? translatedBefore(plan) : [];
-      let appliedTargets = recalled.known.length === 0 ? 0 : app.applyTranslationsForBatch(
-        recalled.known, recalled.translations, plan, { updateProgress: false }
-      );
+      if (recalled.known.length > 0) {
+        app.applyTranslationsForBatch(recalled.known, recalled.translations, plan, { updateProgress: false });
+      }
 
       const worker = async () => {
         while (true) {
@@ -333,7 +323,7 @@
             if (runId !== page.runId) return;
             app.addPageCost(response.billing);
             app.addDiscardedCost(response);
-            appliedTargets += app.applyTranslationsForBatch(batch, response.translations, plan, {
+            app.applyTranslationsForBatch(batch, response.translations, plan, {
               updateProgress: false
             });
           } catch (error) {
@@ -357,7 +347,8 @@
       if (runId !== page.runId) return;
       if (captions.length > 0) app.applyBilingualCaptions(captions);
 
-      page.dynamicNodeCount += Math.max(appliedTargets, 0);
+      // Count what was sent, not what was written back: the limit bounds what leaves the page.
+      page.dynamicNodeCount += limited.length;
       page.dynamicCharCount += chars;
       if (dynamicBudgetReached()) {
         stopDynamicTranslation();
