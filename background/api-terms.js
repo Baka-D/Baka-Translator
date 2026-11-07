@@ -87,7 +87,7 @@
     let failed = false;
     const ask = async (messages) => {
       const reply = await chat({
-        ...opts, messages, kind: 'terms', temperature: 0, timeoutMs: TIDY_TIMEOUT_MS
+        ...opts, messages, kind: 'tidy', temperature: 0, timeoutMs: TIDY_TIMEOUT_MS
       });
       replies.push(reply);
       return reply.content;

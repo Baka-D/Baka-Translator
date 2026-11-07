@@ -103,7 +103,7 @@
 
   function modelMaxTokens(model, kind) {
     const cap =
-      kind === 'polish' ? 65536 : kind === 'image' ? 4096 : kind === 'terms' ? 8192 : 8192;
+      kind === 'polish' ? 65536 : kind === 'tidy' ? 32768 : kind === 'image' ? 4096 : 8192;
     const maxOutput = Number(model && model.maxOutputTokens);
     const modelCap = Number.isFinite(maxOutput) && maxOutput > 0 ? maxOutput : cap;
     // Models whose limit also covers thinking need room beyond the answer-sized caps.
