@@ -249,6 +249,40 @@
 
 /* ---------- 高级：术语库 ---------- */
 
+.glossary-tidy {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0;
+}
+
+.glossary-tidy-switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.glossary-tidy-fields,
+.glossary-undo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.glossary-tidy-fields .text-input {
+  width: 72px;
+}
+
+.glossary-undo {
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.glossary-undo[hidden] {
+  display: none;
+}
+
 .glossary-head {
   display: flex;
   align-items: flex-start;
@@ -361,6 +395,20 @@
 .glossary-term-row {
   padding: 7px 0;
   border-bottom: 1px solid var(--border);
+}
+
+.glossary-aliases {
+  grid-column: 1 / -1;
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+}
+
+.glossary-alias-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 8px;
+  width: 100%;
 }
 
 .glossary-pager {

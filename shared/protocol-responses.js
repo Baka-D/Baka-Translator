@@ -56,6 +56,13 @@
     return Array.isArray(drop) ? drop.filter((source) => typeof source === 'string') : [];
   }
 
+  /** The object in a model reply, or null when it cannot be read. */
+  function parseJsonObject(raw) {
+    const parsed = parseJsonValue(raw);
+    const usable = parsed.ok && parsed.value && typeof parsed.value === 'object';
+    return usable && !Array.isArray(parsed.value) ? parsed.value : null;
+  }
+
   function stripFences(raw) {
     let text = String(raw || '').replace(/^\uFEFF/, '').trim();
     if (/^```/.test(text)) {
@@ -470,7 +477,8 @@
     parsePolishResponse,
     parseImageResponse,
     parseTermResponse,
-    parseTermReview
+    parseTermReview,
+    parseJsonObject
   });
 
   globalScope.DSHT = globalScope.DSHT || {};

@@ -340,6 +340,32 @@
           <h2 id="glossaryTitle" class="section-title">术语库</h2>
           <p class="section-desc">同一轻小说建立术语库后，可以在这里查看和编辑。修改只保存在本机，保存后对后续发起的翻译、润色和预翻译生效；已经翻译的页面刷新或重新翻译后才会使用新术语。</p>
 
+          <div class="glossary-tidy">
+            <div class="glossary-tidy-switch">
+              <span class="field-label" id="glossaryTidyLabel">自动整理术语表</span>
+              <label class="switch">
+                <input id="glossaryTidyToggle" type="checkbox" role="switch" aria-labelledby="glossaryTidyLabel" aria-describedby="glossaryTidyHint">
+                <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+              </label>
+            </div>
+            <div class="glossary-tidy-fields">
+              <label class="glossary-pager-field">每
+                <input id="glossaryTidyChapters" class="text-input" type="number" min="1" max="500" step="1" aria-label="每隔多少章整理一次">
+                章整理一次
+              </label>
+              <label class="glossary-pager-field">使用
+                <span class="select-wrap">
+                  <select id="glossaryTidyModel" class="select" aria-label="整理术语表使用的模型">
+                    <option value="translation">翻译模型</option>
+                    <option value="polish">润色模型</option>
+                  </select>
+                </span>
+              </label>
+            </div>
+            <p id="glossaryTidyHint" class="hint">开启后会在后台调用所选模型：移除普通词汇，并把同一人物或地点的不同写法合并到一条，会产生额外的 API 费用。整理前的术语表会保留，可以撤销最近一次整理。</p>
+            <p id="glossaryTidyFeedback" class="feedback" role="status" aria-live="polite"></p>
+          </div>
+
           <div class="glossary-head">
             <div id="glossaryList" class="glossary-list" aria-label="已建立的术语库"></div>
             <button id="glossaryRefreshButton" class="button button-secondary button-compact" type="button">刷新列表</button>
@@ -356,6 +382,10 @@
               <label class="field-label" for="glossaryTitleInput">作品名称</label>
               <input id="glossaryTitleInput" class="text-input" type="text" maxlength="200" autocomplete="off" spellcheck="false" aria-describedby="glossaryTitleHint">
               <p id="glossaryTitleHint" class="hint">这里只修改术语库列表显示的作品名，不影响站点、缓存或术语匹配。</p>
+            </div>
+            <div id="glossaryUndoRow" class="glossary-undo" hidden>
+              <span id="glossaryUndoText" class="hint"></span>
+              <button id="glossaryUndoButton" class="button button-secondary button-compact" type="button">撤销这次整理</button>
             </div>
             <div class="glossary-table-head" aria-hidden="true">
               <span>原文 / 名称</span>

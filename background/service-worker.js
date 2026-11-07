@@ -133,6 +133,7 @@ importScripts(
   chrome.runtime.getURL('background/worker-vision.js'),
   chrome.runtime.getURL('background/worker-requests.js'),
   chrome.runtime.getURL('background/worker-pretranslation.js'),
+  chrome.runtime.getURL('background/worker-glossary-tidy.js'),
   chrome.runtime.getURL('background/worker-pages.js'),
   chrome.runtime.getURL('background/worker-capture.js'),
   chrome.runtime.getURL('background/worker-image-panel.js')
@@ -215,6 +216,9 @@ async function handleMessage(message, sender) {
 
     case MSG.EXTRACT_TERMS:
       return handleExtractTerms(message, sender);
+
+    case MSG.TIDY_GLOSSARY:
+      return handleTidyGlossary(message, sender);
 
     case MSG.PRETRANSLATE_CHAPTER:
       return handlePretranslateChapter(message, sender);

@@ -46,12 +46,16 @@
     if (!novelUtils || !chapter) return;
     const glossaryKey = novelUtils.glossaryKeyForWork(chapter, targetCode);
     const metaKey = novelUtils.metaKeyForWork(chapter, targetCode);
+    const tidyKey = novelUtils.tidyKeyForWork(chapter, targetCode);
     // Re-read so glossary edits and renames saved elsewhere since this run began are kept.
-    const values = await app.storageGet([glossaryKey, metaKey]);
-    const merged = novelUtils.mergeGlossary(values[glossaryKey], glossary);
+    const values = await app.storageGet([glossaryKey, metaKey, tidyKey]);
+    const merged = novelUtils.mergeGlossary(
+      values[glossaryKey], novelUtils.extractedTerms(values[glossaryKey], glossary, values[tidyKey])
+    );
     const fresh = novelUtils.addChapterToMeta(values[metaKey], chapter);
     if (!fresh.title && meta && meta.title) fresh.title = meta.title;
     const extracted = (meta && meta.extractedChapterIds) || [];
+    fresh.chaptersSinceTidy += extracted.filter((id) => !fresh.extractedChapterIds.includes(id)).length;
     fresh.extractedChapterIds = Array.from(
       new Set(fresh.extractedChapterIds.concat(extracted))
     ).slice(-200);
@@ -130,14 +134,37 @@
           ? meta.extractedChapterIds
           : meta.extractedChapterIds.concat(page.novel.chapterId).slice(-200)
       };
-      await saveNovelGlossary(page.novel, meta, response.terms || [], targetCode);
+      const saved = await saveNovelGlossary(page.novel, meta, response.terms || [], targetCode);
       app.renderPagePanel();
+      // Not awaited: the worker finishes a tidy even after the reader moves on.
+      if (saved) void tidyNovelGlossary(targetCode, runId);
     } catch (error) {
       // Glossary extraction is best-effort and must not break translation.
       if (runId === page.runId) {
         app.addDiscardedCost(error);
         app.renderPagePanel();
       }
+    }
+  }
+
+  /** The worker decides whether one is due; this page only reports the outcome. */
+  async function tidyNovelGlossary(targetCode, runId) {
+    try {
+      const response = await app.sendRuntime({
+        type: MSG.TIDY_GLOSSARY, chapterUrl: page.novel.canonicalUrl, targetCode
+      });
+      if (runId !== page.runId) return;
+      for (const billing of response.tidyBilling || []) app.addPageCost(billing);
+      app.addDiscardedCost(response);
+      if (response.dropped || response.merged) {
+        overlay.showToast(`术语表已整理：移除 ${response.dropped} 条，合并 ${response.merged} 组，可在设置中撤销。`, 'success');
+      } else if (response.failed) {
+        overlay.showToast('术语表整理未完成，到下个周期会再试。', 'info');
+      }
+      if (response.tidyBilling) app.renderPagePanel();
+    } catch (error) {
+      // The chapter is finished and the glossary is unchanged; say why, e.g. a missing key.
+      if (runId === page.runId) overlay.showToast(`术语表整理失败：${error.message}`, 'error');
     }
   }
 

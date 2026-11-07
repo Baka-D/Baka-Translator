@@ -153,3 +153,13 @@ export function maskKey(key) {
 export function effortLabel(level) {
   return EFFORT_LABELS[level] || String(level || 'none');
 }
+
+export function makeButton(label, className, onClick, ariaLabel) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = className;
+  button.textContent = label;
+  if (ariaLabel) button.setAttribute('aria-label', ariaLabel);
+  button.addEventListener('click', onClick);
+  return button;
+}

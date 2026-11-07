@@ -1,6 +1,8 @@
 // Novel glossary editor for the advanced settings tab.
 import { FEEDBACK_CLEAR_MS, languages, novelUtils, state, ui } from './context.mjs';
-import { setFeedback } from './utils.mjs';
+import { readAliases, renderAliases } from './glossary-aliases.mjs';
+import { renderTidyUndo, wireGlossaryTidy } from './glossary-tidy.mjs';
+import { makeButton, setFeedback } from './utils.mjs';
 
 const GLOSSARY_PREFIX = 'novelGlossary:';
 const GLOSSARY_MIN_PAGE_SIZE = 30;
@@ -35,7 +37,8 @@ export function parseGlossaryKey(key) {
     siteId,
     workId,
     targetCode,
-    metaKey: `${META_PREFIX}${siteId}:${workId}${suffix}`
+    metaKey: `${META_PREFIX}${siteId}:${workId}${suffix}`,
+    tidyKey: `novelGlossaryTidy:${siteId}:${workId}${suffix}`
   };
 }
 
@@ -62,20 +65,24 @@ export function normalizeGlossaryRows(rows) {
       target,
       category: row.category,
       note: row.note,
-      gender: row.gender
+      gender: row.gender,
+      aliases: row.aliases
     });
     if (!normalized) {
       return { error: `第 ${index + 1} 行术语格式不正确，请检查原文和译文。`, row: index };
     }
-    const key = novelUtils.termKey(normalized.source);
-    if (seen.has(key)) {
-      return {
-        error: `第 ${index + 1} 行“${normalized.source}”与第 ${seen.get(key)} 行重复。`,
-        row: index,
-        other: seen.get(key) - 1
-      };
+    // An alias is matched like a source, so it must be unique among them too.
+    for (const { source: spelling } of [normalized, ...(normalized.aliases || [])]) {
+      const key = novelUtils.termKey(spelling);
+      if (seen.has(key)) {
+        return {
+          error: `第 ${index + 1} 行“${spelling}”与第 ${seen.get(key)} 行重复。`,
+          row: index,
+          other: seen.get(key) - 1
+        };
+      }
+      seen.set(key, index + 1);
     }
-    seen.set(key, index + 1);
     terms.push(normalized);
   }
   if (terms.length === 0) return { error: '请至少保留一条术语，或使用“清空术语库”。' };
@@ -102,6 +109,7 @@ export function describeGlossary(key, terms, allValues) {
     siteName: siteLabel(parsed.siteId),
     targetLabel: targetLabel(parsed.targetCode),
     meta,
+    tidy: (allValues || {})[parsed.tidyKey] || null,
     terms: normalizedTerms
   };
 }
@@ -138,16 +146,6 @@ function resetClearButton() {
     ui.glossaryClearButton.classList.remove('is-confirming');
     ui.glossaryClearButton.removeAttribute('aria-label');
   }
-}
-
-function makeButton(label, className, onClick, ariaLabel) {
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.className = className;
-  button.textContent = label;
-  if (ariaLabel) button.setAttribute('aria-label', ariaLabel);
-  button.addEventListener('click', onClick);
-  return button;
 }
 
 function renderGlossaryList() {
@@ -242,7 +240,7 @@ function renderTermRow(term, index) {
     const button = ui.glossaryRows.querySelector(`[data-glossary-row="${next}"] .glossary-delete`);
     if (button) button.focus();
   }, `删除第 ${index + 1} 条术语`);
-  row.append(remove);
+  row.append(remove, renderAliases(values.aliases, index));
   return row;
 }
 
@@ -255,6 +253,7 @@ function renderGlossaryEditor() {
   if (ui.glossaryTitleInput) ui.glossaryTitleInput.value = entry.title;
   state.glossaryOpened = entry.terms;
   state.glossaryDraft = entry.terms.length > 0 ? entry.terms.map((term) => ({ ...term })) : [{}];
+  renderTidyUndo(entry);
   showGlossaryPage(state.glossaryPage);
 }
 
@@ -349,7 +348,8 @@ function syncGlossaryDraft() {
       target: value('target'),
       category: value('category'),
       note: value('note'),
-      gender: value('gender')
+      gender: value('gender'),
+      aliases: readAliases(row, value('target'))
     };
   }
 }
@@ -375,7 +375,11 @@ async function saveGlossary() {
   const title = (rawTitle || entry.title || entry.workId).slice(0, 200);
   try {
     // Re-read: chapter tabs may have added terms and chapter ids since the list loaded.
-    const stored = await chrome.storage.local.get([entry.key, entry.metaKey]);
+    const stored = await chrome.storage.local.get([entry.key, entry.metaKey, entry.tidyKey]);
+    if (stored[entry.tidyKey]?.tidiedAt !== entry.tidy?.tidiedAt) {
+      setFeedback(ui.glossaryFeedback, '术语库刚被自动整理过，请点“刷新列表”并重新打开后再修改。', 'error');
+      return;
+    }
     const terms = withNewStoredTerms(normalized.terms, stored && stored[entry.key], state.glossaryOpened);
     const meta = novelUtils.normalizeMeta(stored && stored[entry.metaKey]) || {
       siteId: entry.siteId,
@@ -413,7 +417,7 @@ async function clearGlossary() {
   }
   resetClearButton();
   try {
-    await chrome.storage.local.remove(entry.key);
+    await chrome.storage.local.remove([entry.key, entry.tidyKey]);
     await loadGlossaries();
     closeGlossaryEditor();
     renderGlossaryList();
@@ -423,8 +427,15 @@ async function clearGlossary() {
   }
 }
 
+async function reloadGlossaryEditor() {
+  await loadGlossaries();
+  renderGlossaryList();
+  renderGlossaryEditor();
+}
+
 export function wireGlossaryEvents() {
   if (!ui.glossaryList) return;
+  wireGlossaryTidy(activeGlossary, reloadGlossaryEditor);
   ui.glossaryList.addEventListener('click', (event) => {
     const button = event.target && event.target.closest
       ? event.target.closest('[data-glossary-edit]')

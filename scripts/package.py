@@ -75,6 +75,7 @@ def validate_manifest() -> list[str]:
             "background/worker-capture.js",
             "background/worker-image-panel.js",
             "background/worker-pretranslation.js",
+            "background/worker-glossary-tidy.js",
         ]
     )
     referenced.extend(

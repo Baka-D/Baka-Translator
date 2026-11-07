@@ -151,6 +151,12 @@
     return `novelMeta:${chapter.siteId}:${chapter.workId}${languageSuffix(targetCode)}`;
   }
 
+  /** The last tidy of a work's glossary: what it removed and how to undo it. */
+  function tidyKeyForWork(chapter, targetCode) {
+    if (!chapter || !chapter.workId) return '';
+    return `novelGlossaryTidy:${chapter.siteId}:${chapter.workId}${languageSuffix(targetCode)}`;
+  }
+
   function cacheKeyForWork(chapter) {
     return workKey(chapter) ? `${workKey(chapter)}:cache` : '';
   }
@@ -417,7 +423,8 @@
       title: String(raw.title || '').trim(),
       titleManual: raw.titleManual === true,
       chapterIds: chapters.slice(-200),
-      extractedChapterIds: extracted.slice(-200)
+      extractedChapterIds: extracted.slice(-200),
+      chaptersSinceTidy: Math.max(0, Math.trunc(Number(raw.chaptersSinceTidy)) || 0)
     };
   }
 
@@ -429,7 +436,8 @@
         title: '',
         titleManual: false,
         chapterIds: [],
-        extractedChapterIds: []
+        extractedChapterIds: [],
+        chaptersSinceTidy: 0
       };
     if (chapter && chapter.chapterId && !meta.chapterIds.includes(chapter.chapterId)) {
       meta.chapterIds.push(chapter.chapterId);
@@ -463,6 +471,7 @@
     cacheKeyForWork,
     glossaryKeyForWork,
     metaKeyForWork,
+    tidyKeyForWork,
     workKey,
     normalizeSourceText
   });

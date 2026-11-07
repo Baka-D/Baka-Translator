@@ -204,7 +204,10 @@ async function readSettings() {
     userModels: modelUtils.normalizeUserModels(values[config.STORAGE_KEYS.USER_MODELS]),
     visionCapabilities: { ...visionUtils.normalizeCache(values[config.STORAGE_KEYS.VISION_CAPABILITIES]), ...learnedVisionCapabilities },
     promptOverrides: normalizeOverrides(values[config.STORAGE_KEYS.PROMPT_OVERRIDES]),
-    siteSettings: normalizeSiteSettings(values[config.STORAGE_KEYS.SITE_SETTINGS])
+    siteSettings: normalizeSiteSettings(values[config.STORAGE_KEYS.SITE_SETTINGS]),
+    glossaryTidyEnabled: values[config.STORAGE_KEYS.GLOSSARY_TIDY_ENABLED] === true,
+    glossaryTidyChapters: config.glossaryTidyChapters(values[config.STORAGE_KEYS.GLOSSARY_TIDY_CHAPTERS]),
+    glossaryTidyPurpose: values[config.STORAGE_KEYS.GLOSSARY_TIDY_MODEL] === 'polish' ? 'polish' : 'translation'
   };
 }
 

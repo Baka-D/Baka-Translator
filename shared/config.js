@@ -26,6 +26,8 @@
     DEFAULT_MODEL_ID: 'deepseek-flash',
     DEFAULT_EFFORT: 'none',
     DEFAULT_PRESET_ID: 'general',
+    DEFAULT_GLOSSARY_TIDY_CHAPTERS: 10,
+    GLOSSARY_TIDY_MAX_CHAPTERS: 500,
     // Presets whose requests carry the surrounding text as read-only context.
     CONTEXT_PRESET_IDS: Object.freeze(['light-novel', 'academic']),
     MODEL_REGISTRY_PATH: 'profile/index.json',
@@ -50,6 +52,9 @@
       VISION_CAPABILITIES: 'visionCapabilities',
       PROMPT_OVERRIDES: 'promptOverrides',
       SITE_SETTINGS: 'siteSettings',
+      GLOSSARY_TIDY_ENABLED: 'glossaryTidyEnabled',
+      GLOSSARY_TIDY_CHAPTERS: 'glossaryTidyChapters',
+      GLOSSARY_TIDY_MODEL: 'glossaryTidyModel',
       INSTALLED_AT: 'installedAt'
     }),
 
@@ -62,6 +67,14 @@
       const site = settings.siteSettings?.[hostname];
       const sitePreset = site && typeof site.presetId === 'string' ? site.presetId.trim() : '';
       return JSON.stringify([settings.engine, sitePreset || settings.presetId || 'general', targetCode]);
+    },
+
+    /** Chapters between glossary tidies. */
+    glossaryTidyChapters(value) {
+      const chapters = Number(value ?? this.DEFAULT_GLOSSARY_TIDY_CHAPTERS);
+      return Number.isInteger(chapters) && chapters >= 1 && chapters <= this.GLOSSARY_TIDY_MAX_CHAPTERS
+        ? chapters
+        : this.DEFAULT_GLOSSARY_TIDY_CHAPTERS;
     },
 
     LIMITS: Object.freeze({
@@ -96,6 +109,7 @@
       NOVEL_CACHE_TTL_MS: 30 * 24 * 60 * 60 * 1000,
       GLOSSARY_REQUEST_MAX_TERMS: 200,
       GLOSSARY_CHAPTER_MAX_TERMS: 5000,
+      GLOSSARY_TIDY_BATCH_TERMS: 400,
       NOVEL_TERMS_MAX_SEGMENTS: 400,
       NOVEL_TERMS_MAX_CHARS: 60000,
       NOVEL_PRETRANSLATE_MAX_CHARS: 60000,
@@ -135,6 +149,7 @@
       TRANSLATE_BATCH: 'dsht:translateBatch',
       POLISH_SEGMENTS: 'dsht:polishSegments',
       EXTRACT_TERMS: 'dsht:extractTerms',
+      TIDY_GLOSSARY: 'dsht:tidyGlossary',
       HEARTBEAT: 'dsht:heartbeat',
       PRETRANSLATE_CHAPTER: 'dsht:pretranslateChapter',
       SAVE_CHAPTER_CACHE: 'dsht:saveChapterCache',

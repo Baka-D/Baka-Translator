@@ -473,6 +473,7 @@
     translateSegments,
     polishSegments,
     extractTerms,
+    tidyGlossary: (options) => termApi.tidyGlossary(options, chatCompletion),
     translateImage,
     testConnection,
     fetchModels: discovery.fetchModels,

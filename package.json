@@ -1,6 +1,6 @@
 {
   "name": "baka-translator",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "private": true,
   "description": "Baka Translator: Chromium extension for Google Chrome, Brave and Microsoft Edge, with translation, proofreading and image OCR.",
   "scripts": {

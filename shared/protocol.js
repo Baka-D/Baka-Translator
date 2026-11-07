@@ -27,6 +27,10 @@
     (globalScope.DSHT && globalScope.DSHT.systemPrompts) ||
     (typeof require === 'function' ? require('../preset/system-prompts.js') : null);
 
+  // About two sentences of story on each side of a term, from two chapters.
+  const TIDY_EXCERPT_RADIUS = 60;
+  const TIDY_EXCERPTS = 2;
+
   function resolveTarget(targetCode) {
     if (!languages) throw new Error('Language module is not loaded');
     return languages.getTargetLanguage(targetCode) || languages.getTargetLanguage('zh');
@@ -268,17 +272,12 @@
     ];
   }
 
-  /**
-   * New terms worth reviewing. People and skills always stay: skill names are often
-   * ordinary words, such as 解析, and the review would take them for vocabulary.
-   */
+  /** New terms worth reviewing. */
   function termReviewCandidates(terms, glossary) {
     const known = new Set((Array.isArray(glossary) ? glossary : [])
       .map((term) => glossaryUtils.termKey(term.source)));
     return terms.filter((term) => (
-      !glossaryUtils.isCharacterCategory(term.category) &&
-      String(term.category).trim().toLowerCase() !== 'skill' &&
-      !known.has(glossaryUtils.termKey(term.source))
+      glossaryUtils.isDroppableTerm(term) && !known.has(glossaryUtils.termKey(term.source))
     ));
   }
 
@@ -289,6 +288,45 @@
     return [
       { role: 'system', content: prompts.terms.review.join('\n') },
       { role: 'user', content: JSON.stringify({ candidates }) }
+    ];
+  }
+
+  function tidyEntry({ id, source, target, category, gender, note, aliases }) {
+    return {
+      ...(id === undefined ? {} : { id }),
+      source,
+      target,
+      category: String(category).slice(0, 40),
+      ...(gender ? { gender } : {}),
+      ...(note ? { note: note.slice(0, 160) } : {}),
+      ...(aliases ? { aliases } : {})
+    };
+  }
+
+  /** The whole batch without story text: comparing terms needs them side by side. */
+  function buildGlossaryTidyMessages({ terms, targetCode, workTitle }) {
+    const target = resolveTarget(targetCode);
+    return [
+      { role: 'system', content: prompts.terms.tidy.map((line) => fixedPrompt(line, target)).join('\n') },
+      { role: 'user', content: JSON.stringify({ work: workTitle || '', terms: terms.map(tidyEntry) }) }
+    ];
+  }
+
+  /** Only proposed changes reach this step, so story text is paid for just where it decides. */
+  function buildGlossaryCheckMessages({ changes, chapters, targetCode, workTitle }) {
+    const target = resolveTarget(targetCode);
+    const proposals = changes.map(({ action, targets, terms }, id) => ({
+      id,
+      action,
+      terms: terms.map(({ id: _id, ...term }, index) => ({
+        ...tidyEntry(term),
+        ...(targets && targets[index] !== term.target ? { newTarget: targets[index] } : {}),
+        excerpts: glossaryUtils.termExcerpts(term.source, chapters, TIDY_EXCERPT_RADIUS, TIDY_EXCERPTS)
+      }))
+    }));
+    return [
+      { role: 'system', content: prompts.terms.check.map((line) => fixedPrompt(line, target)).join('\n') },
+      { role: 'user', content: JSON.stringify({ work: workTitle || '', proposals }) }
     ];
   }
 
@@ -323,6 +361,8 @@
     buildTermExtractionMessages,
     termReviewCandidates,
     buildTermReviewMessages,
+    buildGlossaryTidyMessages,
+    buildGlossaryCheckMessages,
     buildImageTranslationMessages,
     ...responses,
     targetSpec

@@ -5,10 +5,14 @@
   const protocol =
     (globalScope.DSHT && globalScope.DSHT.protocol) ||
     (typeof require === 'function' ? require('../shared/protocol.js') : null);
+  const glossary =
+    (globalScope.DSHT && globalScope.DSHT.glossary) ||
+    (typeof require === 'function' ? require('../shared/glossary.js') : null);
   const REVIEW_BATCH = 40;
   const REVIEW_TIMEOUT_MS = 30000;
   // A batch this size dropped whole is a bad reply, not a batch of ordinary words.
   const MIN_SUSPECT_DROP = 6;
+  const TIDY_TIMEOUT_MS = 180000;
 
   /**
    * A model that is not reasoning ignores the "no ordinary words" rule inside the long
@@ -45,7 +49,56 @@
     return { terms: terms.filter((term) => !dropped.has(term.source)), replies };
   }
 
-  const api = Object.freeze({ reviewTerms });
+  /** One batch: propose from the term list alone, then check the proposals against the story. */
+  async function tidyBatch(terms, opts, ask) {
+    const { targetCode, workTitle, chapters } = opts;
+    const proposed = protocol.parseJsonObject(
+      await ask(protocol.buildGlossaryTidyMessages({ terms, targetCode, workTitle }))
+    );
+    if (!proposed) return null;
+    const changes = glossary.tidyChanges(terms, proposed);
+    if (changes.length === 0) return [];
+    const checked = protocol.parseJsonObject(
+      await ask(protocol.buildGlossaryCheckMessages({ changes, chapters, targetCode, workTitle }))
+    );
+    if (!checked || !Array.isArray(checked.accept)) return null;
+    // Only what the check names goes through: a careless reply must change nothing.
+    const accepted = new Set(checked.accept);
+    return changes.filter((_change, id) => accepted.has(id));
+  }
+
+  /**
+   * Plan a tidy of `opts.terms`. `chat` is chatCompletion. Nothing is changed without
+   * passing the check, so a failed batch only leaves its terms as they are.
+   * Returns the changes, the billed replies and whether any batch failed.
+   */
+  async function tidyGlossary(opts, chat) {
+    const changes = [];
+    const replies = [];
+    let failed = false;
+    const ask = async (messages) => {
+      const reply = await chat({
+        ...opts, messages, kind: 'terms', temperature: 0, timeoutMs: TIDY_TIMEOUT_MS
+      });
+      replies.push(reply);
+      return reply.content;
+    };
+    for (const batch of glossary.tidyBatches(opts.terms, opts.batchTerms)) {
+      if (await opts.cancelled?.()) break;
+      try {
+        const accepted = await tidyBatch(batch, opts, ask);
+        if (accepted) changes.push(...accepted);
+        else failed = true;
+      } catch (_error) {
+        failed = true;
+        // The replies so far are billed either way; further batches would likely fail too.
+        break;
+      }
+    }
+    return { changes, replies, failed };
+  }
+
+  const api = Object.freeze({ reviewTerms, tidyGlossary });
 
   globalScope.DSHT = globalScope.DSHT || {};
   globalScope.DSHT.termApi = api;
