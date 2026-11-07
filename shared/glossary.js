@@ -152,6 +152,11 @@
       String(term.category).trim().toLowerCase() !== 'skill';
   }
 
+  /** A tidy also spares places and organizations: losing one costs far more than keeping a plain word. */
+  function isTidyDroppable(term) {
+    return isDroppableTerm(term) && !/^(place|organization)$/i.test(String(term.category).trim());
+  }
+
   /** A character without a gender stays extractable, so a later chapter can supply it. */
   function isSettledTerm(term) {
     return Boolean(term.gender) || !isCharacterCategory(term.category);
@@ -201,7 +206,7 @@
     for (const id of list(reply.drop)) {
       const term = byId.get(id);
       // An entry with aliases was already judged a name, and dropping it would lose them.
-      if (!term || used.has(term) || term.aliases || !isDroppableTerm(term)) continue;
+      if (!term || used.has(term) || term.aliases || !isTidyDroppable(term)) continue;
       used.add(term);
       changes.push({ action: 'drop', terms: [term] });
     }
@@ -296,6 +301,7 @@
     isSettledTerm,
     knownTerms,
     isDroppableTerm,
+    isTidyDroppable,
     tidyBatches,
     tidyChanges,
     termExcerpts,

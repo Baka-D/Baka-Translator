@@ -13,6 +13,8 @@
   // A batch this size dropped whole is a bad reply, not a batch of ordinary words.
   const MIN_SUSPECT_DROP = 6;
   const TIDY_TIMEOUT_MS = 180000;
+  // Measured on a real work: a sound tidy dropped 39% of what it may drop, unsound ones 72-97%.
+  const MAX_TIDY_DROP_SHARE = 2 / 3;
 
   /**
    * A model that is not reasoning ignores the "no ordinary words" rule inside the long
@@ -64,7 +66,14 @@
     if (!checked || !Array.isArray(checked.accept)) return null;
     // Only what the check names goes through: a careless reply must change nothing.
     const accepted = new Set(checked.accept);
-    return changes.filter((_change, id) => accepted.has(id));
+    const kept = changes.filter((_change, id) => accepted.has(id));
+    const drops = kept.filter((change) => change.action === 'drop').length;
+    const droppable = terms.filter(glossary.isTidyDroppable).length;
+    // No check can vouch for a reply that empties the glossary: keep only its merges.
+    if (drops >= MIN_SUSPECT_DROP && drops > droppable * MAX_TIDY_DROP_SHARE) {
+      return kept.filter((change) => change.action === 'merge');
+    }
+    return kept;
   }
 
   /**
