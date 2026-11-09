@@ -196,6 +196,9 @@
       if (pretranslation.active) notes.push(`${pretranslation.title} · ${pretranslation.detail}`);
       else if (page.pretranslationNote) notes.push(page.pretranslationNote);
       if (page.truncated) notes.push('页面较长，仅翻译了前一部分可见文本。');
+      const actions = finishedActions();
+      if (!page.novelMode) actions.push({ id: 'retry', label: '重试', variant: 'ghost' });
+      if (isSettingsError(page.errorCode)) actions.unshift({ id: 'settings', label: '打开设置', variant: 'ghost' });
       overlay.renderPanel({
         visible: true,
         status: 'partial',
@@ -203,7 +206,7 @@
         subtitle: `${page.error || `${page.progress.failed} 个片段未完成`}${costText ? ` · ${costText}` : ''}`,
         showProgress: pretranslation.active && pretranslation.showProgress,
         progressRatio: pretranslation.ratio,
-        actions: finishedActions(),
+        actions,
         showDismiss: true,
         note: notes.join('\n')
       });
