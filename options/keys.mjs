@@ -2,7 +2,7 @@
 import { CONFIRM_RESET_MS, FEEDBACK_CLEAR_MS, KEYS, KEY_MAX_LENGTH, KEY_MIN_LENGTH, MSG, state, ui } from './context.mjs';
 import { isCustomProvider, providerKeyFor } from './models.mjs';
 import { getProvider, keyRequired, renderProviders, selectedProvider } from './providers.mjs';
-import { maskKey, persist, sendMessage, setFeedback } from './utils.mjs';
+import { maskKey, persist, restoreFocus, sendMessage, setFeedback } from './utils.mjs';
 
 /* ---------- 当前服务商的 API Key ---------- */
 
@@ -86,11 +86,17 @@ export function validateProviderKey(provider, raw) {
   return { ok: true, key };
 }
 
+let busyFocus = null;
+
 export function setKeyBusy(busy) {
   state.busy = Boolean(busy);
+  if (state.busy) busyFocus = document.activeElement;
   if (state.busy) ui.saveKeyButton.setAttribute('aria-busy', 'true');
   else ui.saveKeyButton.removeAttribute('aria-busy');
   renderProviders();
+  if (state.busy) return;
+  restoreFocus(busyFocus);
+  busyFocus = null;
 }
 
 export async function handleSaveKey() {

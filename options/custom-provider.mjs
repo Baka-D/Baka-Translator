@@ -3,12 +3,15 @@ import { CONFIRM_RESET_MS, FEEDBACK_CLEAR_MS, KEYS, LOCAL_HTTP_HOSTS, modelsTool
 import { applyCustomProviders, renderModelArea } from './model-selection.mjs';
 import { isCustomProvider, providerKeyFor } from './models.mjs';
 import { focusCurrentProvider, providerUses, renderProviders, selectedProvider } from './providers.mjs';
-import { persist, setFeedback, storedModelIds } from './utils.mjs';
+import { persist, restoreFocus, setFeedback, storedModelIds } from './utils.mjs';
 
 /* ---------- 自定义 OpenAI 兼容接口 ---------- */
 
+let busyFocus = null;
+
 export function setCustomBusy(busy) {
   state.customBusy = Boolean(busy);
+  if (state.customBusy) busyFocus = document.activeElement;
   const disabled = state.customBusy;
   for (const input of [ui.providerNameInput, ui.customEndpointInput, ui.customModelInput]) {
     if (input) input.disabled = disabled;
@@ -17,6 +20,9 @@ export function setCustomBusy(busy) {
   if (ui.deleteProviderButton) ui.deleteProviderButton.disabled = disabled;
   if (state.customBusy) ui.saveCustomProviderButton.setAttribute('aria-busy', 'true');
   else ui.saveCustomProviderButton.removeAttribute('aria-busy');
+  if (state.customBusy) return;
+  restoreFocus(busyFocus);
+  busyFocus = null;
 }
 
 export function validateCustomProviderInput(endpointRaw, modelRaw) {

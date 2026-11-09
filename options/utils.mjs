@@ -33,6 +33,13 @@ export function setFeedback(element, message, tone, autoClearMs) {
   }
 }
 
+/** Disabling the focused control drops focus to <body>; hand it back once controls are enabled again. */
+export function restoreFocus(element) {
+  const active = document.activeElement;
+  if (!element || !element.isConnected || element.disabled || element.hidden) return;
+  if (!active || active === document.body || active === element) element.focus();
+}
+
 export function persist(update) {
   try {
     return chrome.storage.local.set(update);
