@@ -14,7 +14,7 @@ const presetsTools = root.presets || null;
 
 const POLL_INTERVAL_MS = 900;
 const PRETRANSLATE_POLL_MS = 2000;
-const KEY_NOTICE_TEXT = '尚未配置所选模型的 API Key，翻译功能暂不可用，请切换至其他模型。';
+const KEY_NOTICE_TEXT = '尚未填写所选模型的 API Key，请在设置中填写，或改用已配置 Key 的模型。';
 const VISION_NOTICE_TEXT = '当前模型不支持图像识别，图片翻译已禁用；请选择支持图片的模型。';
 const EXT_PAGE_MESSAGE = '当前标签页是扩展自身页面，无法翻译，请在普通网页上使用。';
 const PAGE_ERROR_MESSAGES = Object.freeze({
