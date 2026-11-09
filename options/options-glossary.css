@@ -111,6 +111,10 @@
   gap: 12px;
 }
 
+.glossary-editor-head .button {
+  flex: none;
+}
+
 .glossary-editor-title {
   margin: 0;
   color: var(--ink);
@@ -223,10 +227,6 @@
   display: flex;
   justify-content: flex-end;
   gap: 4px;
-}
-
-.glossary-row-actions [hidden] {
-  display: none;
 }
 
 .glossary-editor .button-row {
