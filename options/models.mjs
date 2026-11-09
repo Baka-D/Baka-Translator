@@ -9,6 +9,12 @@ export function translationModel() {
   return modelsTools.getModel(state.registry, state.modelId);
 }
 
+/** The stored translation model id that no longer exists, while a stand-in is shown. */
+export function staleTranslationModelId() {
+  const id = state.staleModelId;
+  return id && state.registry && modelsTools && !modelsTools.getModel(state.registry, id) ? id : '';
+}
+
 export function translationProvider() {
   const model = translationModel();
   if (!model || !modelsTools) return null;
@@ -169,6 +175,16 @@ export function populateModelSelect() {
   const translation = translationModel();
   select.disabled = false;
   fillProviderModelOptions(select, translation ? translation.provider : '', state.modelId);
+  const stale = staleTranslationModelId();
+  if (stale) {
+    // Selected so that picking any real model, the stand-in included, fires a change.
+    const option = document.createElement('option');
+    option.value = '';
+    option.textContent = `（已失效）${stale}`;
+    option.disabled = true;
+    select.prepend(option);
+    option.selected = true;
+  }
   if (ui.polishModelSelect) {
     if (polishInheritsModel()) {
       ui.polishModelSelect.textContent = '';
@@ -292,9 +308,11 @@ export function renderSummaries() {
   const translation = translationModel();
   const polish = polishModel();
   if (ui.translationSummary) {
-    ui.translationSummary.textContent = translation
-      ? `翻译模型：${translation.name} · 思考强度：${effortLabel(state.effortLevel)}`
-      : '翻译模型：—';
+    ui.translationSummary.textContent = staleTranslationModelId()
+      ? '翻译模型：已失效'
+      : translation
+        ? `翻译模型：${translation.name} · 思考强度：${effortLabel(state.effortLevel)}`
+        : '翻译模型：—';
   }
   if (ui.polishSummary) {
     if (!polish) {

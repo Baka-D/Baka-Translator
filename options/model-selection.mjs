@@ -112,16 +112,15 @@ export function snapshotFallbackModelId(purpose) {
 
 export function normalizeTranslationSelection() {
   if (!state.registry || !modelsTools) return null;
+  if (state.modelId && !modelsTools.getModel(state.registry, state.modelId)) state.staleModelId = state.modelId;
   if (modelsTools.isCustomModelId(state.modelId) && !modelsTools.getModel(state.registry, state.modelId)) {
     setFeedback(
       ui.behaviorFeedback,
-      '原先选用的自定义服务商或模型已不存在：翻译会停用，直到你在「常规 → 服务商」重新添加它或在此改选其他模型。',
+      '原先选用的自定义服务商或模型已不存在：翻译会停用，直到你在「常规 → 服务商」重新添加它或在此改选其他模型（选择后立即生效）。',
       'warning'
     );
   } else if (state.modelId && !modelsTools.getModel(state.registry, state.modelId)) {
-    // shortcut: re-picking the model shown here fires no change event, add a stale placeholder
-    // option if a release ever removes a built-in model.
-    setFeedback(ui.behaviorFeedback, '原先选用的模型已不存在：翻译会停用，直到你在此改选模型并保存。', 'warning');
+    setFeedback(ui.behaviorFeedback, '原先选用的模型已不存在：翻译会停用，直到你在此改选模型（选择后立即生效）。', 'warning');
   }
   let model = modelsTools.getModel(state.registry, state.modelId);
   if (!model) model = modelsTools.getModel(state.registry, snapshotFallbackModelId('translation'));
@@ -175,6 +174,7 @@ export function followStoredModels(changes) {
     const value = changes[key]?.newValue;
     return typeof value === 'string' ? value.trim() : current;
   };
+  if (changes[KEYS.TRANSLATION_MODEL_ID]) state.staleModelId = '';
   state.modelId = stored(KEYS.TRANSLATION_MODEL_ID, state.modelId) || state.modelId;
   state.effortLevel = stored(KEYS.TRANSLATION_EFFORT, state.effortLevel) || state.effortLevel;
   // An empty polish value is real: it means follow the translation model.
@@ -201,6 +201,7 @@ export function applyTranslationProvider(providerIdValue) {
   const current = translationModel();
   const next = current && current.provider === providerIdValue ? current : models[0];
   state.modelId = next.id;
+  state.staleModelId = '';
   if (!next.effortLevels.includes(state.effortLevel)) {
     state.effortLevel = next.defaultEffort;
   }
@@ -234,6 +235,7 @@ export function applyModelSelection(modelId) {
   const model = modelsTools.getModel(state.registry, modelId);
   if (!model) return null;
   state.modelId = model.id;
+  state.staleModelId = '';
   if (!model.effortLevels.includes(state.effortLevel)) {
     state.effortLevel = model.defaultEffort;
   }
