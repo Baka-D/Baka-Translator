@@ -3,7 +3,7 @@ import { FEEDBACK_CLEAR_MS, novelUtils, state, ui } from './context.mjs';
 import {
   GLOSSARY_PREFIX, describeGlossary, glossaryPageRange, normalizeGlossaryRows, withNewStoredTerms
 } from './glossary-data.mjs';
-import { readTermRow, renderTermRow } from './glossary-row.mjs';
+import { readTermRow, renderTermRow, termRowKey } from './glossary-row.mjs';
 import { renderTidyUndo, wireGlossaryTidy } from './glossary-tidy.mjs';
 import { makeButton, setFeedback } from './utils.mjs';
 
@@ -69,9 +69,8 @@ function renderGlossaryList() {
 
     const actions = document.createElement('div');
     actions.className = 'glossary-actions';
-    const edit = makeButton('编辑', 'button button-secondary button-compact', () => {
-      openGlossaryEditor(entry.key);
-    }, `编辑 ${entry.title} 的术语库`);
+    // The list's click handler opens it, after asking about unsaved edits.
+    const edit = makeButton('编辑', 'button button-secondary button-compact', null, `编辑 ${entry.title} 的术语库`);
     edit.dataset.glossaryEdit = entry.key;
     actions.append(edit);
 
@@ -220,6 +219,23 @@ function syncGlossaryDraft() {
   }
 }
 
+/** Edits not in storage yet: changed, added or deleted rows, or a new work title. */
+function hasUnsavedGlossaryEdits() {
+  const entry = activeGlossary();
+  if (!entry) return false;
+  if (ui.glossaryTitleInput && ui.glossaryTitleInput.value.trim() !== entry.title) return true;
+  syncGlossaryDraft();
+  const blank = termRowKey(null);
+  const draft = state.glossaryDraft.map(termRowKey).filter((key) => key !== blank);
+  const opened = state.glossaryOpened.map(termRowKey);
+  return draft.length !== opened.length || draft.some((key, index) => key !== opened[index]);
+}
+
+function confirmDiscardGlossaryEdits() {
+  return !hasUnsavedGlossaryEdits() ||
+    window.confirm('术语库有未保存的修改，继续操作会丢失这些修改。确定继续吗？');
+}
+
 function addGlossaryTermRow() {
   syncGlossaryDraft();
   state.glossaryDraft.push({});
@@ -305,11 +321,16 @@ async function reloadGlossaryEditor() {
 export function wireGlossaryEvents() {
   if (!ui.glossaryList) return;
   wireGlossaryTidy(activeGlossary, reloadGlossaryEditor);
+  window.addEventListener('beforeunload', (event) => {
+    if (hasUnsavedGlossaryEdits()) event.preventDefault();
+  });
   ui.glossaryList.addEventListener('click', (event) => {
     const button = event.target && event.target.closest
       ? event.target.closest('[data-glossary-edit]')
       : null;
-    if (button && button.dataset.glossaryEdit) openGlossaryEditor(button.dataset.glossaryEdit);
+    if (button && button.dataset.glossaryEdit && confirmDiscardGlossaryEdits()) {
+      openGlossaryEditor(button.dataset.glossaryEdit);
+    }
   });
   if (ui.glossaryAddButton) {
     ui.glossaryAddButton.addEventListener('click', () => addGlossaryTermRow());
@@ -321,7 +342,9 @@ export function wireGlossaryEvents() {
     ui.glossaryClearButton.addEventListener('click', () => { void clearGlossary(); });
   }
   if (ui.glossaryCloseButton) {
-    ui.glossaryCloseButton.addEventListener('click', () => closeGlossaryEditor());
+    ui.glossaryCloseButton.addEventListener('click', () => {
+      if (confirmDiscardGlossaryEdits()) closeGlossaryEditor();
+    });
   }
   if (ui.glossaryPager) {
     ui.glossaryPrevButton.addEventListener('click', () => stepGlossaryPage(-1, ui.glossaryPrevButton));
