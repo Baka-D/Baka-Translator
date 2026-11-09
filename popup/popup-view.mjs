@@ -69,6 +69,8 @@ function renderStatus() {
   const stageLabels = { fetching: '读取章节', translating: '翻译', polishing: '润色', saving: '保存译文' };
   let tone = 'idle';
   let text = '正在读取页面状态…';
+  // Counts stay out of the live region so screen readers are not re-announced on every poll.
+  let count = '';
 
   if (state.loading && !info) {
     tone = 'running';
@@ -84,7 +86,8 @@ function renderStatus() {
     if (info.phase === 'polishing') {
       text = '正在润色…';
     } else {
-      text = info.progress.total > 0 ? `正在翻译… ${info.progress.done}/${info.progress.total}` : '正在翻译…';
+      text = '正在翻译…';
+      count = info.progress.total > 0 ? `${info.progress.done}/${info.progress.total}` : '';
     }
   } else if (info.status === 'done') {
     tone = 'done';
@@ -105,14 +108,16 @@ function renderStatus() {
     tone = 'running';
     const prefix = info.pretranslationScope === 'current' ? '正在接续本章预翻译' : '正在预翻译下一章';
     const stage = stageLabels[pretranslationProgress.stage] || '准备中';
-    const counts = pretranslationProgress.total > 0
-      ? ` ${Math.min(pretranslationProgress.done, pretranslationProgress.total)}/${pretranslationProgress.total} 段`
-      : '…';
-    text = `${prefix} · ${stage}${counts}`;
+    const hasCount = pretranslationProgress.total > 0;
+    count = hasCount
+      ? `${Math.min(pretranslationProgress.done, pretranslationProgress.total)}/${pretranslationProgress.total} 段`
+      : '';
+    text = `${prefix} · ${stage}${hasCount ? '' : '…'}`;
   }
 
   ui.statusDot.dataset.tone = tone;
   if (ui.statusText.textContent !== text) ui.statusText.textContent = text;
+  if (ui.statusCount.textContent !== count) ui.statusCount.textContent = count;
 
   const detected =
     info && info.source && info.source.code && info.source.code !== 'unknown'

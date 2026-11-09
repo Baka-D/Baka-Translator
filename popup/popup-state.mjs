@@ -31,6 +31,7 @@ const byId = (id) => document.getElementById(id);
 const ui = {
   statusDot: byId('statusDot'),
   statusText: byId('statusText'),
+  statusCount: byId('statusCount'),
   sourceLabel: byId('sourceLabel'),
   targetLabel: byId('targetLabel'),
   progressTrack: byId('progressTrack'),

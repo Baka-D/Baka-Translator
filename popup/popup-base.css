@@ -193,6 +193,18 @@ input {
   text-overflow: ellipsis;
 }
 
+.status-count {
+  flex: none;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.status-count:empty {
+  display: none;
+}
+
 .status-meta {
   display: flex;
   align-items: center;
