@@ -22,9 +22,23 @@ function renderAliasRow(alias, termLabel, termTarget) {
     makeAliasInput('alias-source', alias.source, `${termLabel}的其他写法`, '其他写法'),
     // A copy of the term's translation shows blank again, so it keeps following that translation.
     makeAliasInput('alias-target', alias.target === termTarget ? '' : alias.target,`${termLabel}这个写法的译文`, '译文（留空沿用上方译文）'),
-    makeButton('移除', 'button button-ghost-danger glossary-delete', () => row.remove(), `移除${termLabel}的这个写法`)
+    makeButton('移除', 'button button-ghost-danger glossary-delete', () => removeAliasRow(row), `移除${termLabel}的这个写法`)
   );
   return row;
+}
+
+/** Keep the keyboard on a neighbouring remove button, else on the term row's first shown button. */
+function removeAliasRow(row) {
+  const termRow = row.closest('[data-glossary-row]');
+  const neighbour = row.nextElementSibling || row.previousElementSibling;
+  row.remove();
+  if (neighbour) {
+    neighbour.querySelector('.glossary-delete').focus();
+    return;
+  }
+  // Update the row's buttons first: removing a saved spelling swaps them for save and cancel.
+  termRow.dispatchEvent(new Event('change'));
+  [...termRow.querySelectorAll('.glossary-row-actions button')].find((button) => !button.hidden)?.focus();
 }
 
 export function renderAliases(aliases, index, termTarget) {
