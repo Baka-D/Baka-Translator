@@ -11,7 +11,7 @@ import { handleBilingualChange, handleResetUsageClick, handleTargetChange, popul
 import { handleAddSite, renderSiteSettings } from './sites.mjs';
 import { initGlossaries, wireGlossaryEvents } from './glossaries.mjs';
 import { loadStoredData, persistDefaultsIfMissing, readConfigSnapshot, resolvePreset } from './storage.mjs';
-import { effortLabel, getVersion, isObject, normalizeProviderKeys, normalizeUsage, persist, setFeedback } from './utils.mjs';
+import { effortLabel, getVersion, isObject, normalizeProviderKeys, normalizeUsage, persist, restoreFocus, setFeedback } from './utils.mjs';
 
 /* ---------- 选项卡 ---------- */
 
@@ -227,15 +227,26 @@ export function wireEvents() {
   if (ui.reloadModelsButton) {
     ui.reloadModelsButton.addEventListener('click', () => {
       void (async () => {
-        await loadRegistry();
-        applyResolvedModel();
-        await resolvePreset();
-        setFeedback(
-          ui.keyFeedback,
-          state.registryError || '模型清单已重新加载。',
-          state.registryError ? 'warning' : 'success',
-          FEEDBACK_CLEAR_MS
-        );
+        const button = ui.reloadModelsButton;
+        button.disabled = true;
+        button.setAttribute('aria-busy', 'true');
+        button.textContent = '正在加载…';
+        try {
+          await loadRegistry();
+          applyResolvedModel();
+          await resolvePreset();
+        } finally {
+          button.disabled = false;
+          button.removeAttribute('aria-busy');
+          button.textContent = '重新加载';
+          restoreFocus(button);
+        }
+        if (state.registryError) {
+          // The notice is where the user is looking; an unchanged text would read as no response.
+          ui.modelsLoadErrorText.textContent = `重试仍失败。${state.registryError}`;
+        } else {
+          setFeedback(ui.keyFeedback, '模型清单已重新加载。', 'success', FEEDBACK_CLEAR_MS);
+        }
       })();
     });
   }
