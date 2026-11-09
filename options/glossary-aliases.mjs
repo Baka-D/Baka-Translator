@@ -27,16 +27,17 @@ function renderAliasRow(alias, termLabel) {
 }
 
 export function renderAliases(aliases, index) {
-  const termLabel = `第 ${index + 1} 条术语`;
   const list = document.createElement('div');
   list.className = 'glossary-aliases';
-  const add = makeButton('添加其他写法', 'button button-secondary button-compact', () => {
-    const row = renderAliasRow({}, termLabel);
-    add.before(row);
-    row.querySelector('[data-role="alias-source"]').focus();
-  }, `为${termLabel}添加其他写法`);
-  list.append(...(aliases || []).map((alias) => renderAliasRow(alias, termLabel)), add);
+  list.append(...(aliases || []).map((alias) => renderAliasRow(alias, `第 ${index + 1} 条术语`)));
   return list;
+}
+
+/** Add an empty alias row to a term's list and put the cursor in it. */
+export function addAlias(list, index) {
+  const row = renderAliasRow({}, `第 ${index + 1} 条术语`);
+  list.append(row);
+  row.querySelector('[data-role="alias-source"]').focus();
 }
 
 /** The aliases on screen; one without a translation uses the term's. */

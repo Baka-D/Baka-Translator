@@ -1,6 +1,6 @@
 // One editable glossary term row; it shows save/cancel beside itself once edited.
 import { novelUtils } from './context.mjs';
-import { readAliases, renderAliases } from './glossary-aliases.mjs';
+import { addAlias, readAliases, renderAliases } from './glossary-aliases.mjs';
 import { makeButton } from './utils.mjs';
 
 const GENDER_OPTIONS = [['none', '无'], ['male', '男'], ['female', '女']];
@@ -89,8 +89,12 @@ export function renderTermRow(term, index, saved, handlers) {
     makeInput('note', values.note, `第 ${index + 1} 条术语备注`, '备注（可选）')
   );
 
+  const aliases = renderAliases(values.aliases, index);
   const actions = document.createElement('div');
   actions.className = 'glossary-row-actions';
+  const addAliasButton = makeButton('+ 写法', 'button button-secondary glossary-delete', () => addAlias(aliases, index),
+    `为第 ${index + 1} 条术语添加其他写法`);
+  addAliasButton.title = '添加其他写法';
   const save = makeButton('保存', 'button button-primary glossary-delete', () => handlers.onSave(index),
     `保存术语库（含第 ${index + 1} 条的修改）`);
   const cancel = makeButton('取消', 'button button-secondary glossary-delete', () => handlers.onCancel(index),
@@ -98,8 +102,8 @@ export function renderTermRow(term, index, saved, handlers) {
   const remove = makeButton('删除', 'button button-ghost-danger glossary-delete', () => handlers.onDelete(index),
     `删除第 ${index + 1} 条术语`);
   remove.dataset.role = 'delete';
-  actions.append(save, cancel, remove);
-  row.append(actions, renderAliases(values.aliases, index));
+  actions.append(addAliasButton, save, cancel, remove);
+  row.append(actions, aliases);
 
   const savedKey = termRowKey(saved);
   const syncDirty = () => {
@@ -107,6 +111,8 @@ export function renderTermRow(term, index, saved, handlers) {
     save.hidden = !dirty;
     cancel.hidden = !dirty;
     remove.hidden = dirty;
+    // shortcut: no room for a fourth button, so a new spelling waits until the row is saved or reverted.
+    addAliasButton.hidden = dirty;
   };
   row.addEventListener('input', syncDirty);
   row.addEventListener('change', syncDirty);

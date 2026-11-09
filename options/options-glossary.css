@@ -134,7 +134,7 @@
 .glossary-table-head,
 .glossary-term-row {
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr) 90px 64px minmax(0, 1.2fr) 88px;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr) 90px 64px minmax(0, 1.2fr) 100px;
   gap: 8px;
   align-items: center;
 }
@@ -157,6 +157,10 @@
   display: grid;
   justify-items: start;
   gap: 6px;
+}
+
+.glossary-aliases:empty {
+  display: none;
 }
 
 .glossary-alias-row {
@@ -227,6 +231,11 @@
   display: flex;
   justify-content: flex-end;
   gap: 4px;
+}
+
+.glossary-row-actions .button {
+  flex: none;
+  white-space: nowrap;
 }
 
 .glossary-editor .button-row {
