@@ -233,7 +233,7 @@
       page.status = 'done';
     }
     // A panel hidden during the run comes back for failures the user has to see.
-    if (page.status !== 'done') page.panelDismissed = false;
+    if (page.status !== 'done' || page.polishError) page.panelDismissed = false;
 
     app.renderPagePanel();
     app.notifyBadge(page.status);
