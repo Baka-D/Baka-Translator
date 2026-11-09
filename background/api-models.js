@@ -80,10 +80,10 @@
       const remainingMs = deadline - Date.now();
       if (remainingMs <= 0) throw new ApiError('获取模型超时，请稍后重试。', { code: 'TIMEOUT' });
       const data = await requestJson(url.toString(), {
-        method: 'GET', headers, fetchImpl: opts.fetchImpl,
+        method: 'GET', headers, apiKey, fetchImpl: opts.fetchImpl,
         timeoutMs: remainingMs, providerName: provider.name || provider.id
       }).catch((error) => {
-        // Providers may echo even arbitrary gateway keys in their error details.
+        // Providers may echo even arbitrary gateway keys in their error details; apiKey above masks them in the message.
         if (error.code === 'BAD_REQUEST') error.message = '获取模型请求被拒绝，请检查 API Key 和接口地址。';
         error.providerMessage = '';
         throw error;
