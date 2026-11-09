@@ -108,12 +108,12 @@ export function renderTermRow(term, index, saved, handlers) {
   const aliases = renderAliases(values.aliases, index, values.target);
   const actions = document.createElement('div');
   actions.className = 'glossary-row-actions';
-  const addAliasButton = makeButton('+ 写法', 'button button-secondary glossary-delete', () => addAlias(aliases, index),
+  const addAliasButton = makeButton('+ 写法', 'button button-secondary glossary-row-button', () => addAlias(aliases, index),
     `为第 ${index + 1} 条术语添加其他写法`);
   addAliasButton.title = '添加其他写法';
-  const save = makeButton('保存', 'button button-primary glossary-delete', () => handlers.onSave(index),
+  const save = makeButton('保存', 'button button-primary glossary-row-button', () => handlers.onSave(index),
     `保存术语库（含第 ${index + 1} 条的修改）`);
-  const cancel = makeButton('取消', 'button button-secondary glossary-delete', () => handlers.onCancel(index),
+  const cancel = makeButton('取消', 'button button-secondary glossary-row-button', () => handlers.onCancel(index),
     `撤销第 ${index + 1} 条术语未保存的修改`);
   const remove = makeButton('删除', 'button button-ghost-danger glossary-delete', () => handlers.onDelete(index),
     `删除第 ${index + 1} 条术语`);
