@@ -97,7 +97,10 @@ export function handleResetUsageClick() {
     ui.resetUsageButton.setAttribute('aria-label', '再次点击以确认清零累计 Token 使用量');
   }
   setFeedback(ui.usageFeedback, '再次点击“确认清零？”会将本机累计的使用量归零，此操作不可恢复。', 'warning');
-  state.resetUsageTimer = window.setTimeout(resetResetUsageConfirm, CONFIRM_RESET_MS);
+  state.resetUsageTimer = window.setTimeout(() => {
+    resetResetUsageConfirm();
+    setFeedback(ui.usageFeedback, '');
+  }, CONFIRM_RESET_MS);
 }
 
 /* ---------- 默认设置 ---------- */

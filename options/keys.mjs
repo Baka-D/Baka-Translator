@@ -190,7 +190,10 @@ export function handleClearKeyClick() {
     ui.clearKeyButton.classList.add('is-confirming');
     ui.clearKeyButton.setAttribute('aria-label', `再次点击以确认清除本机保存的 ${providerName(provider)} API Key`);
     setFeedback(ui.keyFeedback, '再次点击“确认清除？”将删除本机保存的 API Key。', 'warning');
-    state.clearTimer = window.setTimeout(resetClearConfirm, CONFIRM_RESET_MS);
+    state.clearTimer = window.setTimeout(() => {
+      resetClearConfirm();
+      setFeedback(ui.keyFeedback, '');
+    }, CONFIRM_RESET_MS);
     return;
   }
   void clearKey(provider.id);
