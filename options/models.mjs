@@ -15,6 +15,12 @@ export function staleTranslationModelId() {
   return id && state.registry && modelsTools && !modelsTools.getModel(state.registry, id) ? id : '';
 }
 
+/** The translation model's name, or 已失效 so the stand-in never reads as the active model. */
+function translationName(translation) {
+  if (staleTranslationModelId()) return '已失效';
+  return translation ? translation.name : '—';
+}
+
 export function translationProvider() {
   const model = translationModel();
   if (!model || !modelsTools) return null;
@@ -190,7 +196,7 @@ export function populateModelSelect() {
       ui.polishModelSelect.textContent = '';
       const option = document.createElement('option');
       option.value = '';
-      option.textContent = `跟随翻译模型${translation ? `（${translation.name}）` : ''}`;
+      option.textContent = `跟随翻译模型${translation ? `（${translationName(translation)}）` : ''}`;
       ui.polishModelSelect.appendChild(option);
       ui.polishModelSelect.disabled = true;
     } else {
@@ -224,7 +230,8 @@ export function modelDetailText(model) {
 
 export function renderModelDetails(model) {
   if (!ui.modelDetails) return;
-  ui.modelDetails.textContent = modelDetailText(model);
+  const stale = staleTranslationModelId();
+  ui.modelDetails.textContent = stale ? `模型已失效：${stale}。请改选其他模型。` : modelDetailText(model);
 }
 
 export function renderPolishModelDetails(model) {
@@ -234,7 +241,7 @@ export function renderPolishModelDetails(model) {
     return;
   }
   ui.polishModelDetails.textContent = polishInheritsModel()
-    ? `跟随翻译模型：${model.name}。`
+    ? `跟随翻译模型：${translationName(model)}。`
     : modelDetailText(model);
 }
 
@@ -269,10 +276,13 @@ export function populateEffortSelect(model) {
   const value = levels.includes(state.effortLevel) ? state.effortLevel : levels[0];
   select.value = value;
   state.effortLevel = value;
-  select.disabled = levels.length <= 1;
+  // While stale, `state.modelId` is the stand-in: an effort change would save it as the model.
+  const stale = Boolean(staleTranslationModelId());
+  select.disabled = stale || levels.length <= 1;
   if (ui.effortHint) {
-    ui.effortHint.textContent =
-      levels.length <= 1
+    ui.effortHint.textContent = stale
+      ? '翻译模型已失效，请先改选模型。'
+      : levels.length <= 1
         ? `当前模型不支持调整思考强度（固定为“${effortLabel(levels[0])}”）。`
         : '思考强度越高越慢、通常也越贵；网页翻译建议关闭或使用低强度。';
   }
@@ -294,7 +304,7 @@ export function populatePolishEffortSelect() {
       ui.polishEffortHint.textContent =
         `润色思考强度：${effortLabel(value)}${polishInheritsModel() ? '（模型跟随翻译）' : ''}。`;
     } else if (polishInheritsModel()) {
-      ui.polishEffortHint.textContent = `跟随翻译模型（${translation ? translation.name : '—'}）与思考强度。`;
+      ui.polishEffortHint.textContent = `跟随翻译模型（${translationName(translation)}）与思考强度。`;
     } else {
       ui.polishEffortHint.textContent = `未指定时使用该模型默认值（${effortLabel(
         model ? model.defaultEffort : 'none'
@@ -318,7 +328,7 @@ export function renderSummaries() {
     if (!polish) {
       ui.polishSummary.textContent = '润色模型：—';
     } else if (polishInheritsModel()) {
-      ui.polishSummary.textContent = `润色模型：跟随翻译（${polish.name}） · 思考强度：${effortLabel(
+      ui.polishSummary.textContent = `润色模型：跟随翻译（${translationName(polish)}） · 思考强度：${effortLabel(
         polishEffortLevel()
       )}`;
     } else {
@@ -335,13 +345,14 @@ export function renderMetaAbout() {
   const model = translationModel();
   const polish = polishModel();
   if (ui.modelText) {
+    const stale = Boolean(staleTranslationModelId());
     if (!model) ui.modelText.textContent = '—';
-    else if (polish && !polishInheritsModel() && polish.id !== model.id) {
-      ui.modelText.textContent = `翻译：${model.name} / 润色：${polish.name}`;
+    else if (polish && !polishInheritsModel() && (stale || polish.id !== model.id)) {
+      ui.modelText.textContent = `翻译：${translationName(model)} / 润色：${polish.name}`;
     } else if (polish && !polishInheritsModel()) {
       ui.modelText.textContent = `${model.name} / ${polish.name}`;
     } else {
-      ui.modelText.textContent = model.name;
+      ui.modelText.textContent = translationName(model);
     }
   }
   renderSummaries();
