@@ -177,6 +177,9 @@ function computeMainAction() {
     if (settingsDirty()) {
       return { kind: 'retranslate', label: '按新设置重新翻译', disabled: !state.hasApiKey };
     }
+    if (info.status === 'partial') {
+      return { kind: 'retry', label: '重试失败部分', disabled: !state.hasApiKey };
+    }
     return { kind: 'restore', label: '还原原始页面', disabled: false };
   }
   if (state.loading || state.initialFetch) {
