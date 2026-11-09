@@ -4,6 +4,23 @@ import { addAlias, readAliases, renderAliases } from './glossary-aliases.mjs';
 import { makeButton } from './utils.mjs';
 
 const GENDER_OPTIONS = [['none', '无'], ['male', '男'], ['female', '女']];
+const CATEGORY_OPTIONS = [
+  ['character', '人物'], ['place', '地点'], ['organization', '组织'],
+  ['skill', '技能'], ['item', '物品'], ['term', '术语']
+];
+
+function makeCategorySelect(value, index) {
+  const select = document.createElement('select');
+  select.className = 'select glossary-input';
+  select.dataset.role = 'category';
+  select.setAttribute('aria-label', `第 ${index + 1} 条术语分类`);
+  for (const [category, label] of CATEGORY_OPTIONS) select.add(new Option(label, category));
+  const current = String(value || '').trim() || 'term';
+  // A category the model wrote outside this list stays selectable as it is.
+  if (!CATEGORY_OPTIONS.some(([category]) => category === current)) select.add(new Option(current, current));
+  select.value = current;
+  return select;
+}
 
 function makeGenderSelect(term, index) {
   const select = document.createElement('select');
@@ -73,8 +90,7 @@ export function renderTermRow(term, index, saved, handlers) {
     input.spellcheck = false;
     return input;
   };
-  const category = makeInput('category', values.category || 'term', `第 ${index + 1} 条术语分类`, 'term');
-  category.setAttribute('list', 'glossaryCategoryOptions');
+  const category = makeCategorySelect(values.category, index);
   const gender = makeGenderSelect(values, index);
   const syncGender = () => {
     gender.classList.toggle('is-unused', !novelUtils.isCharacterCategory(category.value));
