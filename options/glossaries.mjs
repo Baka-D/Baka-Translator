@@ -9,6 +9,8 @@ import { makeButton, setFeedback } from './utils.mjs';
 
 const GLOSSARY_MIN_PAGE_SIZE = 30;
 const CLEAR_CONFIRM_MS = 5000;
+// The tidy the open draft started from: refreshing the list must not let a stale draft save.
+let openedTidyAt = null;
 
 export async function loadGlossaries() {
   if (!state.glossaries) state.glossaries = [];
@@ -125,6 +127,7 @@ function renderGlossaryEditor() {
   if (ui.glossaryTitleInput) ui.glossaryTitleInput.value = entry.title;
   syncTitleButtons();
   state.glossaryOpened = entry.terms;
+  openedTidyAt = entry.tidy?.tidiedAt ?? null;
   state.glossaryDraft = entry.terms.length > 0 ? entry.terms.map((term) => ({ ...term })) : [{}];
   // Kept index-aligned with the draft so each row knows whether it was edited.
   state.glossarySaved = entry.terms.length > 0 ? entry.terms.slice() : [null];
@@ -292,8 +295,8 @@ async function saveGlossary(rowIndex) {
   try {
     // Re-read: chapter tabs may have added terms and chapter ids since the list loaded.
     const stored = await chrome.storage.local.get([entry.key, entry.metaKey, entry.tidyKey]);
-    if (stored[entry.tidyKey]?.tidiedAt !== entry.tidy?.tidiedAt) {
-      setFeedback(ui.glossaryFeedback, '术语库刚被自动整理过，请点“刷新列表”并重新打开后再修改。', 'error');
+    if ((stored[entry.tidyKey]?.tidiedAt ?? null) !== openedTidyAt) {
+      setFeedback(ui.glossaryFeedback, '术语库已被自动整理，当前修改基于整理前的内容；关闭并重新打开会丢弃这些修改。', 'error');
       return;
     }
     const terms = withNewStoredTerms(normalized.terms, stored && stored[entry.key], state.glossaryOpened);
