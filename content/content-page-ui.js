@@ -122,7 +122,7 @@
           showProgress: pretranslation.showProgress,
           progressRatio: pretranslation.ratio,
           actions: [{ id: 'cancel', label: '停止并还原', variant: 'ghost' }],
-          showDismiss: false,
+          showDismiss: true,
           note: ''
         });
         return;
@@ -140,7 +140,7 @@
           showProgress: polish.total > 0,
           progressRatio: polish.total > 0 ? Math.min(1, polish.done / polish.total) : 0,
           actions: [{ id: 'cancel', label: '停止并还原', variant: 'ghost' }],
-          showDismiss: false,
+          showDismiss: true,
           note: page.truncated
             ? '页面内容较多，正在处理可处理的前部分内容。'
             : '初译已可阅读；每块完成会自动替换。首块响应可能需要数十秒至数分钟（取决于润色模型和 effort）。'
@@ -158,7 +158,7 @@
         showProgress: true,
         progressRatio: ratio(),
         actions: [{ id: 'cancel', label: '停止并还原', variant: 'ghost' }],
-        showDismiss: false,
+        showDismiss: true,
         note
       });
       return;

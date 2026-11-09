@@ -230,6 +230,8 @@
     } else {
       page.status = 'done';
     }
+    // A panel hidden during the run comes back for failures the user has to see.
+    if (page.status !== 'done') page.panelDismissed = false;
 
     app.renderPagePanel();
     app.notifyBadge(page.status);
@@ -378,6 +380,7 @@
         page.status = page.translatedNodes.size > 0 ? 'partial' : 'error';
         page.error = error.message || '页面翻译失败。';
         page.errorCode = error.code || '';
+        page.panelDismissed = false;
         app.renderPagePanel();
         app.notifyBadge(page.status);
       });
