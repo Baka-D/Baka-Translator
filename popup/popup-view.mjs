@@ -202,7 +202,9 @@ function renderMainButton() {
   const running = Boolean(state.info && state.info.status === 'running');
   const locked = state.busy || state.loading || state.initialFetch;
   ui.selectionButton.disabled = !pageUsable || !state.hasApiKey || running || locked;
-  ui.imagesButton.disabled = !pageUsable || !state.hasApiKey || !state.supportsVision || running || locked;
+  ui.imagesButton.disabled = !pageUsable || !state.hasApiKey || running || locked;
+  // Stay focusable when vision is unsupported so a click can explain why.
+  ui.imagesButton.setAttribute('aria-disabled', String(!state.supportsVision));
   const imageLabel = state.supportsVision ? '翻译画面图片' : VISION_NOTICE_TEXT;
   ui.imagesButton.setAttribute('aria-label', imageLabel);
   ui.imagesButton.setAttribute('title', imageLabel);

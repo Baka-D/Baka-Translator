@@ -255,16 +255,16 @@
   font-weight: 500;
 }
 
-.button-secondary:hover:not(:disabled) {
+.button-secondary:hover:not(:disabled, [aria-disabled="true"]) {
   border-color: #BFC6D6;
   background: var(--surface);
 }
 
-.button-secondary:active:not(:disabled) {
+.button-secondary:active:not(:disabled, [aria-disabled="true"]) {
   background: var(--surface-strong);
 }
 
-.button-secondary:disabled {
+.button-secondary:is(:disabled, [aria-disabled="true"]) {
   border-color: #EDEFF6;
   background: #F7F8FB;
   color: #A0A7B9;
@@ -282,7 +282,7 @@
   line-height: 1.4;
 }
 
-.button-secondary:disabled .tag {
+.button-secondary:is(:disabled, [aria-disabled="true"]) .tag {
   background: #EFF1F6;
   color: #A0A7B9;
 }
@@ -421,11 +421,11 @@
     color: var(--ink-secondary);
   }
 
-  .button-secondary:hover:not(:disabled) {
+  .button-secondary:hover:not(:disabled, [aria-disabled="true"]) {
     background: var(--surface-strong);
   }
 
-  .button-secondary:disabled {
+  .button-secondary:is(:disabled, [aria-disabled="true"]) {
     border-color: #262A33;
     background: #1B1E25;
     color: #6E7688;
@@ -445,7 +445,7 @@
     color: #9DB0FF;
   }
 
-  .button-secondary:disabled .tag {
+  .button-secondary:is(:disabled, [aria-disabled="true"]) .tag {
     background: #232730;
     color: #6E7688;
   }
