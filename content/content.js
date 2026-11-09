@@ -176,6 +176,11 @@
           .catch((error) => app.respondError(sendResponse, error));
         return true;
 
+      case MSG.SHOW_TOAST:
+        overlay.showToast(String(message.message || ''), message.tone === 'info' ? 'info' : 'error');
+        sendResponse({ ok: true });
+        return false;
+
       default:
         return false;
     }

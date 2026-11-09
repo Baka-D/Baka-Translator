@@ -164,7 +164,12 @@ async function setupContextMenus() {
   await syncVisionContextMenu();
 }
 
+// shortcut: entries stay for closed tabs until the worker restarts; they are tiny.
+const badgeStates = new Map();
+
 function setBadge(tabId, status, targetLabel) {
+  if (status === 'idle') badgeStates.delete(tabId);
+  else badgeStates.set(tabId, { status, targetLabel });
   const states = {
     running: { text: '译', color: '#4D6BFE', title: 'Baka Translator：正在翻译…' },
     done: { text: '译', color: '#0F9D58', title: `Baka Translator：已翻译为${targetLabel || '目标语言'}` },
@@ -188,8 +193,11 @@ function setBadge(tabId, status, targetLabel) {
   }
 }
 
-function clearBadgeSoon(tabId, text) {
+function clearBadgeSoon(tabId, text, reason) {
   try {
+    chrome.action.setTitle({ tabId, title: `Baka Translator：${reason}` }, () => {
+      void chrome.runtime.lastError;
+    });
     chrome.action.setBadgeBackgroundColor({ tabId, color: '#D97706' }, () => {
       void chrome.runtime.lastError;
     });
@@ -200,16 +208,8 @@ function clearBadgeSoon(tabId, text) {
     return;
   }
   setTimeout(() => {
-    try {
-      chrome.action.setBadgeText({ tabId, text: '' }, () => {
-        void chrome.runtime.lastError;
-      });
-      chrome.action.setTitle({ tabId, title: 'Baka Translator' }, () => {
-        void chrome.runtime.lastError;
-      });
-    } catch (_error) {
-      // Tab closed.
-    }
+    const state = badgeStates.get(tabId);
+    setBadge(tabId, state ? state.status : 'idle', state && state.targetLabel);
   }, 3200);
 }
 
@@ -226,8 +226,14 @@ function errorPayload(error) {
 
 async function reportActionError(tabId, error) {
   if (!tabId) return;
-  if (error?.code === 'VISION_UNSUPPORTED') return;
-  clearBadgeSoon(tabId, '!');
+  const { message } = errorPayload(error);
+  const unsupported = error?.code === 'VISION_UNSUPPORTED';
+  try {
+    await sendToContent(tabId, { type: MSG.SHOW_TOAST, message, tone: unsupported ? 'info' : 'error' });
+  } catch (_error) {
+    // Pages without the content script fall back to the badge; a disabled image shortcut stays quiet.
+    if (!unsupported) clearBadgeSoon(tabId, '!', message);
+  }
   const settingsCodes = new Set([
     'MISSING_API_KEY',
     'AUTH_FAILED',

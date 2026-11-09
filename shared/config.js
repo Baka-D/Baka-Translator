@@ -142,6 +142,7 @@
       RESTORE_PAGE: 'dsht:restorePage',
       TRANSLATE_SELECTION: 'dsht:translateSelection',
       TRANSLATE_IMAGES: 'dsht:translateImages',
+      SHOW_TOAST: 'dsht:showToast',
       CAPTURE_SCREENSHOT: 'dsht:captureScreenshot',
       IMAGE_PANEL_UPDATE: 'dsht:imagePanelUpdate',
       IMAGE_PANEL_CLOSED: 'dsht:imagePanelClosed',
