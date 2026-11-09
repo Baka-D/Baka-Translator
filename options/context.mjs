@@ -205,6 +205,8 @@ export const state = {
   glossaryDraft: [],
   // Terms the draft started from; anything else in storage arrived after it opened.
   glossaryOpened: [],
+  // The saved term behind each draft row (null for an added row), aligned with glossaryDraft.
+  glossarySaved: [],
   glossaryPage: 0,
   glossaryPageSize: 50,
   glossaryClearArmed: false,

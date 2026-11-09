@@ -1,6 +1,6 @@
 // Novel glossary editor for the advanced settings tab.
 import { FEEDBACK_CLEAR_MS, languages, novelUtils, state, ui } from './context.mjs';
-import { readAliases, renderAliases } from './glossary-aliases.mjs';
+import { readTermRow, renderTermRow } from './glossary-row.mjs';
 import { renderTidyUndo, wireGlossaryTidy } from './glossary-tidy.mjs';
 import { makeButton, setFeedback } from './utils.mjs';
 
@@ -8,7 +8,6 @@ const GLOSSARY_PREFIX = 'novelGlossary:';
 const GLOSSARY_MIN_PAGE_SIZE = 30;
 const META_PREFIX = 'novelMeta:';
 const CLEAR_CONFIRM_MS = 5000;
-const GENDER_OPTIONS = [['none', '无'], ['male', '男'], ['female', '女']];
 
 function targetLabel(code) {
   const target = languages.getTargetLanguage(code);
@@ -184,65 +183,42 @@ function renderGlossaryList() {
   }
 }
 
-function makeGenderSelect(term, index) {
-  const select = document.createElement('select');
-  select.className = 'select glossary-input';
-  select.dataset.role = 'gender';
-  select.setAttribute('aria-label', `第 ${index + 1} 条术语的角色性别`);
-  // Unset differs from a chosen 无, which stops later chapters filling in a gender.
-  const unset = new Option('性别', '');
-  unset.hidden = true;
-  select.add(unset);
-  for (const [value, label] of GENDER_OPTIONS) select.add(new Option(label, value));
-  select.value = term.gender || '';
-  return select;
+function deleteGlossaryRow(index) {
+  syncGlossaryDraft();
+  state.glossaryDraft.splice(index, 1);
+  state.glossarySaved.splice(index, 1);
+  if (state.glossaryDraft.length === 0) {
+    state.glossaryDraft.push({});
+    state.glossarySaved.push(null);
+  }
+  showGlossaryPage(state.glossaryPage);
+  // Rows were rebuilt: keep the keyboard where the deleted row was.
+  focusRowControl(Math.min(index, state.glossaryDraft.length - 1), 'delete');
 }
 
-function renderTermRow(term, index) {
-  const row = document.createElement('div');
-  row.className = 'glossary-term-row';
-  row.dataset.glossaryRow = String(index);
-  const values = term || {};
-  const makeInput = (role, value, label, placeholder) => {
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.className = 'text-input glossary-input';
-    input.dataset.role = role;
-    input.value = typeof value === 'string' ? value : '';
-    input.placeholder = placeholder || '';
-    input.setAttribute('aria-label', label);
-    input.autocomplete = 'off';
-    input.spellcheck = false;
-    return input;
-  };
-  const category = makeInput('category', values.category || 'term', `第 ${index + 1} 条术语分类`, 'term');
-  category.setAttribute('list', 'glossaryCategoryOptions');
-  const gender = makeGenderSelect(values, index);
-  const syncGender = () => {
-    gender.classList.toggle('is-unused', !novelUtils.isCharacterCategory(category.value));
-  };
-  category.addEventListener('input', syncGender);
-  syncGender();
-  row.append(
-    makeInput('source', values.source, `第 ${index + 1} 条术语原文`, '原文/名称'),
-    makeInput('target', values.target, `第 ${index + 1} 条术语译文`, '译文'),
-    category,
-    gender,
-    makeInput('note', values.note, `第 ${index + 1} 条术语备注`, '备注（可选）')
-  );
-  const remove = makeButton('删除', 'button button-ghost-danger glossary-delete', () => {
-    syncGlossaryDraft();
-    state.glossaryDraft.splice(index, 1);
-    if (state.glossaryDraft.length === 0) state.glossaryDraft.push({});
+/** Put one row back to its saved term; a row added since opening goes away. */
+function revertGlossaryRow(index) {
+  syncGlossaryDraft();
+  const saved = state.glossarySaved[index];
+  if (saved) {
+    state.glossaryDraft[index] = { ...saved };
     showGlossaryPage(state.glossaryPage);
-    // Rows were rebuilt: keep the keyboard where the deleted row was.
-    const next = Math.min(index, state.glossaryDraft.length - 1);
-    const button = ui.glossaryRows.querySelector(`[data-glossary-row="${next}"] .glossary-delete`);
-    if (button) button.focus();
-  }, `删除第 ${index + 1} 条术语`);
-  row.append(remove, renderAliases(values.aliases, index));
-  return row;
+    focusRowControl(index, 'delete');
+  } else {
+    deleteGlossaryRow(index);
+  }
 }
+
+function focusRowControl(index, role) {
+  const control = ui.glossaryRows.querySelector(`[data-glossary-row="${index}"] [data-role="${role}"]`);
+  if (control) control.focus();
+}
+
+const ROW_HANDLERS = {
+  onSave: (index) => { void saveGlossary(index); },
+  onCancel: revertGlossaryRow,
+  onDelete: deleteGlossaryRow
+};
 
 function renderGlossaryEditor() {
   const entry = activeGlossary();
@@ -253,6 +229,8 @@ function renderGlossaryEditor() {
   if (ui.glossaryTitleInput) ui.glossaryTitleInput.value = entry.title;
   state.glossaryOpened = entry.terms;
   state.glossaryDraft = entry.terms.length > 0 ? entry.terms.map((term) => ({ ...term })) : [{}];
+  // Kept index-aligned with the draft so each row knows whether it was edited.
+  state.glossarySaved = entry.terms.length > 0 ? entry.terms.slice() : [null];
   renderTidyUndo(entry);
   showGlossaryPage(state.glossaryPage);
 }
@@ -265,7 +243,8 @@ function showGlossaryPage(requested) {
   );
   state.glossaryPage = page;
   ui.glossaryRows.replaceChildren(
-    ...draft.slice(start, end).map((term, offset) => renderTermRow(term, start + offset))
+    ...draft.slice(start, end).map((term, offset) =>
+      renderTermRow(term, start + offset, state.glossarySaved[start + offset] || null, ROW_HANDLERS))
   );
   if (!ui.glossaryPager) return;
   ui.glossaryPager.hidden = draft.length <= GLOSSARY_MIN_PAGE_SIZE;
@@ -329,6 +308,7 @@ function openGlossaryEditor(key) {
 function closeGlossaryEditor() {
   state.activeGlossaryKey = '';
   state.glossaryDraft = [];
+  state.glossarySaved = [];
   resetClearButton();
   if (ui.glossaryEditor) ui.glossaryEditor.hidden = true;
   if (ui.glossaryRows) ui.glossaryRows.replaceChildren();
@@ -339,28 +319,19 @@ function closeGlossaryEditor() {
 function syncGlossaryDraft() {
   if (!ui.glossaryRows) return;
   for (const row of ui.glossaryRows.querySelectorAll('[data-glossary-row]')) {
-    const value = (role) => {
-      const input = row.querySelector(`[data-role="${role}"]`);
-      return input ? input.value : '';
-    };
-    state.glossaryDraft[Number(row.dataset.glossaryRow)] = {
-      source: value('source'),
-      target: value('target'),
-      category: value('category'),
-      note: value('note'),
-      gender: value('gender'),
-      aliases: readAliases(row, value('target'))
-    };
+    state.glossaryDraft[Number(row.dataset.glossaryRow)] = readTermRow(row);
   }
 }
 
 function addGlossaryTermRow() {
   syncGlossaryDraft();
   state.glossaryDraft.push({});
+  state.glossarySaved.push(null);
   focusGlossaryRow(state.glossaryDraft.length - 1);
 }
 
-async function saveGlossary() {
+/** `rowIndex` is the row whose own save button was used; it keeps the keyboard there. */
+async function saveGlossary(rowIndex) {
   const entry = activeGlossary();
   if (!entry) return;
   resetClearButton();
@@ -399,6 +370,7 @@ async function saveGlossary() {
     await loadGlossaries();
     renderGlossaryList();
     renderGlossaryEditor();
+    if (Number.isInteger(rowIndex)) focusRowControl(rowIndex, 'delete');
   } catch (_error) {
     setFeedback(ui.glossaryFeedback, '保存术语库失败，请检查扩展存储空间。', 'error');
   }
