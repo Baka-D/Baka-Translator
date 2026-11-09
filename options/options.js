@@ -239,7 +239,8 @@ export function wireEvents() {
           button.disabled = false;
           button.removeAttribute('aria-busy');
           button.textContent = '重新加载';
-          restoreFocus(button);
+          // A successful reload hides the notice holding the button.
+          restoreFocus(button, ui.providerNav.querySelector('[aria-current="true"]'));
         }
         if (state.registryError) {
           // The notice is where the user is looking; an unchanged text would read as no response.

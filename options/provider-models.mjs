@@ -4,7 +4,7 @@ import { setKeyBusy, validateProviderKey } from './keys.mjs';
 import { applyCustomProviders, renderModelArea } from './model-selection.mjs';
 import { providerKeyFor } from './models.mjs';
 import { selectedProvider } from './providers.mjs';
-import { persist, sendMessage, setFeedback, storedModelIds } from './utils.mjs';
+import { persist, restoreFocus, sendMessage, setFeedback, storedModelIds } from './utils.mjs';
 
 function modelItem(provider, model) {
   const item = document.createElement('li');
@@ -85,6 +85,10 @@ export async function handleRetryVision(provider, model) {
     setFeedback(ui.providerModelFeedback, '未能恢复图片翻译，请重试。', 'error');
   } finally {
     setKeyBusy(false);
+    // The list was rebuilt; the retry button is new, or gone once the retry is allowed.
+    const retry = [...ui.providerModelList.querySelectorAll('[data-vision-retry]')]
+      .find((button) => button.dataset.visionRetry === model.id);
+    restoreFocus(retry, ui.userModelInput);
   }
 }
 

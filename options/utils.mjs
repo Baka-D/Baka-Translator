@@ -33,11 +33,16 @@ export function setFeedback(element, message, tone, autoClearMs) {
   }
 }
 
-/** Disabling the focused control drops focus to <body>; hand it back once controls are enabled again. */
-export function restoreFocus(element) {
+/**
+ * Disabling the focused control drops focus to <body>; hand it back once controls are enabled again,
+ * or to `fallback` when that control was rebuilt or hidden meanwhile.
+ */
+export function restoreFocus(element, fallback) {
+  const usable = (node) => Boolean(node && node.isConnected && !node.disabled && !node.hidden && !node.closest?.('[hidden]'));
+  const target = usable(element) ? element : usable(fallback) ? fallback : null;
   const active = document.activeElement;
-  if (!element || !element.isConnected || element.disabled || element.hidden) return;
-  if (!active || active === document.body || active === element) element.focus();
+  if (!target) return;
+  if (!active || active === document.body || active === element) target.focus();
 }
 
 export function persist(update) {
