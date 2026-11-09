@@ -3,7 +3,31 @@
   globalScope.DSHT = globalScope.DSHT || {};
   const parts = globalScope.DSHT.overlayParts = globalScope.DSHT.overlayParts || {};
 
-  parts.imageCss = `    /* ---------- image results panel ---------- */
+  parts.imageCss = `    /* ---------- image results frame (page side) ---------- */
+    .dsht-image-frame {
+      position: absolute;
+      left: 12px;
+      bottom: 12px;
+      width: min(372px, calc(100vw - 24px));
+      height: min(70vh, 656px);
+      border: 0;
+      padding: 0;
+      margin: 0;
+      background: transparent;
+      pointer-events: auto;
+      color-scheme: light;
+    }
+
+    /* Below this width the frame would cover the page panel in the bottom-right corner. */
+    @media (max-width: 760px) {
+      .dsht-image-frame {
+        top: 12px;
+        bottom: auto;
+        height: 48vh;
+      }
+    }
+
+    /* ---------- image results panel ---------- */
     .dsht-image-panel {
       left: 20px;
       bottom: 20px;
@@ -176,6 +200,7 @@
     /* ---------- toast ---------- */
     .dsht-toast {
       position: absolute;
+      z-index: 1;
       left: 50%;
       bottom: 28px;
       transform: translateX(-50%) translateY(4px);

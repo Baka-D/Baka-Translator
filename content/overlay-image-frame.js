@@ -45,12 +45,8 @@
       frame.title = 'Baka Translator 图片翻译';
       frame.referrerPolicy = 'no-referrer';
       frame.src = chrome.runtime.getURL('content/image-results.html') + '#' + current.id;
-      // Geometry depends only on the viewport, never on OCR text or image contents.
-      const styles = { position: 'absolute', left: '12px', bottom: '12px',
-        width: 'min(372px, calc(100vw - 24px))', height: 'min(70vh, 656px)',
-        border: '0', padding: '0', margin: '0', background: 'transparent',
-        'pointer-events': 'auto', 'color-scheme': 'light' };
-      for (const [key, value] of Object.entries(styles)) parts.setImportant(frame, key, value);
+      // Geometry comes from .dsht-image-frame in the closed shadow root and depends only on
+      // the viewport, never on OCR text or image contents.
       layer.appendChild(frame);
     }
 
