@@ -3,8 +3,12 @@ import { FEEDBACK_CLEAR_MS, KEYS, config, presetsTools, state, ui } from './cont
 import { renderSiteSettings } from './sites.mjs';
 import { isObject, persist, setFeedback } from './utils.mjs';
 
+const RESET_CONFIRM_MS = 5000;
+
 // Prompt text last loaded into or saved from the editor, to spot unsaved typing.
 let loadedPrompts = null;
+let resetArmed = false;
+let resetTimer = 0;
 
 function rememberPrompts() {
   loadedPrompts = { translation: ui.translationPromptInput.value, polish: ui.polishPromptInput.value };
@@ -118,6 +122,7 @@ export async function loadPromptEditor() {
   ui.translationPromptInput.value = merged.translationPrompt || '';
   ui.polishPromptInput.value = merged.polishPrompt || '';
   rememberPrompts();
+  disarmReset();
   if (ui.presetDescription) {
     ui.presetDescription.textContent = preset.description || preset.name || '';
   }
@@ -194,7 +199,27 @@ export async function handleSavePrompts() {
   }
 }
 
+function disarmReset() {
+  resetArmed = false;
+  window.clearTimeout(resetTimer);
+  resetTimer = 0;
+  if (!ui.resetPromptsButton) return;
+  ui.resetPromptsButton.textContent = '恢复默认';
+  ui.resetPromptsButton.classList.remove('is-confirming');
+  ui.resetPromptsButton.removeAttribute('aria-label');
+}
+
 export async function handleResetPrompts() {
+  const custom = isObject(state.promptOverrides) && isObject(state.promptOverrides[state.presetId]);
+  if ((custom || promptsEdited()) && !resetArmed) {
+    resetArmed = true;
+    ui.resetPromptsButton.textContent = '确认恢复默认？';
+    ui.resetPromptsButton.classList.add('is-confirming');
+    ui.resetPromptsButton.setAttribute('aria-label', '再次点击以确认丢弃自定义提示词并恢复默认');
+    resetTimer = window.setTimeout(disarmReset, RESET_CONFIRM_MS);
+    return;
+  }
+  disarmReset();
   const preset = await ensurePreset(state.presetId);
   if (!preset) return;
   const overrides = isObject(state.promptOverrides) ? Object.assign({}, state.promptOverrides) : {};
