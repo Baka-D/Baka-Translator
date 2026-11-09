@@ -53,10 +53,23 @@ export async function saveSiteSettings(next, message) {
   }
 }
 
+/** Rows are rebuilt on every change: put the keyboard back on the same control. */
+function restoreSiteFocus(hosts, host, role) {
+  // A removed row hands focus to the next one in the sorted list.
+  const target = hosts.includes(host) ? host : hosts.find((other) => other > host);
+  const control = target
+    ? ui.siteList.querySelector(`[data-host="${CSS.escape(target)}"] [data-role="${role}"]`)
+    : null;
+  (control || ui.siteHostInput)?.focus();
+}
+
 export function renderSiteSettings() {
   if (!ui.siteList) return;
   const all = isObject(state.siteSettings) ? state.siteSettings : {};
   const hosts = Object.keys(all).sort();
+  const active = document.activeElement;
+  const focusRole = active && ui.siteList.contains(active) ? active.dataset.role : '';
+  const focusHost = focusRole ? active.closest('.site-row')?.dataset.host : '';
   ui.siteList.textContent = '';
   if (ui.siteEmptyHint) ui.siteEmptyHint.hidden = hosts.length > 0;
   const presetMetas =
@@ -147,6 +160,7 @@ export function renderSiteSettings() {
     removeButton.type = 'button';
     removeButton.className = 'button button-ghost-danger site-remove';
     removeButton.textContent = '移除';
+    removeButton.dataset.role = 'site-remove';
     removeButton.setAttribute('aria-label', `移除 ${host} 的站点设置`);
     removeButton.addEventListener('click', () => {
       const next = Object.assign({}, state.siteSettings);
@@ -161,6 +175,7 @@ export function renderSiteSettings() {
     row.appendChild(removeButton);
     ui.siteList.appendChild(row);
   }
+  if (focusHost) restoreSiteFocus(hosts, focusHost, focusRole);
 }
 
 export function handleAddSite() {
