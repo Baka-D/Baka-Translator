@@ -208,6 +208,11 @@ select {
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
+/* flex: 1 is for rows; in a column .field it would squash the height to one line. */
+.field > .text-input {
+  flex: none;
+}
+
 .text-input::placeholder {
   color: var(--muted-2);
 }
