@@ -105,7 +105,7 @@ export function renderTermRow(term, index, saved, handlers) {
     makeInput('note', values.note, `第 ${index + 1} 条术语备注`, '备注（可选）')
   );
 
-  const aliases = renderAliases(values.aliases, index);
+  const aliases = renderAliases(values.aliases, index, values.target);
   const actions = document.createElement('div');
   actions.className = 'glossary-row-actions';
   const addAliasButton = makeButton('+ 写法', 'button button-secondary glossary-delete', () => addAlias(aliases, index),
