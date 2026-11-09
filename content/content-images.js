@@ -156,12 +156,13 @@
       (item) => item.status === 'error' || item.status === 'done'
     ).length;
     let subtitle = imageJob.subtitle || '';
+    const skipped = imageJob.skipped > 0 ? ` · 另有 ${imageJob.skipped} 张未处理` : '';
     if (imageJob.running) {
-      subtitle = `正在识别 · ${finished}/${imageJob.items.length || 0}`;
+      subtitle = `正在识别 · ${finished}/${imageJob.items.length || 0}${skipped}`;
     } else if (imageJob.items.length > 0) {
       subtitle = failed > 0
-        ? `${imageJob.items.length} 张图片 · ${failed} 张失败`
-        : `${imageJob.items.length} 张图片 · 识别完成`;
+        ? `${imageJob.items.length} 张图片 · ${failed} 张失败${skipped}`
+        : `${imageJob.items.length} 张图片 · 识别完成${skipped}`;
     }
     return {
       visible: imageJob.open,
@@ -320,7 +321,6 @@
       }
       if (runId !== imageJob.runId) return;
       imageJob.items = items;
-      imageJob.subtitle = `${items.length} 张图片`;
       imageJob.running = true;
       renderImagePanel();
       // Sandboxed pages stop the results window from running: fail before paying for OCR.
@@ -461,10 +461,8 @@
       error: ''
     }));
     imageJob.error = '';
-    imageJob.subtitle =
-      collected.totalEligible > LIMITS.IMAGE_MAX_COUNT
-        ? `当前画面有 ${collected.totalEligible} 张图片，仅处理最大的 ${LIMITS.IMAGE_MAX_COUNT} 张`
-        : '正在截取当前画面…';
+    imageJob.skipped = Math.max(0, collected.totalEligible - LIMITS.IMAGE_MAX_COUNT);
+    imageJob.subtitle = '正在截取当前画面…';
     // Do not paint the image panel before captureVisibleTab() runs.
     overlay.hideImagePanel();
 

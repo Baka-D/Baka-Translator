@@ -112,7 +112,8 @@
     sourceHint: '',
     items: [],
     error: '',
-    subtitle: ''
+    subtitle: '',
+    skipped: 0
   };
 
 
