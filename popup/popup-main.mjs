@@ -67,7 +67,12 @@ function wireEvents() {
           render();
           return;
         }
-        if (flag === 'polish') {
+        if (flag === 'polish' && enabled && !state.polishHasApiKey) {
+          state.pageMessage = {
+            tone: 'warning',
+            message: '本站润色已开启，但润色模型尚未配置 API Key，润色会失败；请在设置中填写。'
+          };
+        } else if (flag === 'polish') {
           state.pageMessage = {
             tone: 'info',
             message: enabled ? '本站润色已开启，重新翻译后生效。' : '本站润色已关闭，重新翻译后生效。'
