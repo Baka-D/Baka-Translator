@@ -67,6 +67,7 @@ function wireEvents() {
           render();
           return;
         }
+        if (state.info?.pageTranslated && (flag === 'polish' || enabled)) state.siteDirty = true;
         if (flag === 'polish' && enabled && !state.polishHasApiKey) {
           state.pageMessage = {
             tone: 'warning',
@@ -111,6 +112,7 @@ function wireEvents() {
           render();
           return;
         }
+        if (state.info?.pageTranslated) state.siteDirty = true;
         state.pageMessage = {
           tone: 'info',
           message: value

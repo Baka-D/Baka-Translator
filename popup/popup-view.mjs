@@ -150,7 +150,7 @@ function settingsDirty() {
   const info = state.info;
   if (!info || !info.pageTranslated) return false;
   const targetDiff = Boolean(info.targetCode) && info.targetCode !== state.settings.targetCode;
-  return targetDiff || info.bilingual !== state.settings.bilingual;
+  return targetDiff || info.bilingual !== state.settings.bilingual || state.siteDirty;
 }
 
 function computeMainAction() {

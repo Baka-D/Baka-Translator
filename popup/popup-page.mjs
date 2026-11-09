@@ -239,6 +239,7 @@ async function startPageTranslation() {
   }
 
   state.pageMessage = null;
+  state.siteDirty = false;
   render();
   schedulePoll();
 }
@@ -266,6 +267,7 @@ async function restorePage() {
   }
 
   state.pageMessage = null;
+  state.siteDirty = false;
   state.info = {
     status: 'idle',
     phase: '',
