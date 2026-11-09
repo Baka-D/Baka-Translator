@@ -278,6 +278,12 @@ function addGlossaryTermRow() {
   focusGlossaryRow(state.glossaryDraft.length - 1);
 }
 
+/** A row's own save button should not fail silently while the feedback is off screen. */
+function showSaveError(error, rowIndex) {
+  if (Number.isInteger(rowIndex)) showGlossaryRowError({ error, row: rowIndex });
+  setFeedback(ui.glossaryFeedback, error, 'error');
+}
+
 /** `rowIndex` is the row whose own save button was used; it keeps the keyboard there. Resolves true once saved. */
 async function saveGlossary(rowIndex) {
   const entry = activeGlossary();
@@ -296,7 +302,7 @@ async function saveGlossary(rowIndex) {
     // Re-read: chapter tabs may have added terms and chapter ids since the list loaded.
     const stored = await chrome.storage.local.get([entry.key, entry.metaKey, entry.tidyKey]);
     if ((stored[entry.tidyKey]?.tidiedAt ?? null) !== openedTidyAt) {
-      setFeedback(ui.glossaryFeedback, '术语库已被自动整理，当前修改基于整理前的内容；关闭并重新打开会丢弃这些修改。', 'error');
+      showSaveError('术语库已被自动整理，当前修改基于整理前的内容；关闭并重新打开会丢弃这些修改。', rowIndex);
       return;
     }
     const terms = withNewStoredTerms(normalized.terms, stored && stored[entry.key], state.glossaryOpened);
@@ -321,7 +327,7 @@ async function saveGlossary(rowIndex) {
     if (Number.isInteger(rowIndex)) focusRowControl(rowIndex, 'delete');
     return true;
   } catch (_error) {
-    setFeedback(ui.glossaryFeedback, '保存术语库失败，请检查扩展存储空间。', 'error');
+    showSaveError('保存术语库失败，请检查扩展存储空间。', rowIndex);
   }
 }
 
