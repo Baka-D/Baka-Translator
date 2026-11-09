@@ -82,6 +82,22 @@ export function renderCustomFields(provider, switched) {
   }
 }
 
+const MOVE_WARNING = '接口主机已变更，再次点击“确认保存？”将清除已保存的 API Key。';
+const DELETE_WARNING = '再次点击“确认删除？”将删除该服务商及其 API Key。';
+
+/** An expired confirm must not erase a message written after its warning. */
+function clearFeedbackIf(warning) {
+  if (ui.customProviderFeedback.textContent === warning) setFeedback(ui.customProviderFeedback, '');
+}
+
+function resetMoveConfirm() {
+  window.clearTimeout(state.moveConfirmTimer);
+  state.moveConfirmTimer = 0;
+  if (!state.confirmMoveProvider) return;
+  state.confirmMoveProvider = '';
+  ui.saveCustomProviderButton.textContent = '保存服务商';
+}
+
 function hostMoved(previous, endpoint) {
   return Boolean(previous?.endpoint) && new URL(previous.endpoint).origin !== new URL(endpoint).origin;
 }
@@ -124,6 +140,7 @@ export async function handleSaveCustomProvider() {
   }
   const validation = validateCustomProviderInput(ui.customEndpointInput.value, ui.customModelInput.value);
   if (!validation.ok) {
+    resetMoveConfirm();
     setFeedback(ui.customProviderFeedback, validation.message, 'error');
     return;
   }
@@ -132,19 +149,18 @@ export async function handleSaveCustomProvider() {
     hostMoved(storedEntry(current.id), validation.endpoint)) {
     state.confirmMoveProvider = current.id;
     ui.saveCustomProviderButton.textContent = '确认保存？';
-    setFeedback(ui.customProviderFeedback, '接口主机已变更，再次点击“确认保存？”将清除已保存的 API Key。', 'warning');
+    setFeedback(ui.customProviderFeedback, MOVE_WARNING, 'warning');
     window.clearTimeout(state.moveConfirmTimer);
     state.moveConfirmTimer = window.setTimeout(() => {
       state.moveConfirmTimer = 0;
       if (state.confirmMoveProvider !== current.id) return;
       state.confirmMoveProvider = '';
-      setFeedback(ui.customProviderFeedback, '');
+      clearFeedbackIf(MOVE_WARNING);
       renderProviders();
     }, CONFIRM_RESET_MS);
     return;
   }
-  state.confirmMoveProvider = '';
-  window.clearTimeout(state.moveConfirmTimer);
+  resetMoveConfirm();
 
   setCustomBusy(true);
   setFeedback(ui.customProviderFeedback, '', '');
@@ -221,16 +237,17 @@ export async function handleDeleteProviderClick() {
     return;
   }
   if (state.confirmDeleteProvider !== provider.id) {
+    resetMoveConfirm();
     state.confirmDeleteProvider = provider.id;
     ui.deleteProviderButton.textContent = '确认删除？';
     ui.deleteProviderButton.classList.add('is-confirming');
-    setFeedback(ui.customProviderFeedback, '再次点击“确认删除？”将删除该服务商及其 API Key。', 'warning');
+    setFeedback(ui.customProviderFeedback, DELETE_WARNING, 'warning');
     window.clearTimeout(state.deleteConfirmTimer);
     state.deleteConfirmTimer = window.setTimeout(() => {
       state.deleteConfirmTimer = 0;
       if (state.confirmDeleteProvider !== provider.id) return;
       state.confirmDeleteProvider = '';
-      setFeedback(ui.customProviderFeedback, '');
+      clearFeedbackIf(DELETE_WARNING);
       renderProviders();
     }, CONFIRM_RESET_MS);
     return;
