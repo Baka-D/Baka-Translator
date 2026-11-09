@@ -52,11 +52,13 @@
   function siteFeatures(settings) {
     const all = settings && settings.siteSettings ? settings.siteSettings : {};
     const raw = all[location.hostname.toLowerCase()];
-    if (typeof raw === 'boolean') return { polish: raw, pretranslate: false };
-    if (!raw || typeof raw !== 'object') return { polish: false, pretranslate: false };
+    const presetId = activePresetId(settings);
+    if (typeof raw === 'boolean') return { polish: raw, pretranslate: false, presetId };
+    if (!raw || typeof raw !== 'object') return { polish: false, pretranslate: false, presetId };
     return {
       polish: raw.polish === true,
-      pretranslate: raw.pretranslate === true
+      pretranslate: raw.pretranslate === true,
+      presetId
     };
   }
 

@@ -1,6 +1,6 @@
 /** Bind popup controls and initialize the active tab. */
 import { config, languages, KEYS, TARGETS, ui, state, PAGE_ERROR_MESSAGES, VISION_NOTICE_TEXT, EXT_PAGE_MESSAGE, normalizeUsage, renderUsage } from './popup-state.mjs';
-import { hostFromUrl, presetDisplayName, populateSitePresetSelect, renderSiteToggles, readSiteSettings, saveSiteFlag, loadPresetIndex } from './popup-site.mjs';
+import { hostFromUrl, presetDisplayName, populateSitePresetSelect, readSiteSettings, saveSiteFlag, loadPresetIndex } from './popup-site.mjs';
 import { persistSettings, openOptions, readConfig, queryActiveTab, isRestrictedUrl } from './popup-transport.mjs';
 import { render } from './popup-view.mjs';
 import { stopPolling, refreshState, handleMainAction, restorePage, runQuickCommand } from './popup-page.mjs';
@@ -67,7 +67,6 @@ function wireEvents() {
           render();
           return;
         }
-        if (state.info?.pageTranslated && (flag === 'polish' || enabled)) state.siteDirty = true;
         if (flag === 'polish' && enabled && !state.polishHasApiKey) {
           state.pageMessage = {
             tone: 'warning',
@@ -112,7 +111,6 @@ function wireEvents() {
           render();
           return;
         }
-        if (state.info?.pageTranslated) state.siteDirty = true;
         state.pageMessage = {
           tone: 'info',
           message: value
@@ -159,7 +157,7 @@ function wireEvents() {
         const next = changes[KEYS.SITE_SETTINGS].newValue;
         state.siteSettings =
           next && typeof next === 'object' && !Array.isArray(next) ? next : {};
-        renderSiteToggles();
+        render();
       }
     });
   }

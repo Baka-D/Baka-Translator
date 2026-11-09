@@ -87,7 +87,6 @@ const state = {
   presetIndex: null,
   globalPresetId: config.DEFAULT_PRESET_ID || 'general',
   polishHasApiKey: true,
-  siteDirty: false,
   pollTimer: 0
 };
 

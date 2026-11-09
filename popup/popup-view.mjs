@@ -1,6 +1,6 @@
 /** Render translation status and available actions. */
 import { KEY_NOTICE_TEXT, VISION_NOTICE_TEXT, languages, ui, state, labelOf, renderUsage } from './popup-state.mjs';
-import { renderSiteToggles, renderCost } from './popup-site.mjs';
+import { siteFlagFor, sitePresetValueFor, renderSiteToggles, renderCost } from './popup-site.mjs';
 
 /* ---------- 渲染 ---------- */
 
@@ -155,7 +155,13 @@ function settingsDirty() {
   const info = state.info;
   if (!info || !info.pageTranslated) return false;
   const targetDiff = Boolean(info.targetCode) && info.targetCode !== state.settings.targetCode;
-  return targetDiff || info.bilingual !== state.settings.bilingual || state.siteDirty;
+  const site = (flag) => siteFlagFor(state.siteSettings, state.host, flag);
+  const presetDiff = Boolean(info.presetId) &&
+    info.presetId !== (sitePresetValueFor(state.host) || state.globalPresetId);
+  // Turning pretranslation off needs no new run; turning it on does, on chapter pages only.
+  const pretranslateDiff = !info.pretranslateEnabled && site('pretranslate') && info.novel?.isChapter === true;
+  return targetDiff || info.bilingual !== state.settings.bilingual ||
+    info.proofreadEnabled !== site('polish') || presetDiff || pretranslateDiff;
 }
 
 function computeMainAction() {

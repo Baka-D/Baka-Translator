@@ -296,6 +296,7 @@
       const features = app.siteFeatures(settings);
       page.proofreadEnabled = features.polish;
       page.pretranslateEnabled = features.pretranslate;
+      page.presetId = features.presetId || '';
       page.requestContext = app.contextEnabled(settings) ? {} : null;
       const targetCode = languages.normalizeTarget(
         request.targetCode !== undefined ? request.targetCode : settings.targetLang

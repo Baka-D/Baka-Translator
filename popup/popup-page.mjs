@@ -56,6 +56,7 @@ function normalizeInfo(raw) {
     costCurrency,
     novel: novelRaw,
     pretranslateEnabled: value.pretranslateEnabled === true,
+    presetId: typeof value.presetId === 'string' ? value.presetId : '',
     pretranslationStatus:
       typeof value.pretranslationStatus === 'string' ? value.pretranslationStatus : '',
     pretranslationNote:
@@ -239,7 +240,6 @@ async function startPageTranslation() {
   }
 
   state.pageMessage = null;
-  state.siteDirty = false;
   render();
   schedulePoll();
 }
@@ -267,7 +267,6 @@ async function restorePage() {
   }
 
   state.pageMessage = null;
-  state.siteDirty = false;
   state.info = {
     status: 'idle',
     phase: '',

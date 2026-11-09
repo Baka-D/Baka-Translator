@@ -38,6 +38,7 @@
           }
         : null,
       pretranslateEnabled: page.pretranslateEnabled,
+      presetId: page.presetId || '',
       pretranslationStatus: page.pretranslationStatus || '',
       pretranslationNote: page.pretranslationNote || '',
       pretranslationScope: page.pretranslationScope === 'current' ? 'current' : 'next',

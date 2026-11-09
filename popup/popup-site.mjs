@@ -206,4 +206,4 @@ async function loadPresetIndex() {
 }
 
 
-export { hostFromUrl, presetDisplayName, populateSitePresetSelect, renderSiteToggles, renderCost, readSiteSettings, saveSiteFlag, loadPresetIndex };
+export { hostFromUrl, siteFlagFor, sitePresetValueFor, presetDisplayName, populateSitePresetSelect, renderSiteToggles, renderCost, readSiteSettings, saveSiteFlag, loadPresetIndex };
