@@ -198,7 +198,8 @@ export function testErrorMessage(error, provider) {
       ? error.message.trim()
       : '测试连接失败，请重试。';
   if (code === 'MISSING_API_KEY') return `${providerName(provider)} 尚未配置所需的 API Key，请先保存后再测试。`;
-  if (code === 'AUTH_FAILED') return `${base} 请检查 API Key 是否正确或已被撤销。`;
+  // A 403 message already names Key, region and model permission as causes.
+  if (code === 'AUTH_FAILED' && error.status !== 403) return `${base} 请检查 API Key 是否正确或已被撤销。`;
   if (code === 'BACKGROUND_UNAVAILABLE') return base;
   if (code === 'INVALID_SENDER') return '请在扩展设置页面中执行测试连接。';
   return base;
