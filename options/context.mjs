@@ -200,6 +200,8 @@ export const state = {
   shownProviderId: null,
   confirmDeleteProvider: '',
   deleteConfirmTimer: 0,
+  confirmMoveProvider: '',
+  moveConfirmTimer: 0,
   promptOverrides: {},
   siteSettings: {},
   glossaries: [],

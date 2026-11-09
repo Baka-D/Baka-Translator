@@ -1,7 +1,7 @@
 // Settings-page user-added OpenAI-compatible providers (add, edit, rename, delete).
 import { CONFIRM_RESET_MS, FEEDBACK_CLEAR_MS, KEYS, LOCAL_HTTP_HOSTS, modelsTools, state, ui } from './context.mjs';
 import { applyCustomProviders, renderModelArea } from './model-selection.mjs';
-import { isCustomProvider } from './models.mjs';
+import { isCustomProvider, providerKeyFor } from './models.mjs';
 import { focusCurrentProvider, providerUses, renderProviders, selectedProvider } from './providers.mjs';
 import { persist, setFeedback, storedModelIds } from './utils.mjs';
 
@@ -63,8 +63,10 @@ export function renderCustomFields(provider, switched) {
     ui.customEndpointInput.value = entry ? entry.endpoint : '';
     ui.customModelInput.value = entry ? entry.model : '';
     setFeedback(ui.customProviderFeedback, '');
+    state.confirmMoveProvider = '';
   }
-  ui.saveCustomProviderButton.textContent = state.providerDraft ? '添加服务商' : '保存服务商';
+  const confirming = !state.providerDraft && state.confirmMoveProvider === (provider && provider.id);
+  ui.saveCustomProviderButton.textContent = confirming ? '确认保存？' : state.providerDraft ? '添加服务商' : '保存服务商';
   if (ui.deleteProviderButton) {
     ui.deleteProviderButton.hidden = state.providerDraft;
     if (state.confirmDeleteProvider !== (provider && provider.id)) {
@@ -72,6 +74,10 @@ export function renderCustomFields(provider, switched) {
       ui.deleteProviderButton.classList.remove('is-confirming');
     }
   }
+}
+
+function hostMoved(previous, endpoint) {
+  return Boolean(previous?.endpoint) && new URL(previous.endpoint).origin !== new URL(endpoint).origin;
 }
 
 function nextCustomId() {
@@ -115,11 +121,29 @@ export async function handleSaveCustomProvider() {
     setFeedback(ui.customProviderFeedback, validation.message, 'error');
     return;
   }
+  // Moving to another host drops the saved key, so that save takes a second click.
+  if (!adding && state.confirmMoveProvider !== current.id && providerKeyFor(current.id) &&
+    hostMoved(storedEntry(current.id), validation.endpoint)) {
+    state.confirmMoveProvider = current.id;
+    ui.saveCustomProviderButton.textContent = '确认保存？';
+    setFeedback(ui.customProviderFeedback, '接口主机已变更，再次点击“确认保存？”将清除已保存的 API Key。', 'warning');
+    window.clearTimeout(state.moveConfirmTimer);
+    state.moveConfirmTimer = window.setTimeout(() => {
+      state.moveConfirmTimer = 0;
+      if (state.confirmMoveProvider !== current.id) return;
+      state.confirmMoveProvider = '';
+      setFeedback(ui.customProviderFeedback, '');
+      renderProviders();
+    }, CONFIRM_RESET_MS);
+    return;
+  }
+  state.confirmMoveProvider = '';
+  window.clearTimeout(state.moveConfirmTimer);
 
   setCustomBusy(true);
   setFeedback(ui.customProviderFeedback, '', '');
   let saved = null;
-  let moved = false;
+  let droppedKey = false;
   try {
     await refreshCustomProviders();
     if (!adding && !storedEntry(current.id)) {
@@ -132,7 +156,7 @@ export async function handleSaveCustomProvider() {
     }
     const id = adding ? nextCustomId() : current.id;
     const previous = adding ? null : storedEntry(id);
-    moved = Boolean(previous?.endpoint) && new URL(previous.endpoint).origin !== new URL(validation.endpoint).origin;
+    const moved = hostMoved(previous, validation.endpoint);
     const name = ui.providerNameInput.value.trim().slice(0, 60) || defaultName(id);
     const entry = { id, name, endpoint: validation.endpoint, model: validation.model };
     const list = adding
@@ -147,6 +171,7 @@ export async function handleSaveCustomProvider() {
       state.userModels = nextModels;
     }
     // A key belongs to the host it was issued by; a path change on the same host keeps it.
+    droppedKey = moved && Boolean(nextKeys[id]);
     if (moved) delete nextKeys[id];
     await commitCustomProviders(
       list,
@@ -169,9 +194,9 @@ export async function handleSaveCustomProvider() {
   setFeedback(
     ui.customProviderFeedback,
     adding ? `已添加 ${saved.name}，可继续填写 API Key。`
-      : moved ? `已保存 ${saved.name}。接口地址换了主机，原 API Key 已清除，请重新填写。` : `已保存 ${saved.name}。`,
+      : droppedKey ? `已保存 ${saved.name}。接口地址换了主机，原 API Key 已清除，请重新填写。` : `已保存 ${saved.name}。`,
     'success',
-    FEEDBACK_CLEAR_MS
+    droppedKey ? undefined : FEEDBACK_CLEAR_MS
   );
 }
 
