@@ -53,8 +53,7 @@ export function renderKeyPanel(provider) {
   ui.toggleKeyVisibility.disabled = state.busy;
   if (ui.testConnectionButton) {
     ui.testConnectionButton.setAttribute('aria-label', `测试 ${name} 连接`);
-    ui.testConnectionButton.disabled = state.busy || (required && !key) ||
-      (isCustomProvider(provider) && !provider.endpoint);
+    ui.testConnectionButton.disabled = state.busy || (isCustomProvider(provider) && !provider.endpoint);
   }
 }
 
@@ -211,6 +210,12 @@ export async function handleTestConnection() {
   if (!provider) return;
   if (keyRequired(provider) && !providerKeyFor(provider.id)) {
     setFeedback(ui.keyFeedback, `请先保存 ${providerName(provider)} 的 API Key 后再测试连接。`, 'warning');
+    ui.apiKeyInput.focus();
+    return;
+  }
+  // The test runs with the saved key, so a typed one would not be what gets tested.
+  if (ui.apiKeyInput.value.trim()) {
+    setFeedback(ui.keyFeedback, '输入框中的 API Key 尚未保存，测试连接只使用已保存的 Key，请先保存后再测试。', 'warning');
     ui.apiKeyInput.focus();
     return;
   }
