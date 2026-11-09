@@ -145,6 +145,8 @@ export const ui = {
   glossaryEditor: byId('glossaryEditor'),
   glossaryEditorTitle: byId('glossaryEditorTitle'),
   glossaryTitleInput: byId('glossaryTitleInput'),
+  glossaryTitleSaveButton: byId('glossaryTitleSaveButton'),
+  glossaryTitleCancelButton: byId('glossaryTitleCancelButton'),
   glossaryRows: byId('glossaryRows'),
   glossaryPager: byId('glossaryPager'),
   glossaryPageSize: byId('glossaryPageSize'),

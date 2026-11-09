@@ -123,12 +123,44 @@ function renderGlossaryEditor() {
   ui.glossaryEditor.hidden = false;
   ui.glossaryEditorTitle.textContent = `${entry.title} · ${entry.siteName} · ${entry.targetLabel}`;
   if (ui.glossaryTitleInput) ui.glossaryTitleInput.value = entry.title;
+  syncTitleButtons();
   state.glossaryOpened = entry.terms;
   state.glossaryDraft = entry.terms.length > 0 ? entry.terms.map((term) => ({ ...term })) : [{}];
   // Kept index-aligned with the draft so each row knows whether it was edited.
   state.glossarySaved = entry.terms.length > 0 ? entry.terms.slice() : [null];
   renderTidyUndo(entry);
   showGlossaryPage(state.glossaryPage);
+}
+
+function syncTitleButtons() {
+  const entry = activeGlossary();
+  const changed = Boolean(entry) && ui.glossaryTitleInput.value.trim() !== entry.title;
+  ui.glossaryTitleSaveButton.hidden = !changed;
+  ui.glossaryTitleCancelButton.hidden = !changed;
+}
+
+function revertTitle() {
+  const entry = activeGlossary();
+  if (entry) ui.glossaryTitleInput.value = entry.title;
+  syncTitleButtons();
+  ui.glossaryTitleInput.focus();
+}
+
+async function saveTitle() {
+  // A failed save has already moved the keyboard to the row that needs fixing.
+  if (await saveGlossary()) ui.glossaryTitleInput.focus();
+}
+
+function wireTitleField() {
+  if (!ui.glossaryTitleInput) return;
+  ui.glossaryTitleInput.addEventListener('input', syncTitleButtons);
+  ui.glossaryTitleInput.addEventListener('keydown', (event) => {
+    if (ui.glossaryTitleSaveButton.hidden) return;
+    if (event.key === 'Enter') void saveTitle();
+    else if (event.key === 'Escape') revertTitle();
+  });
+  ui.glossaryTitleSaveButton.addEventListener('click', () => { void saveTitle(); });
+  ui.glossaryTitleCancelButton.addEventListener('click', revertTitle);
 }
 
 /** Render one page of the draft; edits on other pages live in the draft until saved. */
@@ -243,7 +275,7 @@ function addGlossaryTermRow() {
   focusGlossaryRow(state.glossaryDraft.length - 1);
 }
 
-/** `rowIndex` is the row whose own save button was used; it keeps the keyboard there. */
+/** `rowIndex` is the row whose own save button was used; it keeps the keyboard there. Resolves true once saved. */
 async function saveGlossary(rowIndex) {
   const entry = activeGlossary();
   if (!entry) return;
@@ -284,6 +316,7 @@ async function saveGlossary(rowIndex) {
     renderGlossaryList();
     renderGlossaryEditor();
     if (Number.isInteger(rowIndex)) focusRowControl(rowIndex, 'delete');
+    return true;
   } catch (_error) {
     setFeedback(ui.glossaryFeedback, '保存术语库失败，请检查扩展存储空间。', 'error');
   }
@@ -321,6 +354,7 @@ async function reloadGlossaryEditor() {
 export function wireGlossaryEvents() {
   if (!ui.glossaryList) return;
   wireGlossaryTidy(activeGlossary, reloadGlossaryEditor);
+  wireTitleField();
   window.addEventListener('beforeunload', (event) => {
     if (hasUnsavedGlossaryEdits()) event.preventDefault();
   });

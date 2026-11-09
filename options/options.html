@@ -378,7 +378,11 @@
             <p class="hint">原文通常是角色名/地名/技能名，译文是希望固定使用的中文写法；分类和备注可选。</p>
             <div class="field glossary-title-field">
               <label class="field-label" for="glossaryTitleInput">作品名称</label>
-              <input id="glossaryTitleInput" class="text-input" type="text" maxlength="200" autocomplete="off" spellcheck="false" aria-describedby="glossaryTitleHint">
+              <div class="input-row">
+                <input id="glossaryTitleInput" class="text-input" type="text" maxlength="200" autocomplete="off" spellcheck="false" aria-describedby="glossaryTitleHint">
+                <button id="glossaryTitleSaveButton" class="button button-primary" type="button" aria-label="保存术语库（含作品名称的修改）" hidden>保存</button>
+                <button id="glossaryTitleCancelButton" class="button button-secondary" type="button" aria-label="撤销作品名称的修改" hidden>取消</button>
+              </div>
               <p id="glossaryTitleHint" class="hint">这里只修改术语库列表显示的作品名，不影响站点、缓存或术语匹配。</p>
             </div>
             <div id="glossaryUndoRow" class="glossary-undo" hidden>
