@@ -164,12 +164,7 @@ async function setupContextMenus() {
   await syncVisionContextMenu();
 }
 
-// shortcut: entries stay for closed tabs until the worker restarts; they are tiny.
-const badgeStates = new Map();
-
 function setBadge(tabId, status, targetLabel) {
-  if (status === 'idle') badgeStates.delete(tabId);
-  else badgeStates.set(tabId, { status, targetLabel });
   const states = {
     running: { text: '译', color: '#4D6BFE', title: 'Baka Translator：正在翻译…' },
     done: { text: '译', color: '#0F9D58', title: `Baka Translator：已翻译为${targetLabel || '目标语言'}` },
@@ -207,9 +202,15 @@ function clearBadgeSoon(tabId, text, reason) {
   } catch (_error) {
     return;
   }
+  // The reason stays in the title for hovering; the next navigation resets it.
   setTimeout(() => {
-    const state = badgeStates.get(tabId);
-    setBadge(tabId, state ? state.status : 'idle', state && state.targetLabel);
+    try {
+      chrome.action.setBadgeText({ tabId, text: '' }, () => {
+        void chrome.runtime.lastError;
+      });
+    } catch (_error) {
+      // Tab closed.
+    }
   }, 3200);
 }
 
