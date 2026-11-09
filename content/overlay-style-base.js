@@ -141,7 +141,7 @@
       transition: background-color 120ms ease, border-color 120ms ease;
     }
 
-    .dsht-btn:hover {
+    .dsht-btn:hover:not(:disabled) {
       background: var(--dsht-soft);
     }
 
@@ -151,7 +151,7 @@
       color: #fff;
     }
 
-    .dsht-btn-primary:hover {
+    .dsht-btn-primary:hover:not(:disabled) {
       background: var(--dsht-blue-strong);
       border-color: var(--dsht-blue-strong);
     }
@@ -161,7 +161,7 @@
       color: var(--dsht-muted);
     }
 
-    .dsht-btn-ghost:hover {
+    .dsht-btn-ghost:hover:not(:disabled) {
       background: var(--dsht-soft);
       color: var(--dsht-ink);
     }
@@ -170,6 +170,11 @@
       border-color: #f0d4d4;
       color: var(--dsht-danger);
       background: #fffafa;
+    }
+
+    .dsht-btn:disabled {
+      opacity: 0.5;
+      cursor: default;
     }
 
     /* ---------- full page progress panel ---------- */
