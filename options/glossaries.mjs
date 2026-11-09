@@ -11,6 +11,8 @@ const GLOSSARY_MIN_PAGE_SIZE = 30;
 const CLEAR_CONFIRM_MS = 5000;
 // The tidy the open draft started from: refreshing the list must not let a stale draft save.
 let openedTidyAt = null;
+// The entry the editor opened; a refresh can drop it from the list while edits are still unsaved.
+let openedEntry = null;
 
 export async function loadGlossaries() {
   if (!state.glossaries) state.glossaries = [];
@@ -29,8 +31,12 @@ export async function loadGlossaries() {
   return state.glossaries;
 }
 
-function activeGlossary() {
+function listedGlossary() {
   return (state.glossaries || []).find((entry) => entry.key === state.activeGlossaryKey) || null;
+}
+
+function activeGlossary() {
+  return listedGlossary() || (openedEntry && openedEntry.key === state.activeGlossaryKey ? openedEntry : null);
 }
 
 function resetClearButton() {
@@ -52,8 +58,8 @@ function renderGlossaryList() {
   if (ui.glossaryEmptyHint) {
     ui.glossaryEmptyHint.hidden = (state.glossaries || []).length > 0;
   }
-  const active = activeGlossary();
-  if (state.activeGlossaryKey && !active) closeGlossaryEditor();
+  // A glossary a tidy emptied leaves the list, but an editor with unsaved edits stays until the user discards them.
+  if (state.activeGlossaryKey && !listedGlossary() && !hasUnsavedGlossaryEdits()) closeGlossaryEditor();
 
   for (const entry of state.glossaries || []) {
     const row = document.createElement('div');
@@ -121,6 +127,7 @@ const ROW_HANDLERS = {
 function renderGlossaryEditor() {
   const entry = activeGlossary();
   if (!entry || !ui.glossaryEditor) return;
+  openedEntry = entry;
   resetClearButton();
   ui.glossaryEditor.hidden = false;
   ui.glossaryEditorTitle.textContent = `${entry.title} · ${entry.siteName} · ${entry.targetLabel}`;
@@ -238,6 +245,7 @@ function openGlossaryEditor(key) {
 
 function closeGlossaryEditor() {
   state.activeGlossaryKey = '';
+  openedEntry = null;
   state.glossaryDraft = [];
   state.glossarySaved = [];
   resetClearButton();
@@ -305,7 +313,7 @@ async function saveGlossary(rowIndex) {
       // Refresh the cached entry so reopening picks up the tidy instead of hitting this again.
       await loadGlossaries();
       renderGlossaryList();
-      showSaveError('术语库已被自动整理，当前修改基于整理前的内容；关闭并重新打开会丢弃这些修改。', rowIndex);
+      showSaveError('术语库已被自动整理，当前修改基于整理前的内容，无法直接保存；关闭编辑器会丢弃这些修改。', rowIndex);
       return;
     }
     const terms = withNewStoredTerms(normalized.terms, stored && stored[entry.key], state.glossaryOpened);
