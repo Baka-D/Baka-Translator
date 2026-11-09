@@ -110,12 +110,15 @@
       ensureUi();
       if (!toast) return;
       clearTimeout(toastTimer);
-      toast.textContent = String(message || '');
+      const text = String(message || '');
+      toast.textContent = text;
       toast.dataset.tone = tone || 'info';
       toast.classList.remove('dsht-hidden');
+      // Long notices need reading time; errors get a little longer still.
+      const duration = Math.max(3600, text.length * 120) + (tone === 'error' ? 1500 : 0);
       toastTimer = setTimeout(() => {
         if (toast) toast.classList.add('dsht-hidden');
-      }, 3600);
+      }, duration);
     }
 
     /**
