@@ -274,10 +274,11 @@ export function populatePolishEffortSelect() {
   const translation = translationModel();
   const sameModel = Boolean(model && translation && model.id === translation.id);
   if (ui.polishEffortHint) {
-    if (polishInheritsModel()) {
+    if (value) {
+      ui.polishEffortHint.textContent =
+        `润色思考强度：${effortLabel(value)}${polishInheritsModel() ? '（模型跟随翻译）' : ''}。`;
+    } else if (polishInheritsModel()) {
       ui.polishEffortHint.textContent = `跟随翻译模型（${translation ? translation.name : '—'}）与思考强度。`;
-    } else if (value) {
-      ui.polishEffortHint.textContent = `润色思考强度：${effortLabel(value)}。`;
     } else {
       ui.polishEffortHint.textContent = `未指定时使用该模型默认值（${effortLabel(
         model ? model.defaultEffort : 'none'
