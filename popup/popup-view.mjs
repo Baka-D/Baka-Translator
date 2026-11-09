@@ -189,7 +189,9 @@ function computeMainAction() {
       return { kind: 'retranslate', label: '按新设置重新翻译', disabled: !state.hasApiKey };
     }
     if (info.status === 'partial') {
-      return { kind: 'retry', label: '重试失败部分', disabled: !state.hasApiKey };
+      // Chapters keep no translation memory, so a retry there sends every segment again.
+      const label = info.novel?.isChapter ? '重新翻译整页' : '重试失败部分';
+      return { kind: 'retry', label, disabled: !state.hasApiKey };
     }
     return { kind: 'restore', label: '还原原始页面', disabled: false };
   }
