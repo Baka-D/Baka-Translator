@@ -208,6 +208,8 @@
       await translateSegments(job, [...pageBatches(retry.segments, 2), ...retry.batches], true);
 
       if (runId !== page.runId) return;
+      // Captions follow the first draft, as on the cache path; polishing only rewrites target text.
+      if (page.bilingual) app.applyBilingualCaptions(plan.anchors);
 
       if (page.proofreadEnabled && page.initialTranslations.size > 0 && !page.abortFatal) {
         await app.runPolish(plan, targetCode, sourceHint, runId);
