@@ -248,6 +248,7 @@
       color: var(--dsht-faint);
       font-size: 10.5px;
       line-height: 1.5;
+      white-space: pre-line;
     }
 
     /* ---------- selection bubble ---------- */
