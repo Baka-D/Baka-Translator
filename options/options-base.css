@@ -13,6 +13,7 @@
   --surface-strong: #F0F2F8;
   --border: #E3E6EE;
   --border-strong: #D3D8E4;
+  --border-hover: #BEC5D5;
   --success: #0F9D58;
   --success-text: #067647;
   --warning: #B45309;
@@ -218,7 +219,7 @@ select {
 }
 
 .text-input:hover:not(:disabled) {
-  border-color: #BEC5D5;
+  border-color: var(--border-hover);
 }
 
 .text-input:focus-visible {
@@ -294,7 +295,7 @@ select {
 }
 
 .select:hover:not(:disabled) {
-  border-color: #BEC5D5;
+  border-color: var(--border-hover);
 }
 
 .select:focus-visible {

@@ -115,7 +115,7 @@
 }
 
 .button-secondary:hover:not(:disabled) {
-  border-color: #BFC6D6;
+  border-color: var(--border-hover);
   background: var(--surface);
 }
 
@@ -363,6 +363,7 @@ kbd {
     --surface-strong: #232730;
     --border: #2B303A;
     --border-strong: #3B414D;
+    --border-hover: #4A5160;
     --success-text: #6EE7A8;
     --danger-text: #FF9B93;
     --warning: #F0B46A;

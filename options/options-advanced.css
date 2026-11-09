@@ -148,7 +148,7 @@
 }
 
 .text-area:hover:not(:disabled) {
-  border-color: #BEC5D5;
+  border-color: var(--border-hover);
 }
 
 .text-area:focus-visible {
