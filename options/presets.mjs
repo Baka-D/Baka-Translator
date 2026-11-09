@@ -3,6 +3,19 @@ import { FEEDBACK_CLEAR_MS, KEYS, config, presetsTools, state, ui } from './cont
 import { renderSiteSettings } from './sites.mjs';
 import { isObject, persist, setFeedback } from './utils.mjs';
 
+// Prompt text last loaded into or saved from the editor, to spot unsaved typing.
+let loadedPrompts = null;
+
+function rememberPrompts() {
+  loadedPrompts = { translation: ui.translationPromptInput.value, polish: ui.polishPromptInput.value };
+}
+
+function promptsEdited() {
+  return Boolean(loadedPrompts && ui.translationPromptInput) &&
+    (ui.translationPromptInput.value !== loadedPrompts.translation ||
+      ui.polishPromptInput.value !== loadedPrompts.polish);
+}
+
 /* ---------- 提示词预设 ---------- */
 
 export function populatePresetSelect() {
@@ -104,6 +117,7 @@ export async function loadPromptEditor() {
       : Object.assign({}, preset, overrides);
   ui.translationPromptInput.value = merged.translationPrompt || '';
   ui.polishPromptInput.value = merged.polishPrompt || '';
+  rememberPrompts();
   if (ui.presetDescription) {
     ui.presetDescription.textContent = preset.description || preset.name || '';
   }
@@ -119,6 +133,10 @@ export async function loadPromptEditor() {
 export function handlePresetChange() {
   const value = ui.presetSelect.value;
   if (!value) return;
+  if (promptsEdited() && !window.confirm('提示词有未保存的修改，切换预设会丢失这些修改。确定继续吗？')) {
+    ui.presetSelect.value = state.presetId;
+    return;
+  }
   state.presetId = value;
   persist({ [KEYS.PRESET_ID]: value }).then(
     () => {
@@ -163,6 +181,7 @@ export async function handleSavePrompts() {
   try {
     await persist({ [KEYS.PROMPT_OVERRIDES]: overrides });
     state.promptOverrides = overrides;
+    rememberPrompts();
     if (ui.promptStatus) {
       ui.promptStatus.textContent =
         Object.keys(entry).length > 0
@@ -185,6 +204,7 @@ export async function handleResetPrompts() {
     state.promptOverrides = overrides;
     if (ui.translationPromptInput) ui.translationPromptInput.value = preset.translationPrompt || '';
     if (ui.polishPromptInput) ui.polishPromptInput.value = preset.polishPrompt || '';
+    if (ui.translationPromptInput) rememberPrompts();
     if (ui.promptStatus) ui.promptStatus.textContent = '当前预设正在使用预设默认提示词。';
     setFeedback(ui.promptFeedback, '已恢复该预设的默认提示词。', 'success', FEEDBACK_CLEAR_MS);
   } catch (_error) {
