@@ -302,6 +302,9 @@ async function saveGlossary(rowIndex) {
     // Re-read: chapter tabs may have added terms and chapter ids since the list loaded.
     const stored = await chrome.storage.local.get([entry.key, entry.metaKey, entry.tidyKey]);
     if ((stored[entry.tidyKey]?.tidiedAt ?? null) !== openedTidyAt) {
+      // Refresh the cached entry so reopening picks up the tidy instead of hitting this again.
+      await loadGlossaries();
+      renderGlossaryList();
       showSaveError('术语库已被自动整理，当前修改基于整理前的内容；关闭并重新打开会丢弃这些修改。', rowIndex);
       return;
     }
