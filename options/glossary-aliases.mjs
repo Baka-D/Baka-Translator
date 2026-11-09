@@ -14,14 +14,14 @@ function makeAliasInput(role, value, label, placeholder) {
   return input;
 }
 
-function renderAliasRow(alias, termLabel, termTarget) {
+function renderAliasRow(alias, termLabel) {
   const row = document.createElement('div');
   row.className = 'glossary-alias-row';
   row.dataset.aliasRow = '';
   row.append(
     makeAliasInput('alias-source', alias.source, `${termLabel}的其他写法`, '其他写法'),
-    // A copy of the term's translation shows blank again, so it keeps following that translation.
-    makeAliasInput('alias-target', alias.target === termTarget ? '' : alias.target,`${termLabel}这个写法的译文`, '译文（留空沿用上方译文）'),
+    // A blank translation is filled with the term's when saved; a saved one is never inferred to follow it.
+    makeAliasInput('alias-target', alias.target, `${termLabel}这个写法的译文`, '译文（留空则保存时使用上方译文）'),
     makeButton('移除', 'button button-ghost-danger glossary-delete', () => removeAliasRow(row), `移除${termLabel}的这个写法`)
   );
   return row;
@@ -41,10 +41,10 @@ function removeAliasRow(row) {
   [...termRow.querySelectorAll('.glossary-row-actions button')].find((button) => !button.hidden)?.focus();
 }
 
-export function renderAliases(aliases, index, termTarget) {
+export function renderAliases(aliases, index) {
   const list = document.createElement('div');
   list.className = 'glossary-aliases';
-  list.append(...(aliases || []).map((alias) => renderAliasRow(alias, `第 ${index + 1} 条术语`, termTarget)));
+  list.append(...(aliases || []).map((alias) => renderAliasRow(alias, `第 ${index + 1} 条术语`)));
   return list;
 }
 
