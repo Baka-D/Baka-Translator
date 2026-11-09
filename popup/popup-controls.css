@@ -240,6 +240,10 @@
   cursor: not-allowed;
 }
 
+.button[hidden] {
+  display: none;
+}
+
 .action-row {
   display: grid;
   grid-template-columns: 1fr 1fr;

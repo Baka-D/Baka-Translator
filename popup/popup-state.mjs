@@ -44,6 +44,7 @@ const ui = {
   targetSelect: byId('targetSelect'),
   bilingualToggle: byId('bilingualToggle'),
   mainButton: byId('mainButton'),
+  restoreButton: byId('restoreButton'),
   selectionButton: byId('selectionButton'),
   imagesButton: byId('imagesButton'),
   polishToggle: byId('polishToggle'),

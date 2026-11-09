@@ -202,6 +202,8 @@ function renderMainButton() {
   if (ui.mainButton.textContent !== action.label) ui.mainButton.textContent = action.label;
   ui.mainButton.disabled = action.disabled;
   ui.mainButton.dataset.action = action.kind;
+  // Retry and retranslate take the main slot, so keep restore reachable beside them.
+  ui.restoreButton.hidden = !(state.info?.pageTranslated && (action.kind === 'retry' || action.kind === 'retranslate'));
 
   const pageUsable = Boolean(state.tabId) && !state.pageError;
   const running = Boolean(state.info && state.info.status === 'running');

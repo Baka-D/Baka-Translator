@@ -368,4 +368,4 @@ async function handleMainAction() {
 }
 
 
-export { normalizeInfo, stopPolling, refreshState, handleMainAction, runQuickCommand };
+export { normalizeInfo, stopPolling, refreshState, handleMainAction, restorePage, runQuickCommand };

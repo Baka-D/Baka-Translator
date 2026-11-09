@@ -3,7 +3,7 @@ import { config, languages, KEYS, TARGETS, ui, state, PAGE_ERROR_MESSAGES, VISIO
 import { hostFromUrl, presetDisplayName, populateSitePresetSelect, renderSiteToggles, readSiteSettings, saveSiteFlag, loadPresetIndex } from './popup-site.mjs';
 import { persistSettings, openOptions, readConfig, queryActiveTab, isRestrictedUrl } from './popup-transport.mjs';
 import { render } from './popup-view.mjs';
-import { stopPolling, refreshState, handleMainAction, runQuickCommand } from './popup-page.mjs';
+import { stopPolling, refreshState, handleMainAction, restorePage, runQuickCommand } from './popup-page.mjs';
 
 /* ---------- 事件绑定 ---------- */
 
@@ -126,6 +126,9 @@ function wireEvents() {
 
   ui.mainButton.addEventListener('click', () => {
     void handleMainAction();
+  });
+  ui.restoreButton.addEventListener('click', () => {
+    void restorePage();
   });
   ui.selectionButton.addEventListener('click', () => {
     void runQuickCommand('selection');
