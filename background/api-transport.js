@@ -65,9 +65,18 @@
       Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0
         ? Math.min(10000, retryAfterSeconds * 1000)
         : 0;
+    const detail = providerMessage ? `（${providerMessage}）` : '';
 
-    if (status === 401 || status === 403) {
+    if (status === 401) {
       return new ApiError(`${label} API Key 无效或已失效，请在设置中更新。`, {
+        code: 'AUTH_FAILED',
+        status,
+        retryable: false,
+        providerMessage
+      });
+    }
+    if (status === 403) {
+      return new ApiError(`${label} 拒绝访问${detail}，可能是 Key 无效、地区或模型权限受限。`, {
         code: 'AUTH_FAILED',
         status,
         retryable: false,
@@ -116,7 +125,6 @@
       });
     }
     if (status === 400) {
-      const detail = providerMessage ? `（${providerMessage}）` : '';
       return new ApiError(`${label} 拒绝了请求${detail}，请重试或检查模型参数。`, {
         code: 'BAD_REQUEST',
         status,
@@ -125,14 +133,14 @@
       });
     }
     if (status === 404) {
-      return new ApiError(`${label} 接口不存在（HTTP 404），请检查模型接入点。`, {
+      return new ApiError(`${label} 接口或模型不存在（HTTP 404）${detail}，请检查模型接入点和模型名称。`, {
         code: 'ENDPOINT_NOT_FOUND',
         status,
         retryable: false,
         providerMessage
       });
     }
-    return new ApiError(`${label} 请求失败（HTTP ${status}），请稍后重试。`, {
+    return new ApiError(`${label} 请求失败（HTTP ${status}）${detail}，请稍后重试。`, {
       code: 'HTTP_ERROR',
       status,
       retryable: status >= 500,
