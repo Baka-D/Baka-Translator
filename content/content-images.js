@@ -220,7 +220,8 @@
           const dataUrl = cropImageFromScreenshot(screenshot, candidate);
           items.push({
             status: 'pending',
-            thumbnail: dataUrl,
+            // The panel shows a 58px thumb; resending the full OCR crop on every update is wasteful.
+            thumbnail: cropImageFromScreenshot(screenshot, candidate, 160, 0.7),
             dataUrl,
             alt: candidate.alt,
             hasText: false,

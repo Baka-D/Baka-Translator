@@ -20,7 +20,12 @@
     return Math.max(min, Math.min(max, value));
   }
 
-  function cropImageFromScreenshot(screenshot, candidate) {
+  function cropImageFromScreenshot(
+    screenshot,
+    candidate,
+    maxDimension = LIMITS.IMAGE_MAX_DIMENSION,
+    quality = LIMITS.IMAGE_JPEG_QUALITY
+  ) {
     const naturalWidth = screenshot.naturalWidth || screenshot.width;
     const naturalHeight = screenshot.naturalHeight || screenshot.height;
     if (!naturalWidth || !naturalHeight) throw new Error(t('content_screenshot_size_error'));
@@ -39,7 +44,6 @@
 
     let targetWidth = sourceWidth;
     let targetHeight = sourceHeight;
-    const maxDimension = LIMITS.IMAGE_MAX_DIMENSION;
     if (targetWidth > maxDimension || targetHeight > maxDimension) {
       const factor = maxDimension / Math.max(targetWidth, targetHeight);
       targetWidth = Math.max(1, Math.round(targetWidth * factor));
@@ -48,7 +52,6 @@
 
     let attemptWidth = targetWidth;
     let attemptHeight = targetHeight;
-    let quality = LIMITS.IMAGE_JPEG_QUALITY;
     let dataUrl = '';
 
     for (let attempt = 0; attempt < 3; attempt += 1) {
