@@ -222,6 +222,10 @@ function errorPayload(error) {
   }
   if (code === 'MISSING_API_KEY') message = PAGE_ACCESS_ERRORS.NO_API_KEY;
   if (code === 'TAB_CLOSED') message = PAGE_ACCESS_ERRORS.TAB_CLOSED;
+  // Chrome's raw messaging errors mean the page navigated or reloaded mid-request.
+  if (/Receiving end does not exist|message (channel|port) closed/i.test(String(message))) {
+    return { code: 'PAGE_LOADING', message: PAGE_ACCESS_ERRORS.PAGE_LOADING, retryable: true, status: 0 };
+  }
   return { code, message, retryable: false, status: 0 };
 }
 
