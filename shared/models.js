@@ -33,7 +33,10 @@
     try {
       const url = new URL(text);
       if (url.protocol !== 'https:' && url.protocol !== 'http:') return '';
-      return text.replace(/\/+$/, '');
+      url.hash = '';
+      // Users often paste the full completions URL from provider docs; joinEndpoint adds it back.
+      url.pathname = url.pathname.replace(/\/+$/, '').replace(/\/chat\/completions$/i, '');
+      return url.toString().replace(/\/+$/, '');
     } catch (_error) {
       return '';
     }
@@ -194,7 +197,10 @@
     const base = normalizeEndpoint(endpoint);
     if (!base) return '';
     const suffix = normalizePath(path, '/chat/completions');
-    return base + suffix;
+    // Keep a query such as Azure's api-version after the path, not before it.
+    const url = new URL(base);
+    url.pathname = url.pathname.replace(/\/+$/, '') + suffix;
+    return url.toString();
   }
 
   /**
