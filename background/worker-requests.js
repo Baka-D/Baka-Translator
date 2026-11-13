@@ -156,6 +156,7 @@ async function handleTranslateBatch(message, sender, stopped, runtime) {
   stopped ||= pageRunStopped(sender);
   const request = validateBatchMessage(message);
   runtime ||= await resolveRuntime('translation', hostnameFromSender(sender));
+  if (stopped()) throw new PageAccessError('REQUEST_CANCELLED', '翻译已停止。');
   // Rejected replies are billed too; the page adds them to its cost, also on failure.
   const discardedBilling = [];
   const result = await withWorkerKeepalive(() => api.translateSegments({
@@ -282,6 +283,8 @@ async function handlePolishSegments(message, sender, stopped, runtime) {
     // long pages. Individual failures do not discard successful chunks.
     const worker = async () => {
       while (true) {
+        // Already-sent replies still count, but restoring a page stops new paid chunks.
+        if (stopped()) return;
         const index = cursor;
         cursor += 1;
         if (index >= chunks.length) return;
@@ -403,6 +406,7 @@ async function handleExtractTerms(message, sender) {
   const stopped = pageRunStopped(sender);
   const request = validateTermMessage(message);
   const runtime = await resolveRuntime('translation', hostnameFromSender(sender));
+  if (stopped()) throw new PageAccessError('REQUEST_CANCELLED', '术语提取已停止。');
   const discardedBilling = [];
   const result = await withWorkerKeepalive(() => api.extractTerms({
     apiKey: runtime.apiKey,
