@@ -1,7 +1,7 @@
 // Novel glossary editor for the advanced settings tab.
 import { FEEDBACK_CLEAR_MS, novelUtils, state, ui } from './context.mjs';
 import {
-  GLOSSARY_PREFIX, describeGlossary, glossaryPageRange, normalizeGlossaryRows, withNewStoredTerms
+  GLOSSARY_PREFIX, describeGlossary, glossaryPageRange, normalizeGlossaryRows, readGlossaryStorage, withNewStoredTerms
 } from './glossary-data.mjs';
 import { readTermRow, renderTermRow, termRowKey } from './glossary-row.mjs';
 import { renderTidyUndo, wireGlossaryTidy } from './glossary-tidy.mjs';
@@ -17,7 +17,7 @@ let openedEntry = null;
 export async function loadGlossaries() {
   if (!state.glossaries) state.glossaries = [];
   if (!chrome.storage || !chrome.storage.local) return state.glossaries;
-  const all = await chrome.storage.local.get(null);
+  const all = await readGlossaryStorage(chrome.storage.local);
   state.glossaries = Object.keys(all || {})
     .filter((key) => key.startsWith(GLOSSARY_PREFIX))
     .map((key) => describeGlossary(key, all[key], all))

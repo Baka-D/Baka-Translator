@@ -36,6 +36,17 @@ export function parseGlossaryKey(key) {
   };
 }
 
+/** Chapter caches can be large; only fetch the values this editor needs. */
+export async function readGlossaryStorage(local) {
+  // getKeys is available from Chromium 130; keep the supported older browsers working.
+  if (typeof local.getKeys !== 'function') return local.get(null);
+  const keys = (await local.getKeys()).flatMap((key) => {
+    const parsed = parseGlossaryKey(key);
+    return parsed ? [key, parsed.metaKey, parsed.tidyKey] : [];
+  });
+  return local.get(Array.from(new Set(keys)));
+}
+
 /** Which rows a page shows; an out-of-range page moves to the nearest one. */
 export function glossaryPageRange(total, page, size) {
   const pages = Math.max(1, Math.ceil(total / size));
