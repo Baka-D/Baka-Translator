@@ -7,6 +7,7 @@
     const { el, onTrusted } = parts;
     const EMPTY_MESSAGE = '当前画面中没有找到可翻译的图片。滚动到图片位置后再试。';
     let imagePanel, imageTitle, imageSubtitle, imageList, imageEmpty, imageFoot;
+    let renderedItems = [];
 
     function buildImagePanel(layer) {
       imagePanel = el('section', 'dsht-image-panel dsht-hidden');
@@ -31,6 +32,7 @@
       head.appendChild(close);
 
       imageList = el('div', 'dsht-image-list');
+      renderedItems = [];
       imageEmpty = el('div', 'dsht-image-empty dsht-hidden', EMPTY_MESSAGE);
       imageFoot = el('div', 'dsht-image-foot', '仅截取当前画面中可见的图片区域并发送给所选模型服务商识别，不会上传整页截图。');
 
@@ -43,10 +45,7 @@
 
     function renderImagePanel(model) {
       if (!model || !model.visible) {
-        if (imagePanel) {
-          imagePanel.classList.add('dsht-hidden');
-          if (imageList) imageList.textContent = '';
-        }
+        hideImagePanel();
         return;
       }
       if (!imagePanel) return;
@@ -57,13 +56,23 @@
         model.footer || '仅截取当前画面中可见的图片区域并发送给所选模型服务商识别，不会上传整页截图。';
 
       const items = Array.isArray(model.items) ? model.items : [];
-      imageList.textContent = '';
       imageEmpty.classList.toggle('dsht-hidden', items.length > 0);
       imageEmpty.textContent = model.emptyMessage || EMPTY_MESSAGE;
 
+      // A session keeps its image order. Leave completed rows attached while other
+      // images progress, preserving expanded originals, selections and decoded thumbs.
       items.forEach((item, index) => {
-        imageList.appendChild(buildImageItem(item, index));
+        const previous = renderedItems[index];
+        const keys = Object.keys(item);
+        if (previous && keys.length === Object.keys(previous.item).length &&
+            keys.every((key) => item[key] === previous.item[key])) return;
+        const row = buildImageItem(item, index);
+        if (previous) imageList.replaceChild(row, previous.row);
+        else imageList.appendChild(row);
+        renderedItems[index] = { item: { ...item }, row };
       });
+      for (const extra of renderedItems.slice(items.length)) imageList.removeChild(extra.row);
+      renderedItems.length = items.length;
     }
 
     function buildImageItem(item, index) {
@@ -116,6 +125,7 @@
       if (imagePanel) {
         imagePanel.classList.add('dsht-hidden');
         if (imageList) imageList.textContent = '';
+        renderedItems = [];
       }
     }
 

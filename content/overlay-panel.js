@@ -7,6 +7,7 @@
     const { el, onTrusted } = parts;
     let panel, panelTitle, panelSubtitle, panelProgress, panelProgressFill;
     let panelActions, panelNote, panelDismiss;
+    let renderedActions = [];
 
     function buildPanel(layer) {
       panel = el('section', 'dsht-panel dsht-hidden');
@@ -44,6 +45,7 @@
       panel.appendChild(progress);
 
       panelActions = el('div', 'dsht-panel-actions');
+      renderedActions = [];
       panel.appendChild(panelActions);
 
       panelNote = el('div', 'dsht-panel-note dsht-hidden');
@@ -71,21 +73,29 @@
         panelProgress.setAttribute('aria-valuenow', String(Math.round(ratio * 100)));
       }
 
-      panelActions.textContent = '';
-      for (const action of model.actions || []) {
-        if (!action || !action.id) continue;
-        const button = el(
-          'button',
-          `dsht-btn ${action.variant === 'primary' ? 'dsht-btn-primary' : action.variant === 'danger' ? 'dsht-btn-danger' : 'dsht-btn-ghost'}`,
-          action.label
-        );
-        button.type = 'button';
-        button.dataset.action = action.id;
-        const actionId = action.id;
-        onTrusted(button, 'click', () => callbacks.onPanelAction && callbacks.onPanelAction(actionId));
-        panelActions.appendChild(button);
+      const actions = (model.actions || []).filter((action) => action && action.id);
+      const unchanged = actions.length === renderedActions.length && actions.every((action, index) => {
+        const previous = renderedActions[index];
+        return action.id === previous.id && action.label === previous.label && action.variant === previous.variant;
+      });
+      // Progress refreshes must not detach a button that the reader has focused.
+      if (!unchanged) {
+        panelActions.textContent = '';
+        for (const action of actions) {
+          const button = el(
+            'button',
+            `dsht-btn ${action.variant === 'primary' ? 'dsht-btn-primary' : action.variant === 'danger' ? 'dsht-btn-danger' : 'dsht-btn-ghost'}`,
+            action.label
+          );
+          button.type = 'button';
+          button.dataset.action = action.id;
+          const actionId = action.id;
+          onTrusted(button, 'click', () => callbacks.onPanelAction && callbacks.onPanelAction(actionId));
+          panelActions.appendChild(button);
+        }
+        renderedActions = actions.map(({ id, label, variant }) => ({ id, label, variant }));
       }
-      panelActions.classList.toggle('dsht-hidden', (model.actions || []).length === 0);
+      panelActions.classList.toggle('dsht-hidden', actions.length === 0);
       panelDismiss.classList.toggle('dsht-hidden', model.showDismiss === false);
 
       const note = model.note || '';

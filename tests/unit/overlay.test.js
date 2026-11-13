@@ -58,3 +58,59 @@ test('image renderer accepts screenshot JPEGs and treats OCR as text', () => {
   h.images.render({ visible: true, items: [{ thumbnail: 'data:image/jpeg;base64,AA==', status: 'loading' }] });
   assert.equal(h.imageElement('dsht-thumb').src, 'data:image/jpeg;base64,AA==');
 });
+
+test('another image finishing preserves completed rows, expanded originals and thumbnails', () => {
+  const h = loadOverlay();
+  const done = { thumbnail: 'data:image/jpeg;base64,AA==', status: 'done',
+    hasText: true, original: 'original', translation: '译文' };
+  const pending = { status: 'loading' };
+  h.images.render({ visible: true, items: [done, pending] });
+  const list = h.imageElement('dsht-image-list');
+  const row = list.children[0];
+  const thumb = h.imageElement('dsht-thumb');
+  const details = h.imageElement('dsht-image-original');
+  details.open = true;
+  // The runtime passes freshly cloned records for every progress update.
+  h.images.render({ visible: true, subtitle: '识别完成', items: [{ ...done }, { ...done, original: 'second' }] });
+  assert.ok(list.children[0] === row);
+  assert.ok(h.imageElement('dsht-thumb') === thumb);
+  assert.ok(h.imageElement('dsht-image-original') === details);
+  assert.equal(details.open, true);
+  assert.equal(list.children.length, 2);
+});
+
+test('image updates and shrinking or reopening the panel never reuse stale rows', () => {
+  const h = loadOverlay();
+  const item = { status: 'loading' };
+  h.images.render({ visible: true, items: [item, { status: 'pending' }] });
+  const list = h.imageElement('dsht-image-list');
+  const loading = list.children[0];
+  Object.assign(item, { status: 'done', hasText: true, translation: 'finished' });
+  h.images.render({ visible: true, items: [item] });
+  assert.notEqual(list.children[0], loading);
+  assert.equal(list.children.length, 1);
+  assert.equal(h.imageElement('dsht-image-translation').textContent, 'finished');
+  h.images.hide();
+  assert.equal(list.children.length, 0);
+  h.images.render({ visible: true, items: [item] });
+  assert.equal(list.children.length, 1);
+});
+
+test('page progress keeps unchanged action buttons attached for keyboard focus', () => {
+  const calls = [];
+  const h = loadOverlay({ onPanelAction: id => calls.push(id) });
+  const model = { visible: true, showProgress: true, progressRatio: 0.1,
+    actions: [{ id: 'restore', label: '还原', variant: 'danger' }] };
+  h.ui.renderPanel(model);
+  const list = h.element('dsht-panel-actions');
+  const focused = list.children[0];
+  h.ui.renderPanel({ ...model, progressRatio: 0.8, actions: model.actions.map(action => ({ ...action })) });
+  assert.ok(list.children[0] === focused, 'focused button must not be detached by a progress update');
+  focused.dispatch('click', { isTrusted: true });
+  assert.deepEqual(calls, ['restore']);
+  h.ui.renderPanel({ ...model, actions: [{ id: 'retry', label: '重试', variant: 'primary' }] });
+  assert.equal(list.children.length, 1);
+  assert.equal(list.children[0].textContent, '重试');
+  list.children[0].dispatch('click', { isTrusted: true });
+  assert.deepEqual(calls, ['restore', 'retry']);
+});

@@ -6,11 +6,26 @@ const vm = require('node:vm');
 
 function createElement(tag) {
   const listeners = new Map();
+  let text = '';
   const node = {
-    tagName: tag.toUpperCase(), className: '', textContent: '', children: [],
+    tagName: tag.toUpperCase(), className: '', children: [],
     dataset: {}, attributes: {}, style: { setProperty() {} }, isConnected: true,
     setAttribute(key, value) { this.attributes[key] = value; },
-    appendChild(child) { this.children.push(child); child.parentNode = this; return child; },
+    appendChild(child) {
+      if (child.parentNode) child.parentNode.removeChild(child);
+      this.children.push(child); child.parentNode = this; return child;
+    },
+    removeChild(child) {
+      const at = this.children.indexOf(child);
+      if (at < 0) throw new Error('Not a child');
+      this.children.splice(at, 1); child.parentNode = null; return child;
+    },
+    replaceChild(child, previous) {
+      const at = this.children.indexOf(previous);
+      if (at < 0) throw new Error('Not a child');
+      this.children.splice(at, 1, child);
+      previous.parentNode = null; child.parentNode = this; return previous;
+    },
     addEventListener(type, callback) {
       if (!listeners.has(type)) listeners.set(type, []);
       listeners.get(type).push(callback);
@@ -29,6 +44,14 @@ function createElement(tag) {
     },
     getBoundingClientRect() { return { width: 300, height: 200 }; }
   };
+  Object.defineProperty(node, 'textContent', {
+    get() { return text; },
+    set(value) {
+      text = String(value);
+      for (const child of this.children) child.parentNode = null;
+      this.children = [];
+    }
+  });
   node.classList = {
     contains(value) { return node.className.split(/\s+/).includes(value); },
     add(value) { this.toggle(value, true); },
