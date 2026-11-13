@@ -1,5 +1,6 @@
 (function initOverlayPart(globalScope) {
   'use strict';
+  const { t } = globalScope.DSHT.i18n;
   globalScope.DSHT = globalScope.DSHT || {};
   const parts = globalScope.DSHT.overlayParts = globalScope.DSHT.overlayParts || {};
 
@@ -16,18 +17,18 @@
     function buildBubble(layer) {
       bubble = el('section', 'dsht-bubble dsht-hidden');
       bubble.setAttribute('role', 'dialog');
-      bubble.setAttribute('aria-label', 'Baka Translator 划词翻译');
+      bubble.setAttribute('aria-label', t('content_selection_panel_label'));
 
       const head = el('div', 'dsht-bubble-head');
-      const logo = el('div', 'dsht-logo dsht-logo-sm', '译');
+      const logo = el('div', 'dsht-logo dsht-logo-sm', t('content_translation_logo'));
       const heading = el('div', 'dsht-bubble-heading');
-      const title = el('h2', 'dsht-bubble-title', 'Baka Translator 划词翻译');
-      bubbleDirection = el('div', 'dsht-bubble-direction', '自动检测 → 中文');
+      const title = el('h2', 'dsht-bubble-title', t('content_selection_panel_label'));
+      bubbleDirection = el('div', 'dsht-bubble-direction', `${t('content_auto_detect')} → ${globalScope.DSHT.i18n.languageLabel('zh')}`);
       heading.appendChild(title);
       heading.appendChild(bubbleDirection);
       const close = el('button', 'dsht-icon-button', '×');
       close.type = 'button';
-      close.setAttribute('aria-label', '关闭划词翻译');
+      close.setAttribute('aria-label', t('content_close_selection'));
       onTrusted(close, 'click', closeBubble);
       head.appendChild(logo);
       head.appendChild(heading);
@@ -40,14 +41,14 @@
       dots.appendChild(el('i'));
       dots.appendChild(el('i'));
       bubbleLoading.appendChild(dots);
-      bubbleLoading.appendChild(el('span', '', '正在翻译…'));
+      bubbleLoading.appendChild(el('span', '', t('content_translation_loading')));
 
       bubbleText = el('p', 'dsht-bubble-text');
       bubbleError = el('p', 'dsht-bubble-error dsht-hidden');
       bubbleError.setAttribute('role', 'alert');
 
       bubbleOriginal = el('details', 'dsht-original');
-      const summary = el('summary', '', '查看原文');
+      const summary = el('summary', '', t('content_view_original'));
       bubbleOriginalText = el('p', 'dsht-original-text');
       bubbleOriginal.appendChild(summary);
       bubbleOriginal.appendChild(bubbleOriginalText);
@@ -60,9 +61,9 @@
       const foot = el('div', 'dsht-bubble-foot');
       const selectWrap = el('div', 'dsht-select-wrap');
       bubbleTarget = el('select', 'dsht-select');
-      bubbleTarget.setAttribute('aria-label', '翻译目标语言');
+      bubbleTarget.setAttribute('aria-label', t('content_translation_target'));
       for (const language of languages) {
-        const option = el('option', '', `${language.label} · ${language.nativeName}`);
+        const option = el('option', '', `${globalScope.DSHT.i18n.languageLabel(language.code)} · ${language.nativeName}`);
         option.value = language.code;
         bubbleTarget.appendChild(option);
       }
@@ -72,23 +73,23 @@
       selectWrap.appendChild(bubbleTarget);
       selectWrap.appendChild(el('span', 'dsht-select-arrow'));
 
-      bubbleRetry = el('button', 'dsht-btn dsht-btn-ghost dsht-hidden', '重试');
+      bubbleRetry = el('button', 'dsht-btn dsht-btn-ghost dsht-hidden', t('content_retry'));
       bubbleRetry.type = 'button';
       onTrusted(bubbleRetry, 'click', () => callbacks.onBubbleRetry && callbacks.onBubbleRetry());
 
-      bubbleSettings = el('button', 'dsht-btn dsht-btn-ghost dsht-hidden', '设置');
+      bubbleSettings = el('button', 'dsht-btn dsht-btn-ghost dsht-hidden', t('content_settings'));
       bubbleSettings.type = 'button';
       onTrusted(bubbleSettings, 'click', () => callbacks.onBubbleSettings && callbacks.onBubbleSettings());
 
-      bubbleCopy = el('button', 'dsht-btn dsht-btn-primary dsht-copy-btn', '复制');
+      bubbleCopy = el('button', 'dsht-btn dsht-btn-primary dsht-copy-btn', t('content_copy'));
       bubbleCopy.type = 'button';
       onTrusted(bubbleCopy, 'click', async () => {
         if (!currentTranslation) return;
         const ok = await copyText(currentTranslation);
         clearTimeout(copyResetTimer);
-        bubbleCopy.textContent = ok ? '已复制' : '复制失败';
+        bubbleCopy.textContent = ok ? t('content_copied') : t('content_copy_failed');
         copyResetTimer = setTimeout(() => {
-          if (bubbleCopy) bubbleCopy.textContent = '复制';
+          if (bubbleCopy) bubbleCopy.textContent = t('content_copy');
         }, 1600);
       });
 

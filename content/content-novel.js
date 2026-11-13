@@ -1,6 +1,7 @@
 /** Novel behavior for the content script. */
 (function registerContentModule(globalScope) {
   'use strict';
+  const { t } = globalScope.DSHT.i18n;
   const modules = globalScope.DSHT.contentModules ||= {};
   modules['novel'] = function createModule(app) {
   const { languages, textUtils, novelUtils, MSG, LIMITS, page, overlay } = app;
@@ -144,17 +145,17 @@
       for (const billing of response.tidyBilling || []) app.addPageCost(billing);
       app.addDiscardedCost(response);
       if (response.dropped || response.merged) {
-        const retry = response.failed ? '部分整理未完成，5 分钟后完成章节时会重试。' : '';
-        overlay.showToast(`术语表已整理：移除 ${response.dropped} 条，合并 ${response.merged} 组，可在设置中撤销。${retry}`, response.failed ? 'info' : 'success');
+        const retry = response.failed ? t('content_tidy_partial_retry') : '';
+        overlay.showToast(t('content_tidy_done', [response.dropped, response.merged, retry]), response.failed ? 'info' : 'success');
       } else if (response.failed) {
-        overlay.showToast('术语表整理未完成，5 分钟后完成章节时会重试。', 'info');
+        overlay.showToast(t('content_tidy_retry'), 'info');
       }
       if (response.tidyBilling) app.renderPagePanel();
     } catch (error) {
       if (runId === page.runId) {
         app.addDiscardedCost(error);
         app.renderPagePanel();
-        overlay.showToast(`术语表整理失败：${error.message}`, 'error');
+        overlay.showToast(t('content_tidy_error', [error.message]), 'error');
       }
     }
   }
@@ -297,7 +298,7 @@
         autoApplied: true
       });
       if (!started?.started || app.currentRoute() !== route) return;
-      overlay.showToast(record ? '已应用本章预翻译缓存。' : '正在接续本章预翻译…', record ? 'success' : 'info');
+      overlay.showToast(record ? t('content_chapter_cache_applied') : t('content_resuming_pretranslation'), record ? 'success' : 'info');
     } catch (_error) {
       // Auto-apply is best-effort; manual translation remains available.
     }

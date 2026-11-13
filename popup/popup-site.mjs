@@ -1,5 +1,5 @@
 /** Per-site settings, presets, novel availability, and page costs. */
-import { config, billingTools, novelUtils, presetsTools, KEYS, ui, state } from './popup-state.mjs';
+import { t, i18n, config, billingTools, novelUtils, presetsTools, KEYS, ui, state } from './popup-state.mjs';
 
 /* ---------- 本站润色与页面费用 ---------- */
 
@@ -25,19 +25,12 @@ function siteFlagFor(settings, host, flag) {
   return Boolean(value && typeof value === 'object' && value[flag] === true);
 }
 
-const PRESET_NAME_FALLBACK = Object.freeze({
-  general: '常规',
-  academic: '学术',
-  'light-novel': '轻小说'
-});
-
 function presetDisplayName(presetId) {
   if (!presetId) return '';
   const metas =
     state.presetIndex && Array.isArray(state.presetIndex.presets) ? state.presetIndex.presets : [];
   const meta = metas.find((preset) => preset.id === presetId);
-  if (meta) return meta.name;
-  return PRESET_NAME_FALLBACK[presetId] || presetId;
+  return i18n.presetName(presetId, meta?.name || presetId);
 }
 
 function sitePresetValueFor(host) {
@@ -54,14 +47,14 @@ function populateSitePresetSelect() {
   select.textContent = '';
   const follow = document.createElement('option');
   follow.value = '';
-  follow.textContent = `跟随全局（当前 ${presetDisplayName(state.globalPresetId) || '常规'}）`;
+  follow.textContent = t('pop_follow_global', [presetDisplayName(state.globalPresetId) || i18n.presetName('general')]);
   select.appendChild(follow);
   const metas =
     state.presetIndex && Array.isArray(state.presetIndex.presets) ? state.presetIndex.presets : [];
   for (const preset of metas) {
     const option = document.createElement('option');
     option.value = preset.id;
-    option.textContent = preset.name;
+    option.textContent = i18n.presetName(preset.id, preset.name);
     select.appendChild(option);
   }
   select.value = sitePresetValueFor(state.host);
@@ -80,10 +73,10 @@ function currentNovelChapter(info) {
 }
 
 function siteFeatureHint(chapterEligible) {
-  if (!state.host) return '请在普通网页上使用站点开关。';
-  if (state.pageError) return '此页面不可用站点开关。';
-  if (!chapterEligible) return `预翻译仅适用于受支持轻小说站点的章节页（当前：${state.host}）。`;
-  return `润色与预翻译仅对 ${state.host} 生效；预翻译会缓存下一章，打开下一章自动应用。`;
+  if (!state.host) return t('pop_site_regular');
+  if (state.pageError) return t('pop_site_unavailable');
+  if (!chapterEligible) return t('pop_chapter_site_only', [state.host]);
+  return t('pop_site_hint', [state.host]);
 }
 
 function formatCostValue(value, currency) {
@@ -116,8 +109,8 @@ function renderSiteToggles() {
       ? siteFlagFor(state.siteSettings, state.host, 'pretranslate')
       : false;
     ui.pretranslateToggle.title = chapterEligible
-      ? '预翻译下一章'
-      : '预翻译仅适用于受支持轻小说站点的章节页';
+      ? t('pop_pretranslate_next')
+      : t('pop_chapter_only');
   }
   if (ui.polishHint) {
     ui.polishHint.textContent = siteFeatureHint(chapterEligible);
@@ -206,9 +199,9 @@ async function loadPresetIndex() {
     state.presetIndex = {
       defaultPresetId: 'general',
       presets: [
-        { id: 'general', name: '常规' },
-        { id: 'academic', name: '学术' },
-        { id: 'light-novel', name: '轻小说' }
+        { id: 'general', name: i18n.presetName('general') },
+        { id: 'academic', name: i18n.presetName('academic') },
+        { id: 'light-novel', name: i18n.presetName('light-novel') }
       ]
     };
   }

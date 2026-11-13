@@ -4,6 +4,8 @@
  */
 (function initPresets(globalScope) {
   'use strict';
+  const i18n = globalScope.DSHT?.i18n ||
+    (typeof require === 'function' ? require('./i18n.js') : null);
 
   const PLACEHOLDERS = Object.freeze([
     'targetLanguage',
@@ -19,13 +21,19 @@
     return typeof value === 'string' && value.trim() ? value.trim() : fallback;
   }
 
+  function displayText(raw, field, fallback) {
+    const value = trimString(raw[field], '');
+    const key = trimString(raw[`${field}Message`], '');
+    return value || (key ? i18n.t(key) : fallback);
+  }
+
   function normalizePreset(raw, fallbackId) {
     const source = isObject(raw) ? raw : {};
     const id = trimString(source.id, fallbackId || 'general');
     return {
       id,
-      name: trimString(source.name, id),
-      description: trimString(source.description, ''),
+      name: displayText(source, 'name', id),
+      description: displayText(source, 'description', ''),
       translationPrompt: trimString(source.translationPrompt, ''),
       polishPrompt: trimString(source.polishPrompt, '')
     };
@@ -43,8 +51,8 @@
         seen.add(id);
         presets.push({
           id,
-          name: trimString(item.name, id),
-          description: trimString(item.description, ''),
+          name: displayText(item, 'name', id),
+          description: displayText(item, 'description', ''),
           file: trimString(item.file, `${id}.json`)
         });
       }
@@ -52,7 +60,7 @@
     if (presets.length === 0) {
       presets.push({
         id: 'general',
-        name: '常规',
+        name: i18n.presetName('general'),
         description: '',
         file: 'general.json'
       });

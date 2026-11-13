@@ -1,5 +1,5 @@
 // Settings-page storage.
-import { KEYS, MSG, STORAGE_KEYS_TO_READ, config, languages, modelsTools, visionTools, state, ui } from './context.mjs';
+import { t, KEYS, MSG, STORAGE_KEYS_TO_READ, config, languages, modelsTools, visionTools, state, ui } from './context.mjs';
 import { polishEffortLevel } from './models.mjs';
 import { loadPromptEditor, populatePresetSelect, presetMeta } from './presets.mjs';
 import { isObject, normalizeProviderKeys, normalizeUsage, persist, sendMessage, setFeedback } from './utils.mjs';
@@ -17,7 +17,7 @@ export async function loadStoredData() {
   try {
     values = await chrome.storage.local.get(STORAGE_KEYS_TO_READ);
   } catch (_error) {
-    setFeedback(ui.keyFeedback, '读取本机设置失败，请刷新页面后重试。', 'error');
+    setFeedback(ui.keyFeedback, t('opt_storage_read_failed'), 'error');
   }
   const snapshot = state.snapshot;
 

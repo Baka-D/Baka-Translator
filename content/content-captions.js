@@ -1,6 +1,7 @@
 /** Captions behavior for the content script. */
 (function registerContentModule(globalScope) {
   'use strict';
+  const { t } = globalScope.DSHT.i18n;
   const modules = globalScope.DSHT.contentModules ||= {};
   modules['captions'] = function createModule(app) {
   const { textUtils, LIMITS, BILINGUAL_ATTR, page } = app;
@@ -186,7 +187,7 @@
       }
       caption.setAttribute(BILINGUAL_ATTR, '1');
       caption.setAttribute('role', 'note');
-      caption.textContent = `原文：${record.original}`;
+      caption.textContent = t('content_original_caption', [record.original]);
       const styles = {
         display: 'block',
         margin: '6px 0 0',

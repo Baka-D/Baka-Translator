@@ -1,5 +1,5 @@
 /** Render translation status and available actions. */
-import { KEY_NOTICE_TEXT, VISION_NOTICE_TEXT, languages, ui, state, labelOf, renderUsage } from './popup-state.mjs';
+import { t, i18n, KEY_NOTICE_TEXT, VISION_NOTICE_TEXT, languages, ui, state, labelOf, renderUsage } from './popup-state.mjs';
 import { siteFlagFor, sitePresetValueFor, renderSiteToggles, renderCost } from './popup-site.mjs';
 
 /* ---------- 渲染 ---------- */
@@ -32,23 +32,22 @@ function renderPageNotice() {
     message = state.pageMessage.message;
     tone = state.pageMessage.tone || 'info';
   } else if (info && info.status === 'error') {
-    message = info.error || '翻译失败，请重试。';
+    message = info.error || t('pop_translate_failed');
     tone = 'error';
   } else if (info && info.polishError) {
-    message = `润色未完成：${info.polishError}（页面已保留初译）`;
+    message = t('pop_polish_warning', [info.polishError]);
     tone = 'warning';
   } else if (info && info.pretranslationStatus === 'error' && info.pretranslationNote) {
-    const detail = info.pretranslationNote.replace(/^预翻译(?:下一章|本章)?失败[：:]\s*/, '');
-    message = `预翻译失败：${detail}`;
+    message = info.pretranslationNote;
     tone = 'warning';
   } else if (info && info.cachedPretranslation) {
-    message = '本章来自预翻译缓存，已自动应用译文。';
+    message = t('pop_cached');
     tone = 'info';
   } else if (info && info.pretranslationStatus === 'ready' && info.pretranslationNote) {
     message = info.pretranslationNote;
     tone = 'info';
   } else if (info && info.truncated) {
-    message = '页面内容超出单次翻译上限，仅翻译了前面一部分。';
+    message = t('pop_truncated');
     tone = 'info';
   }
 
@@ -66,51 +65,53 @@ function renderStatus() {
   const pretranslating = Boolean(info && !state.pageError && info.pretranslationStatus === 'running' &&
     (info.status !== 'running' || info.phase === 'pretranslating'));
   const pretranslationProgress = info?.pretranslationProgress || {};
-  const stageLabels = { fetching: '读取章节', translating: '翻译', polishing: '润色', saving: '保存译文' };
+  const stageLabels = { fetching: t('pop_stage_fetch'), translating: t('pop_stage_translate'), polishing: t('pop_stage_polish'), saving: t('pop_stage_save') };
   let tone = 'idle';
-  let text = '正在读取页面状态…';
+  let text = t('pop_loading');
   // Counts stay out of the live region so screen readers are not re-announced on every poll.
   let count = '';
 
   if (state.loading && !info) {
     tone = 'running';
-    text = '正在读取页面状态…';
+    text = t('pop_loading');
   } else if (state.pageError) {
     tone = 'error';
-    text = '无法在此页面使用';
+    text = t('pop_page_unavailable');
   } else if (!info) {
     tone = 'warn';
-    text = '页面状态未知';
+    text = t('pop_page_unknown');
   } else if (info.status === 'running') {
     tone = 'running';
     if (info.phase === 'polishing') {
-      text = '正在润色…';
+      text = t('pop_polishing');
     } else {
-      text = '正在翻译…';
+      text = t('pop_translating');
       count = info.progress.total > 0 ? `${info.progress.done}/${info.progress.total}` : '';
     }
   } else if (info.status === 'done') {
     tone = 'done';
-    text = `已翻译为${labelOf(info.targetCode || state.settings.targetCode)}${info.bilingual ? '（双语）' : ''}${info.proofreadEnabled && !info.polishError ? ' · 已润色' : ''}`;
+    text = t('pop_done', [labelOf(info.targetCode || state.settings.targetCode),
+      info.bilingual ? t('pop_bilingual') : '', info.proofreadEnabled && !info.polishError ? t('pop_polished') : '']);
   } else if (info.status === 'partial') {
     tone = 'warn';
     const total = info.progress.total > 0 ? info.progress.total : info.progress.done;
-    text = `部分完成：${info.progress.done}/${total}${info.progress.failed > 0 ? `，${info.progress.failed} 处失败` : ''}`;
+    text = t('pop_partial', [info.progress.done, total,
+      info.progress.failed > 0 ? t('pop_failed_count', [info.progress.failed]) : '']);
   } else if (info.status === 'error') {
     tone = 'error';
-    text = '翻译失败';
+    text = t('pop_failed');
   } else {
     tone = 'idle';
-    text = info.imagePanelOpen ? '图片翻译面板已打开' : '页面尚未翻译';
+    text = info.imagePanelOpen ? t('pop_image_open') : t('pop_idle');
   }
 
   if (pretranslating) {
     tone = 'running';
-    const prefix = info.pretranslationScope === 'current' ? '正在接续本章预翻译' : '正在预翻译下一章';
-    const stage = stageLabels[pretranslationProgress.stage] || '准备中';
+    const prefix = info.pretranslationScope === 'current' ? t('pop_resume') : t('pop_pretranslating');
+    const stage = stageLabels[pretranslationProgress.stage] || t('pop_preparing');
     const hasCount = pretranslationProgress.total > 0;
     count = hasCount
-      ? `${Math.min(pretranslationProgress.done, pretranslationProgress.total)}/${pretranslationProgress.total} 段`
+      ? t('pop_segments', [Math.min(pretranslationProgress.done, pretranslationProgress.total), pretranslationProgress.total])
       : '';
     text = `${prefix} · ${stage}${hasCount ? '' : '…'}`;
   }
@@ -121,13 +122,13 @@ function renderStatus() {
 
   const detected =
     info && info.source && info.source.code && info.source.code !== 'unknown'
-      ? info.source.label || languages.getLanguageLabel(info.source.code)
-      : '未检测';
+      ? i18n.languageLabel(info.source.code)
+      : t('pop_not_detected');
   ui.sourceLabel.textContent = info ? detected : '—';
 
   const activeTarget =
     info && info.pageTranslated
-      ? info.targetLabel || labelOf(info.targetCode)
+      ? labelOf(info.targetCode)
       : labelOf(state.settings.targetCode);
   ui.targetLabel.textContent = activeTarget;
 
@@ -142,8 +143,8 @@ function renderStatus() {
   ui.progressTrack.setAttribute('aria-hidden', hasProgress ? 'false' : 'true');
   ui.progressTrack.setAttribute('aria-valuenow', String(percent));
   if (hasProgress) {
-    const label = pretranslating ? stageLabels[pretranslationProgress.stage] || '预翻译' : '已翻译';
-    ui.progressTrack.setAttribute('aria-valuetext', `${label} ${done}/${total} 段`);
+    const label = pretranslating ? stageLabels[pretranslationProgress.stage] || t('pop_pretranslation') : t('pop_translated');
+    ui.progressTrack.setAttribute('aria-valuetext', t('pop_progress', [label, done, total]));
     ui.progressFill.style.width = `${percent}%`;
   } else {
     ui.progressTrack.removeAttribute('aria-valuetext');
@@ -165,43 +166,43 @@ function settingsDirty() {
 }
 
 function computeMainAction() {
-  if (state.busy) return { kind: 'busy', label: '处理中…', disabled: true };
+  if (state.busy) return { kind: 'busy', label: t('pop_busy'), disabled: true };
   if (!state.tabId || state.pageError) {
-    return { kind: 'none', label: '翻译此页面', disabled: true };
+    return { kind: 'none', label: t('pop_translate_page'), disabled: true };
   }
 
   const info = state.info;
   if (info && info.status === 'running') {
-    return { kind: 'stop', label: '停止并还原', disabled: false };
+    return { kind: 'stop', label: t('pop_stop_restore'), disabled: false };
   }
   if (!state.hasApiKey && !(info && info.pageTranslated)) {
-    return { kind: 'translate', label: '翻译此页面', disabled: true };
+    return { kind: 'translate', label: t('pop_translate_page'), disabled: true };
   }
   if (!info) {
     return {
       kind: 'translate',
-      label: '翻译此页面',
+      label: t('pop_translate_page'),
       disabled: state.loading || state.initialFetch || !state.hasApiKey
     };
   }
   if (info.pageTranslated) {
     if (settingsDirty()) {
-      return { kind: 'retranslate', label: '按新设置重新翻译', disabled: !state.hasApiKey };
+      return { kind: 'retranslate', label: t('pop_retranslate_settings'), disabled: !state.hasApiKey };
     }
     if (info.status === 'partial') {
       // Chapters keep no translation memory, so a retry there sends every segment again.
-      const label = info.novel?.isChapter ? '重新翻译整页' : '重试失败部分';
+      const label = info.novel?.isChapter ? t('pop_retranslate_page') : t('pop_retry_failed');
       return { kind: 'retry', label, disabled: !state.hasApiKey };
     }
-    return { kind: 'restore', label: '还原原始页面', disabled: false };
+    return { kind: 'restore', label: t('pop_restore_page'), disabled: false };
   }
   if (state.loading || state.initialFetch) {
-    return { kind: 'translate', label: '翻译此页面', disabled: true };
+    return { kind: 'translate', label: t('pop_translate_page'), disabled: true };
   }
   if (info.status === 'error') {
-    return { kind: 'retry', label: '重试', disabled: false };
+    return { kind: 'retry', label: t('pop_retry'), disabled: false };
   }
-  return { kind: 'translate', label: '翻译此页面', disabled: false };
+  return { kind: 'translate', label: t('pop_translate_page'), disabled: false };
 }
 
 function renderMainButton() {
@@ -220,7 +221,7 @@ function renderMainButton() {
   ui.imagesButton.disabled = !pageUsable || !state.hasApiKey || running || locked;
   // Stay focusable when vision is unsupported so a click can explain why.
   ui.imagesButton.setAttribute('aria-disabled', String(!state.supportsVision));
-  const imageLabel = state.supportsVision ? '翻译画面图片' : VISION_NOTICE_TEXT;
+  const imageLabel = state.supportsVision ? t('pop_images') : VISION_NOTICE_TEXT;
   ui.imagesButton.setAttribute('aria-label', imageLabel);
   ui.imagesButton.setAttribute('title', imageLabel);
 }

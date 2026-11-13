@@ -13,7 +13,7 @@ function pageRunStopped(sender) {
 
 function stopPageRequests(sender) {
   if (!sender.tab || !sender.tab.id) {
-    throw new PageAccessError('INVALID_SENDER', '无效的调用来源。');
+    throw new PageAccessError('INVALID_SENDER', t('bg_invalid_sender'));
   }
   pageRunStops.set(sender.tab.id, (pageRunStops.get(sender.tab.id) || 0) + 1);
   return { ok: true };
@@ -21,7 +21,7 @@ function stopPageRequests(sender) {
 
 function validateTargetCode(value) {
   if (!languages.getTargetLanguage(value)) {
-    throw new PageAccessError('INVALID_TARGET', '不支持的目标语言。');
+    throw new PageAccessError('INVALID_TARGET', t('bg_target_unsupported'));
   }
   return String(value).toLowerCase();
 }
@@ -29,26 +29,26 @@ function validateTargetCode(value) {
 function validateBatchMessage(message) {
   const segments = message && message.segments;
   if (!Array.isArray(segments) || segments.length === 0) {
-    throw new PageAccessError('INVALID_REQUEST', '翻译请求为空。');
+    throw new PageAccessError('INVALID_REQUEST', t('bg_translation_request_empty'));
   }
   if (segments.length > LIMITS.API_MAX_SEGMENTS) {
-    throw new PageAccessError('TOO_MANY_SEGMENTS', '单次翻译片段过多。');
+    throw new PageAccessError('TOO_MANY_SEGMENTS', t('bg_translation_too_many_segments'));
   }
   let totalChars = 0;
   const normalized = segments.map((segment) => {
     if (!segment || segment.id === undefined || typeof segment.text !== 'string') {
-      throw new PageAccessError('INVALID_REQUEST', '翻译请求格式不正确。');
+      throw new PageAccessError('INVALID_REQUEST', t('bg_translation_request_invalid'));
     }
     const id = String(segment.id);
     const text = segment.text;
     totalChars += text.length;
     if (text.length > LIMITS.API_MAX_SEGMENT_CHARS) {
-      throw new PageAccessError('SEGMENT_TOO_LONG', '单个文本片段过长。');
+      throw new PageAccessError('SEGMENT_TOO_LONG', t('bg_translation_segment_too_long'));
     }
     return { id, text };
   });
   if (totalChars > LIMITS.API_MAX_TOTAL_CHARS) {
-    throw new PageAccessError('TEXT_TOO_LONG', '单次翻译文本过长。');
+    throw new PageAccessError('TEXT_TOO_LONG', t('bg_translation_request_too_long'));
   }
   return {
     segments: normalized,
@@ -97,10 +97,10 @@ function normalizeContextPayload(value) {
 function validatePolishMessage(message) {
   const segments = message && message.segments;
   if (!Array.isArray(segments) || segments.length === 0) {
-    throw new PageAccessError('INVALID_REQUEST', '润色请求为空。');
+    throw new PageAccessError('INVALID_REQUEST', t('bg_polish_request_empty'));
   }
   if (segments.length > LIMITS.POLISH_MAX_SEGMENTS) {
-    throw new PageAccessError('TOO_MANY_SEGMENTS', '单次润色片段过多。');
+    throw new PageAccessError('TOO_MANY_SEGMENTS', t('bg_polish_too_many_segments'));
   }
   let totalChars = 0;
   const normalized = segments.map((segment) => {
@@ -110,7 +110,7 @@ function validatePolishMessage(message) {
       typeof segment.original !== 'string' ||
       typeof segment.translation !== 'string'
     ) {
-      throw new PageAccessError('INVALID_REQUEST', '润色请求格式不正确。');
+      throw new PageAccessError('INVALID_REQUEST', t('bg_polish_request_invalid'));
     }
     totalChars += segment.original.length + segment.translation.length;
     return {
@@ -120,7 +120,7 @@ function validatePolishMessage(message) {
     };
   });
   if (totalChars > LIMITS.POLISH_MAX_TOTAL_CHARS) {
-    throw new PageAccessError('TEXT_TOO_LONG', '页面文本过长，无法一次润色。');
+    throw new PageAccessError('TEXT_TOO_LONG', t('bg_polish_request_too_long'));
   }
   return {
     segments: normalized,
@@ -151,12 +151,12 @@ function chunkPolishSegments(segments, maxChars) {
 
 async function handleTranslateBatch(message, sender, stopped, runtime) {
   if (!sender.tab || !sender.tab.id) {
-    throw new PageAccessError('INVALID_SENDER', '无效的调用来源。');
+    throw new PageAccessError('INVALID_SENDER', t('bg_invalid_sender'));
   }
   stopped ||= pageRunStopped(sender);
   const request = validateBatchMessage(message);
   runtime ||= await resolveRuntime('translation', hostnameFromSender(sender));
-  if (stopped()) throw new PageAccessError('REQUEST_CANCELLED', '翻译已停止。');
+  if (stopped()) throw new PageAccessError('REQUEST_CANCELLED', t('bg_translation_stopped'));
   // Rejected replies are billed too; the page adds them to its cost, also on failure.
   const discardedBilling = [];
   const result = await withWorkerKeepalive(() => api.translateSegments({
@@ -183,14 +183,14 @@ async function handleTranslateBatch(message, sender, stopped, runtime) {
 
 async function handleTranslateImage(message, sender) {
   if (!sender.tab || !sender.tab.id) {
-    throw new PageAccessError('INVALID_SENDER', '无效的调用来源。');
+    throw new PageAccessError('INVALID_SENDER', t('bg_invalid_sender'));
   }
   const targetCode = validateTargetCode(message.targetCode);
   const imageDataUrl = typeof message.imageDataUrl === 'string' ? message.imageDataUrl : '';
-  if (!imageDataUrl) throw new PageAccessError('INVALID_REQUEST', '图片内容为空。');
+  if (!imageDataUrl) throw new PageAccessError('INVALID_REQUEST', t('bg_image_empty'));
   const runtime = await resolveRuntime('translation', hostnameFromSender(sender));
   if (runtime.resolved.model.supportsVision === false) {
-    throw new PageAccessError('VISION_UNSUPPORTED', '当前模型不支持图片输入，图片翻译已禁用，请切换模型。');
+    throw new PageAccessError('VISION_UNSUPPORTED', t('bg_vision_disabled'));
   }
   const result = await withWorkerKeepalive(() => api.translateImage({
     apiKey: runtime.apiKey,
@@ -204,7 +204,7 @@ async function handleTranslateImage(message, sender) {
   })).catch(async (error) => {
     if (error.code === 'VISION_UNSUPPORTED') {
       await rememberVisionUnsupported(runtime);
-      error.message = '当前模型不支持图片输入，已停用该模型的图片翻译，请切换模型。';
+      error.message = t('bg_vision_learned_disabled');
     }
     throw error;
   });
@@ -250,7 +250,7 @@ async function withWorkerKeepalive(operation) {
 
 async function handlePolishSegments(message, sender, stopped, runtime) {
   if (!sender.tab || !sender.tab.id) {
-    throw new PageAccessError('INVALID_SENDER', '无效的调用来源。');
+    throw new PageAccessError('INVALID_SENDER', t('bg_invalid_sender'));
   }
   stopped ||= pageRunStopped(sender);
   const request = validatePolishMessage(message);
@@ -319,7 +319,7 @@ async function handlePolishSegments(message, sender, stopped, runtime) {
           failures.push({
             index,
             code: error && error.code ? error.code : 'POLISH_CHUNK_FAILED',
-            message: (error && error.message) || '润色失败'
+            message: (error && error.message) || t('bg_polish_failed')
           });
         }
       }
@@ -336,8 +336,8 @@ async function handlePolishSegments(message, sender, stopped, runtime) {
       const first = failures[0];
       polishError =
         failures.length === chunks.length
-          ? `润色失败：${first.message}`
-          : `部分润色未完成（${failures.length}/${chunks.length} 块）：${first.message}`;
+          ? t('bg_polish_error', [first.message])
+          : t('bg_polish_partial', [failures.length, chunks.length, first.message]);
     }
 
     return {
@@ -363,10 +363,10 @@ async function handlePolishSegments(message, sender, stopped, runtime) {
 function validateTermMessage(message) {
   const segments = message && message.segments;
   if (!Array.isArray(segments) || segments.length === 0) {
-    throw new PageAccessError('INVALID_REQUEST', '术语提取请求为空。');
+    throw new PageAccessError('INVALID_REQUEST', t('bg_extraction_request_empty'));
   }
   if (segments.length > LIMITS.NOVEL_TERMS_MAX_SEGMENTS) {
-    throw new PageAccessError('TOO_MANY_SEGMENTS', '术语提取片段过多。');
+    throw new PageAccessError('TOO_MANY_SEGMENTS', t('bg_extraction_too_many_segments'));
   }
   let totalChars = 0;
   const normalized = segments.map((segment) => {
@@ -375,7 +375,7 @@ function validateTermMessage(message) {
       typeof segment.original !== 'string' ||
       typeof segment.translation !== 'string'
     ) {
-      throw new PageAccessError('INVALID_REQUEST', '术语提取请求格式不正确。');
+      throw new PageAccessError('INVALID_REQUEST', t('bg_extraction_request_invalid'));
     }
     totalChars += segment.original.length + segment.translation.length;
     return {
@@ -385,7 +385,7 @@ function validateTermMessage(message) {
     };
   });
   if (totalChars > LIMITS.NOVEL_TERMS_MAX_CHARS) {
-    throw new PageAccessError('TEXT_TOO_LONG', '本章文本过长，无法提取术语。');
+    throw new PageAccessError('TEXT_TOO_LONG', t('bg_extraction_too_long'));
   }
   return {
     segments: normalized,
@@ -401,12 +401,12 @@ function termEffort({ model, provider, effort }) {
 
 async function handleExtractTerms(message, sender) {
   if (!sender.tab || !sender.tab.id) {
-    throw new PageAccessError('INVALID_SENDER', '无效的调用来源。');
+    throw new PageAccessError('INVALID_SENDER', t('bg_invalid_sender'));
   }
   const stopped = pageRunStopped(sender);
   const request = validateTermMessage(message);
   const runtime = await resolveRuntime('translation', hostnameFromSender(sender));
-  if (stopped()) throw new PageAccessError('REQUEST_CANCELLED', '术语提取已停止。');
+  if (stopped()) throw new PageAccessError('REQUEST_CANCELLED', t('bg_extraction_stopped'));
   const discardedBilling = [];
   const result = await withWorkerKeepalive(() => api.extractTerms({
     apiKey: runtime.apiKey,

@@ -25,7 +25,7 @@ function currentNovelRequest(message, sender) {
   const request = pretranslationRequest(message, sender);
   const source = storedNovel.detectChapter(sender.tab.url);
   if (source.chapterId !== request.chapter.chapterId) {
-    throw new PageAccessError('INVALID_SENDER', '只能更新当前小说章节的术语信息。');
+    throw new PageAccessError('INVALID_SENDER', t('bg_current_chapter_only'));
   }
   return request;
 }
@@ -51,7 +51,7 @@ async function loadNovelContext(message, sender) {
 async function saveNovelGlossary(message, sender) {
   const { chapter, targetCode } = currentNovelRequest(message, sender);
   if (!Array.isArray(message.terms) || message.terms.length > LIMITS.GLOSSARY_CHAPTER_MAX_TERMS) {
-    throw new PageAccessError('INVALID_REQUEST', '术语提取结果格式不正确或条目过多。');
+    throw new PageAccessError('INVALID_REQUEST', t('bg_terms_request_invalid'));
   }
   const terms = normalizeGlossaryPayload(message.terms, LIMITS.GLOSSARY_CHAPTER_MAX_TERMS);
   const { glossaryKey, metaKey, tidyKey } = novelStorageKeys(chapter, targetCode);
@@ -79,24 +79,24 @@ function glossaryEditRequest(message, sender) {
     fromOptions = source.protocol === options.protocol && source.host === options.host && source.pathname === options.pathname;
   } catch (_error) {}
   if (!fromOptions) {
-    throw new PageAccessError('INVALID_SENDER', '请在扩展设置页面中编辑术语表。');
+    throw new PageAccessError('INVALID_SENDER', t('bg_glossary_options_only'));
   }
   const site = Object.hasOwn(storedNovel.SITE_ADAPTERS, message.siteId) && storedNovel.SITE_ADAPTERS[message.siteId];
   const id = typeof message.workId === 'string' ? message.workId : '';
   const workPath = message.siteId === 'syosetu' ? `/${id}/` : `/works/${id}`;
   const chapter = site && storedNovel.detectChapter(`https://${site.hosts[0]}${workPath}`);
   if (!chapter?.isWorkPage || chapter.workId !== id || !['save', 'undo', 'clear'].includes(message.action)) {
-    throw new PageAccessError('INVALID_REQUEST', '术语库作品或操作不正确。');
+    throw new PageAccessError('INVALID_REQUEST', t('bg_glossary_operation_invalid'));
   }
   return { chapter, targetCode: validateTargetCode(message.targetCode) };
 }
 
 function editedGlossaryTerms(value, allowEmpty = false) {
   if (!Array.isArray(value) || (!allowEmpty && !value.length)) {
-    throw new PageAccessError('INVALID_REQUEST', '请至少保留一条术语，或使用“清空术语库”。');
+    throw new PageAccessError('INVALID_REQUEST', t('bg_glossary_keep_one'));
   }
   const terms = value.map(storedNovel.normalizeTerm);
-  if (terms.some((term) => !term)) throw new PageAccessError('INVALID_REQUEST', '术语的原文和译文不能为空。');
+  if (terms.some((term) => !term)) throw new PageAccessError('INVALID_REQUEST', t('bg_glossary_fields_required'));
   return terms;
 }
 
@@ -116,7 +116,7 @@ async function handleGlossaryEdit(message, sender) {
     if (message.action === 'undo') {
       if (!tidy || !Array.isArray(tidy.terms)) return { undone: false };
       if ((tidy.tidiedAt ?? null) !== (message.expectedTidyAt ?? null)) {
-        throw new PageAccessError('GLOSSARY_CHANGED', '术语库又有新的整理结果，请刷新后再撤销。');
+        throw new PageAccessError('GLOSSARY_CHANGED', t('bg_glossary_undo_stale'));
       }
       await chrome.storage.local.set({
         [glossaryKey]: storedNovel.undoneTerms(tidy, values[glossaryKey]),
@@ -126,7 +126,7 @@ async function handleGlossaryEdit(message, sender) {
       return { undone: true };
     }
     if ((tidy?.tidiedAt ?? null) !== (message.expectedTidyAt ?? null)) {
-      throw new PageAccessError('GLOSSARY_CHANGED', '术语库已被自动整理，当前修改基于整理前的内容，无法直接保存；关闭编辑器会丢弃这些修改。');
+      throw new PageAccessError('GLOSSARY_CHANGED', t('bg_glossary_draft_stale'));
     }
     const merged = storedNovel.withNewStoredTerms(terms, values[glossaryKey], opened);
     const meta = storedNovel.normalizeMeta(values[metaKey]) || storedNovel.addChapterToMeta(null, chapter);

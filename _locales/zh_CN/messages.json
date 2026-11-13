@@ -1,0 +1,3650 @@
+{
+  "bg_access_denied": {
+    "message": "$arg1$ 拒绝访问$arg2$，可能是 API Key 无效，或所在地区、模型权限受限。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "bg_auth_failed": {
+    "message": "$arg1$ API Key 无效或已失效，请在扩展设置中更新。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_bad_image": {
+    "message": "图片格式不受支持。"
+  },
+  "bg_bad_request": {
+    "message": "$arg1$ 拒绝了请求$arg2$，请重试或检查模型参数。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "bg_badge_done": {
+    "message": "Baka Translator：已翻译为$arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_badge_error": {
+    "message": "Baka Translator：翻译失败"
+  },
+  "bg_badge_partial": {
+    "message": "Baka Translator：部分内容未完成"
+  },
+  "bg_badge_reason": {
+    "message": "Baka Translator：$arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_badge_running": {
+    "message": "Baka Translator：正在翻译…"
+  },
+  "bg_badge_text": {
+    "message": "译"
+  },
+  "bg_balance_empty": {
+    "message": "$arg1$ 账户余额不足，请充值后再试。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_chapter_cache_too_long": {
+    "message": "本章过长，跳过缓存。"
+  },
+  "bg_chapter_cached": {
+    "message": "本章已有预翻译缓存。"
+  },
+  "bg_chapter_draft_cached": {
+    "message": "本章已有初译缓存。"
+  },
+  "bg_chapter_incomplete": {
+    "message": "本章翻译结果不完整。"
+  },
+  "bg_content_filtered": {
+    "message": "内容被模型安全策略拦截，请尝试其他内容。"
+  },
+  "bg_content_type_detail": {
+    "message": "，Content-Type: $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_current_chapter_only": {
+    "message": "只能更新当前小说章节的术语信息。"
+  },
+  "bg_current_model_missing_key": {
+    "message": "尚未配置当前模型的 API Key，请先在扩展设置中填写。"
+  },
+  "bg_empty_response": {
+    "message": "$arg1$ 返回了空响应，请重试。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_empty_result": {
+    "message": "$arg1$ 返回了空结果，请重试。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_endpoint_not_found": {
+    "message": "$arg1$ 接口或模型不存在$arg2$，请检查接口地址和模型名称。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "bg_extraction_request_empty": {
+    "message": "术语提取请求为空。"
+  },
+  "bg_extraction_request_invalid": {
+    "message": "术语提取请求格式不正确。"
+  },
+  "bg_extraction_stopped": {
+    "message": "术语提取已停止。"
+  },
+  "bg_extraction_too_long": {
+    "message": "本章文本过长，无法提取术语。"
+  },
+  "bg_extraction_too_many_segments": {
+    "message": "术语提取片段过多。"
+  },
+  "bg_fetch_unavailable": {
+    "message": "当前运行环境不支持网络请求。"
+  },
+  "bg_file_access_disabled": {
+    "message": "无法访问本地文件。请在浏览器扩展管理页中打开本扩展的详情，并启用“允许访问文件网址”。"
+  },
+  "bg_file_load_failed": {
+    "message": "无法加载 $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_glossary_draft_stale": {
+    "message": "术语表已被自动整理，当前修改基于整理前的内容，无法直接保存；关闭编辑器会丢弃这些修改。"
+  },
+  "bg_glossary_fields_required": {
+    "message": "术语的原文和译文不能为空。"
+  },
+  "bg_glossary_keep_one": {
+    "message": "请至少保留一条术语，或使用“清空术语表”。"
+  },
+  "bg_glossary_operation_invalid": {
+    "message": "术语表所属作品或操作不正确。"
+  },
+  "bg_glossary_options_only": {
+    "message": "请在扩展设置中编辑术语表。"
+  },
+  "bg_glossary_undo_stale": {
+    "message": "术语表又有新的整理结果，请刷新后再撤销。"
+  },
+  "bg_html_response": {
+    "message": "$arg1$ 返回了网页而不是 JSON，可能被网络代理或网关拦截，请检查代理后重试。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_http_detail": {
+    "message": "（HTTP $arg1$$arg2$）",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "bg_http_error": {
+    "message": "$arg1$ 请求失败$arg2$，请稍后重试。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "bg_http_message_detail": {
+    "message": "：$arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_image_empty": {
+    "message": "图片内容为空。"
+  },
+  "bg_image_panel_expired": {
+    "message": "图片结果窗口已失效，请重试。"
+  },
+  "bg_image_too_large": {
+    "message": "图片过大，请稍后再试。"
+  },
+  "bg_image_translation_incomplete": {
+    "message": "图片文字识别成功，但翻译结果不完整，请重试。"
+  },
+  "bg_image_translation_invalid": {
+    "message": "模型返回的图片翻译结果异常，请重试。"
+  },
+  "bg_incomplete_translation": {
+    "message": "模型返回的翻译结果不完整，请重试。"
+  },
+  "bg_invalid_key_format": {
+    "message": "API Key 格式不正确。"
+  },
+  "bg_invalid_models": {
+    "message": "模型列表格式异常或分页不完整，请稍后重试。"
+  },
+  "bg_invalid_response": {
+    "message": "$arg1$ 返回了无法解析的响应（可能被截断）$arg2$，请重试。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "bg_invalid_sender": {
+    "message": "无效的调用来源。"
+  },
+  "bg_invalid_tab": {
+    "message": "没有可操作的标签页。"
+  },
+  "bg_menu_images": {
+    "message": "翻译可见图片"
+  },
+  "bg_menu_page": {
+    "message": "翻译整页"
+  },
+  "bg_menu_restore": {
+    "message": "还原页面"
+  },
+  "bg_menu_selection": {
+    "message": "翻译选中文本"
+  },
+  "bg_missing_endpoint": {
+    "message": "服务商缺少接口地址，请先保存接口配置。"
+  },
+  "bg_missing_key": {
+    "message": "尚未配置 $arg1$ 的 API Key，请先在扩展设置中填写。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_missing_provider": {
+    "message": "服务商不存在，请重新加载设置页面。"
+  },
+  "bg_model_config_empty": {
+    "message": "profile/ 中没有可用模型，请检查配置。"
+  },
+  "bg_model_config_error": {
+    "message": "无法读取 profile/ 下的模型配置：$arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_model_config_incomplete": {
+    "message": "$arg1$配置不完整。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_model_config_unreadable": {
+    "message": "无法读取 profile/ 下的模型配置，请重新加载扩展或检查配置。"
+  },
+  "bg_model_missing": {
+    "message": "模型不存在，请重新加载设置页面。"
+  },
+  "bg_model_vision_unsupported": {
+    "message": "当前模型 $arg1$ 不支持图片输入，请切换到支持视觉的模型。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_models_options_only": {
+    "message": "请在扩展设置页面中获取模型。"
+  },
+  "bg_models_rejected": {
+    "message": "获取模型列表的请求被拒绝，请检查 API Key 和接口地址。"
+  },
+  "bg_models_timeout": {
+    "message": "获取模型超时，请稍后重试。"
+  },
+  "bg_network_error": {
+    "message": "无法连接 $arg1$，请检查网络、代理或自定义接口权限。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_next_chapter_cached": {
+    "message": "下一章已有完整预翻译缓存。"
+  },
+  "bg_next_chapter_done": {
+    "message": "下一章预翻译已完成。"
+  },
+  "bg_next_chapter_draft_cached": {
+    "message": "下一章已有完整初译缓存。"
+  },
+  "bg_next_chapter_duplicate_ids": {
+    "message": "下一章文本片段编号重复。"
+  },
+  "bg_next_chapter_empty": {
+    "message": "下一章文本为空或片段过多。"
+  },
+  "bg_next_chapter_failed": {
+    "message": "预翻译下一章失败：$arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_next_chapter_incomplete": {
+    "message": "下一章翻译结果不完整。"
+  },
+  "bg_next_chapter_invalid": {
+    "message": "下一章文本格式不正确或片段过长。"
+  },
+  "bg_next_chapter_polish_done": {
+    "message": "下一章预翻译及润色已完成。"
+  },
+  "bg_next_chapter_polish_failed": {
+    "message": "下一章初译已缓存，润色未完成：$arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_next_chapter_polishing": {
+    "message": "初译已缓存，正在润色下一章…"
+  },
+  "bg_next_chapter_running": {
+    "message": "正在预翻译下一章…"
+  },
+  "bg_next_chapter_saving_draft": {
+    "message": "正在保存下一章初译…"
+  },
+  "bg_next_chapter_saving_polish": {
+    "message": "正在保存下一章润色结果…"
+  },
+  "bg_next_chapter_too_long": {
+    "message": "下一章过长，跳过预翻译。"
+  },
+  "bg_no_polish_text": {
+    "message": "没有可润色的文本。"
+  },
+  "bg_no_result": {
+    "message": "$arg1$ 未返回结果，请重试。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_no_terms_text": {
+    "message": "没有可提取术语的文本。"
+  },
+  "bg_no_translation_text": {
+    "message": "没有可翻译的文本。"
+  },
+  "bg_output_truncated": {
+    "message": "翻译结果超出长度限制，请缩短文本或使用更大输出上限的模型。"
+  },
+  "bg_page_access_failed": {
+    "message": "无法访问此页面。请刷新页面后重试。"
+  },
+  "bg_page_loading": {
+    "message": "页面仍在加载，请稍后再试。"
+  },
+  "bg_page_restricted": {
+    "message": "此页面是浏览器内置页面或受保护页面，浏览器不允许扩展修改它。请在普通网页上使用。"
+  },
+  "bg_polish_error": {
+    "message": "润色失败：$arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_polish_failed": {
+    "message": "润色失败"
+  },
+  "bg_polish_model": {
+    "message": "润色模型"
+  },
+  "bg_polish_partial": {
+    "message": "部分润色未完成（$arg1$/$arg2$ 块）：$arg3$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      },
+      "arg3": {
+        "content": "$3"
+      }
+    }
+  },
+  "bg_polish_request_empty": {
+    "message": "润色请求为空。"
+  },
+  "bg_polish_request_invalid": {
+    "message": "润色请求格式不正确。"
+  },
+  "bg_polish_request_too_long": {
+    "message": "页面文本过长，无法一次润色。"
+  },
+  "bg_polish_too_many_segments": {
+    "message": "单次润色片段过多。"
+  },
+  "bg_preset_config_error": {
+    "message": "无法读取 preset/index.json：$arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_pretranslation_stopped": {
+    "message": "已停止预翻译。"
+  },
+  "bg_pretranslation_work_only": {
+    "message": "只能预翻译当前小说作品的章节。"
+  },
+  "bg_provider_detail": {
+    "message": "（$arg1$）",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_provider_fallback": {
+    "message": "模型服务"
+  },
+  "bg_provider_models_empty": {
+    "message": "该服务商没有可用的模型。"
+  },
+  "bg_purpose_missing_key": {
+    "message": "尚未配置 $arg1$ 的 API Key（$arg2$），请先在扩展设置中填写。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "bg_quota_exhausted": {
+    "message": "$arg1$ 余额或可用额度不足，请检查 API 账户余额与用量限额。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_rate_limited": {
+    "message": "$arg1$ 请求过于频繁，请稍后重试。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_redirect_blocked": {
+    "message": "$arg1$ 的接口地址发生了跳转，请在设置中填写跳转后的最终地址。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_request_failed": {
+    "message": "翻译请求失败，请重试。"
+  },
+  "bg_request_timeout": {
+    "message": "$arg1$ 响应超时，请稍后重试。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_response_too_large": {
+    "message": "$arg1$ 返回的响应过大，请检查接口地址。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_screenshot_failed": {
+    "message": "无法截取页面画面，请保持页面在前台并重试。"
+  },
+  "bg_service_unavailable": {
+    "message": "$arg1$ 服务暂时不可用，请稍后重试。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_tab_closed": {
+    "message": "页面已关闭。"
+  },
+  "bg_target_language": {
+    "message": "目标语言"
+  },
+  "bg_target_unsupported": {
+    "message": "不支持的目标语言。"
+  },
+  "bg_terms_invalid": {
+    "message": "模型返回的术语表格式异常，请重试。"
+  },
+  "bg_terms_request_invalid": {
+    "message": "术语提取结果格式不正确或条目过多。"
+  },
+  "bg_translation_model": {
+    "message": "翻译模型"
+  },
+  "bg_translation_request_empty": {
+    "message": "翻译请求为空。"
+  },
+  "bg_translation_request_invalid": {
+    "message": "翻译请求格式不正确。"
+  },
+  "bg_translation_request_too_long": {
+    "message": "单次翻译文本过长。"
+  },
+  "bg_translation_segment_too_long": {
+    "message": "单个文本片段过长。"
+  },
+  "bg_translation_settings_changed": {
+    "message": "翻译设置已更改，请重新开始本章翻译。"
+  },
+  "bg_translation_stopped": {
+    "message": "翻译已停止。"
+  },
+  "bg_translation_too_many_segments": {
+    "message": "单次翻译片段过多。"
+  },
+  "bg_unknown_command": {
+    "message": "不支持的操作。"
+  },
+  "bg_unknown_detail": {
+    "message": "未知错误"
+  },
+  "bg_unknown_error": {
+    "message": "发生未知错误，请重试。"
+  },
+  "bg_unknown_message": {
+    "message": "未知消息。"
+  },
+  "bg_vision_disabled": {
+    "message": "当前模型不支持图片输入，图片翻译已禁用，请切换模型。"
+  },
+  "bg_vision_learned_disabled": {
+    "message": "当前模型不支持图片输入，已停用该模型的图片翻译，请切换模型。"
+  },
+  "bg_vision_options_only": {
+    "message": "请在扩展设置页面中重新启用图片翻译。"
+  },
+  "bg_vision_unsupported": {
+    "message": "当前模型不支持图片输入，请切换到支持视觉的模型。"
+  },
+  "command_translate_images": {
+    "message": "翻译可见图片"
+  },
+  "command_translate_page": {
+    "message": "翻译整页 / 还原页面"
+  },
+  "command_translate_selection": {
+    "message": "翻译选中文本"
+  },
+  "content_auto_detect": {
+    "message": "自动检测"
+  },
+  "content_background_no_response": {
+    "message": "扩展后台没有响应，请刷新页面后重试。"
+  },
+  "content_background_polish": {
+    "message": "正在后台润色…"
+  },
+  "content_background_restarted": {
+    "message": "扩展后台已重启，请重试。"
+  },
+  "content_cached_cost": {
+    "message": "（缓存费用 $arg1$）",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "content_cached_draft_only": {
+    "message": "预翻译缓存只包含初译，尚未润色。"
+  },
+  "content_capturing": {
+    "message": "正在截取当前画面…"
+  },
+  "content_chapter_cache_applied": {
+    "message": "已应用本章缓存译文。"
+  },
+  "content_chapter_restored": {
+    "message": "本章由翻译缓存直接恢复$arg1$。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "content_close_images": {
+    "message": "关闭图片翻译结果"
+  },
+  "content_close_panel": {
+    "message": "关闭翻译面板"
+  },
+  "content_close_panel_keep_running": {
+    "message": "关闭面板（翻译会继续）"
+  },
+  "content_close_selection": {
+    "message": "关闭划词翻译"
+  },
+  "content_copied": {
+    "message": "已复制"
+  },
+  "content_copy": {
+    "message": "复制"
+  },
+  "content_copy_failed": {
+    "message": "复制失败"
+  },
+  "content_detected_language": {
+    "message": "识别语言：$arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "content_draft_kept_detail": {
+    "message": "润色未完成，已保留初译：$arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "content_draft_readable": {
+    "message": "初译已可阅读；每块完成会自动替换。首块响应可能需要数十秒至数分钟（取决于润色模型和思考强度）。"
+  },
+  "content_extension_updated": {
+    "message": "扩展已更新或重新加载，请刷新页面后重试。"
+  },
+  "content_failed": {
+    "message": "失败"
+  },
+  "content_failed_chunks": {
+    "message": " · $arg1$ 块失败",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "content_frame_changed_notice": {
+    "message": "新载入的内嵌内容不会自动翻译。需要时请还原页面后重新翻译。"
+  },
+  "content_image_alt": {
+    "message": "图片截图：$arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "content_image_capture_error": {
+    "message": "图片截图失败，请重试。"
+  },
+  "content_image_crop_error": {
+    "message": "图片裁剪失败。"
+  },
+  "content_image_disabled": {
+    "message": "图片翻译已停用"
+  },
+  "content_image_error_details": {
+    "message": "图片翻译失败，请在图片结果面板查看详情。"
+  },
+  "content_image_failed": {
+    "message": "图片翻译失败"
+  },
+  "content_image_logo": {
+    "message": "图"
+  },
+  "content_image_no_text": {
+    "message": "图中未检测到可翻译的文字。"
+  },
+  "content_image_number": {
+    "message": "图片 $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "content_image_number_alt": {
+    "message": "图片 $arg1$ 截图",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "content_image_original": {
+    "message": "识别到的原文"
+  },
+  "content_image_panel_blocked": {
+    "message": "当前页面的安全策略不允许显示结果窗口，图片未发送。"
+  },
+  "content_image_panel_label": {
+    "message": "Baka Translator 图片翻译"
+  },
+  "content_image_privacy": {
+    "message": "仅截取当前画面中可见的图片区域并发送给所选模型服务商识别并翻译，不会上传整页截图。"
+  },
+  "content_image_provider_error": {
+    "message": "图片翻译失败，请检查所选服务商的设置。"
+  },
+  "content_image_screenshot": {
+    "message": "图片截图"
+  },
+  "content_image_translation": {
+    "message": "图片翻译"
+  },
+  "content_image_translation_error": {
+    "message": "图片翻译失败，请重试。"
+  },
+  "content_images_busy": {
+    "message": "正在翻译图片，请稍候。"
+  },
+  "content_images_done_count": {
+    "message": "$arg1$ 张图片 · 翻译完成$arg2$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "content_images_failed_count": {
+    "message": "$arg1$ 张图片 · $arg2$ 张失败$arg3$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      },
+      "arg3": {
+        "content": "$3"
+      }
+    }
+  },
+  "content_images_progress": {
+    "message": "正在翻译图片 · $arg1$/$arg2$$arg3$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      },
+      "arg3": {
+        "content": "$3"
+      }
+    }
+  },
+  "content_images_skipped": {
+    "message": " · 另有 $arg1$ 张未处理",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "content_keep_page_foreground": {
+    "message": "请保持页面在前台后重试。"
+  },
+  "content_next_chapter_cached": {
+    "message": "下一章已有预翻译缓存。"
+  },
+  "content_next_chapter_done": {
+    "message": "已预翻译下一章，打开时会自动应用。"
+  },
+  "content_next_chapter_empty": {
+    "message": "下一章没有可翻译的章节正文。"
+  },
+  "content_next_chapter_pretranslating": {
+    "message": "正在预翻译下一章"
+  },
+  "content_next_chapter_too_long": {
+    "message": "下一章过长，跳过预翻译。"
+  },
+  "content_next_chapter_unreadable": {
+    "message": "无法读取下一章内容。"
+  },
+  "content_no_images": {
+    "message": "当前画面中没有找到可翻译的图片。"
+  },
+  "content_no_images_hint": {
+    "message": "当前画面中没有找到可翻译的图片。滚动到图片位置后再试。"
+  },
+  "content_no_large_images": {
+    "message": "当前画面中没有找到足够大的图片，请滚动到图片处再试。"
+  },
+  "content_no_text": {
+    "message": "无文字"
+  },
+  "content_no_text_iframe": {
+    "message": "没有找到可翻译的文本。正文可能位于受保护的跨域 iframe 中：可尝试在邮件客户端中选择“在新窗口打开”邮件，或直接选中正文使用划词翻译。"
+  },
+  "content_no_translatable_text": {
+    "message": "没有找到可翻译的文本。"
+  },
+  "content_nothing_translated": {
+    "message": "没有成功翻译任何内容，请稍后重试。"
+  },
+  "content_open_settings": {
+    "message": "打开设置"
+  },
+  "content_open_settings_error": {
+    "message": "无法打开扩展设置，请点击工具栏图标。"
+  },
+  "content_original_caption": {
+    "message": "原文：$arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "content_page_bilingual_done": {
+    "message": "已双语翻译为$arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "content_page_done_summary": {
+    "message": "$arg1$ → $arg2$$arg3$ · $arg4$ 个片段$arg5$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      },
+      "arg3": {
+        "content": "$3"
+      },
+      "arg4": {
+        "content": "$4"
+      },
+      "arg5": {
+        "content": "$5"
+      }
+    }
+  },
+  "content_page_failed": {
+    "message": "页面翻译失败"
+  },
+  "content_page_failed_retry": {
+    "message": "页面翻译失败，请稍后重试。"
+  },
+  "content_page_failed_short": {
+    "message": "页面翻译失败。"
+  },
+  "content_page_not_ready": {
+    "message": "页面还没有可翻译的内容。"
+  },
+  "content_page_panel_label": {
+    "message": "Baka Translator 页面翻译"
+  },
+  "content_page_partial": {
+    "message": "页面翻译完成，但部分内容失败"
+  },
+  "content_page_polish_progress": {
+    "message": "$arg1$ → $arg2$ · 润色 $arg3$/$arg4$ 块$arg5$ · 已用 $arg6$s",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      },
+      "arg3": {
+        "content": "$3"
+      },
+      "arg4": {
+        "content": "$4"
+      },
+      "arg5": {
+        "content": "$5"
+      },
+      "arg6": {
+        "content": "$6"
+      }
+    }
+  },
+  "content_page_restored": {
+    "message": "已还原页面。"
+  },
+  "content_page_translate_progress": {
+    "message": "$arg1$ → $arg2$ · 已处理 $arg3$/$arg4$ 段",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      },
+      "arg3": {
+        "content": "$3"
+      },
+      "arg4": {
+        "content": "$4"
+      }
+    }
+  },
+  "content_page_translated_done": {
+    "message": "已翻译为$arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "content_page_truncated_done": {
+    "message": "页面较长，仅翻译了前一部分可见文本。"
+  },
+  "content_page_truncated_processing": {
+    "message": "页面内容较多，正在处理可处理的前部分内容。"
+  },
+  "content_page_truncated_translating": {
+    "message": "页面内容较多，正在翻译可处理的前部分内容。"
+  },
+  "content_polish_failed_draft_kept": {
+    "message": "润色失败，已保留初译。"
+  },
+  "content_polish_failure_detail": {
+    "message": "润色失败：$arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "content_polish_partial_detail": {
+    "message": "部分润色未完成（$arg1$/$arg2$ 块）：$arg3$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      },
+      "arg3": {
+        "content": "$3"
+      }
+    }
+  },
+  "content_preparing": {
+    "message": "准备中"
+  },
+  "content_pretranslation_failed": {
+    "message": "预翻译失败，请稍后重试。"
+  },
+  "content_pretranslation_stopped": {
+    "message": "预翻译已停止，打开下一章后可继续翻译。"
+  },
+  "content_proofread_suffix": {
+    "message": " · 已润色"
+  },
+  "content_queued": {
+    "message": "排队中"
+  },
+  "content_reading_next_chapter": {
+    "message": "正在读取下一章…"
+  },
+  "content_request_failed": {
+    "message": "翻译请求失败，请重试。"
+  },
+  "content_restore_page": {
+    "message": "还原页面"
+  },
+  "content_resume_chapter": {
+    "message": "正在接续本章预翻译"
+  },
+  "content_resuming_pretranslation": {
+    "message": "正在接续本章预翻译…"
+  },
+  "content_retranslate": {
+    "message": "重新翻译"
+  },
+  "content_retry": {
+    "message": "重试"
+  },
+  "content_retry_failed": {
+    "message": "重试失败，请稍后再试。"
+  },
+  "content_route_changed_error": {
+    "message": "页面已切换，请还原页面后重新翻译。"
+  },
+  "content_route_changed_notice": {
+    "message": "页面已切换，新内容不再自动翻译。需要时请还原页面后重新翻译。"
+  },
+  "content_screenshot_decode_error": {
+    "message": "截图解码失败，请重试。"
+  },
+  "content_screenshot_encode_error": {
+    "message": "无法编码页面截图，请重试。"
+  },
+  "content_screenshot_process_error": {
+    "message": "无法处理页面截图，请重试。"
+  },
+  "content_screenshot_read_error": {
+    "message": "无法读取页面图片，浏览器拒绝了截图数据。"
+  },
+  "content_screenshot_size_error": {
+    "message": "截图尺寸异常，请重试。"
+  },
+  "content_segment_progress": {
+    "message": " $arg1$/$arg2$ 段",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "content_segments_incomplete": {
+    "message": "$arg1$ 个片段未完成",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "content_select_text": {
+    "message": "请先选中要翻译的文本。"
+  },
+  "content_select_text_notice": {
+    "message": "请先在网页中选中要翻译的文本。"
+  },
+  "content_selection_empty_result": {
+    "message": "该段文本没有返回译文，请重试。"
+  },
+  "content_selection_panel_label": {
+    "message": "Baka Translator 划词翻译"
+  },
+  "content_selection_too_long": {
+    "message": "选中文本过长，最多支持 $arg1$ 个字符，请分段选择。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "content_settings": {
+    "message": "设置"
+  },
+  "content_some_translation_failed": {
+    "message": "部分内容翻译失败。"
+  },
+  "content_stage_fetch": {
+    "message": "读取章节"
+  },
+  "content_stage_polish": {
+    "message": "润色"
+  },
+  "content_stage_progress": {
+    "message": "$arg1$$arg2$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "content_stage_save": {
+    "message": "保存译文"
+  },
+  "content_stage_translate": {
+    "message": "翻译"
+  },
+  "content_stop_restore": {
+    "message": "停止并还原页面"
+  },
+  "content_target_language": {
+    "message": "目标语言"
+  },
+  "content_tidy_done": {
+    "message": "术语表已自动整理：移除 $arg1$ 条，合并 $arg2$ 组，可在设置中撤销。$arg3$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      },
+      "arg3": {
+        "content": "$3"
+      }
+    }
+  },
+  "content_tidy_error": {
+    "message": "术语表自动整理失败：$arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "content_tidy_partial_retry": {
+    "message": "部分整理未完成，5 分钟后完成章节时会重试。"
+  },
+  "content_tidy_retry": {
+    "message": "术语表自动整理未完成，5 分钟后完成章节时会重试。"
+  },
+  "content_translated": {
+    "message": "已翻译"
+  },
+  "content_translating": {
+    "message": "翻译中"
+  },
+  "content_translating_page": {
+    "message": "正在翻译页面…"
+  },
+  "content_translation_failed": {
+    "message": "翻译失败，请重试。"
+  },
+  "content_translation_loading": {
+    "message": "正在翻译…"
+  },
+  "content_translation_logo": {
+    "message": "译"
+  },
+  "content_translation_progress": {
+    "message": "翻译进度"
+  },
+  "content_translation_target": {
+    "message": "翻译目标语言"
+  },
+  "content_try_later": {
+    "message": "请稍后重试。"
+  },
+  "content_unknown": {
+    "message": "未知"
+  },
+  "content_unknown_error": {
+    "message": "发生未知错误，请重试。"
+  },
+  "content_view_original": {
+    "message": "查看原文"
+  },
+  "content_vision_unsupported": {
+    "message": "当前模型不支持图片输入，已停用图片翻译。请切换到支持图片输入的模型。"
+  },
+  "extension_description": {
+    "message": "Baka Translator：一个网页翻译与润色扩展，支持整页、划词、图片翻译。"
+  },
+  "html_about_title": {
+    "message": "关于"
+  },
+  "html_add": {
+    "message": "添加"
+  },
+  "html_add_model_name": {
+    "message": "添加模型名称"
+  },
+  "html_add_provider": {
+    "message": "＋ 添加服务商"
+  },
+  "html_add_site": {
+    "message": "添加站点"
+  },
+  "html_add_term": {
+    "message": "添加术语"
+  },
+  "html_advanced_tab": {
+    "message": "高级"
+  },
+  "html_api_key": {
+    "message": "API Key"
+  },
+  "html_api_key_missing": {
+    "message": "未配置 API Key"
+  },
+  "html_api_key_placeholder": {
+    "message": "sk-..."
+  },
+  "html_available_models": {
+    "message": "可用模型"
+  },
+  "html_bilingual_hint": {
+    "message": "译文下方保留原文，便于对照。"
+  },
+  "html_cached_tokens": {
+    "message": "缓存命中 Token"
+  },
+  "html_cancel": {
+    "message": "取消"
+  },
+  "html_cancel_title_label": {
+    "message": "撤销作品名称的修改"
+  },
+  "html_category": {
+    "message": "分类"
+  },
+  "html_chinese_language": {
+    "message": "中文"
+  },
+  "html_clear_api_key": {
+    "message": "清除 API Key"
+  },
+  "html_clear_glossary": {
+    "message": "清空术语表"
+  },
+  "html_close": {
+    "message": "关闭"
+  },
+  "html_configured_sites": {
+    "message": "已配置的站点"
+  },
+  "html_connection_test_hint": {
+    "message": "测试连接使用该服务商当前被翻译/润色选用的模型；未被选用时使用它的第一个模型。"
+  },
+  "html_current_model": {
+    "message": "当前模型"
+  },
+  "html_current_page_status": {
+    "message": "当前页面状态"
+  },
+  "html_custom_provider_hint": {
+    "message": "OpenAI 兼容接口：填写 base URL 与真实 model 名称。"
+  },
+  "html_default_target": {
+    "message": "默认目标语言"
+  },
+  "html_defaults_description": {
+    "message": "扩展弹窗以这里的值初始化；在扩展弹窗中修改也会直接更新这里的默认值。"
+  },
+  "html_defaults_title": {
+    "message": "默认翻译设置"
+  },
+  "html_delete_provider": {
+    "message": "删除服务商"
+  },
+  "html_detected_language": {
+    "message": "检测语言"
+  },
+  "html_edit_glossary": {
+    "message": "编辑术语表"
+  },
+  "html_endpoint_label": {
+    "message": "接口地址（base URL）"
+  },
+  "html_endpoint_placeholder": {
+    "message": "https://api.example.com/v1"
+  },
+  "html_estimated_cost": {
+    "message": "预估费用"
+  },
+  "html_experimental": {
+    "message": "实验性"
+  },
+  "html_fetch_models": {
+    "message": "获取模型"
+  },
+  "html_fetch_models_hint": {
+    "message": "使用上方输入或已保存的 API Key 读取服务商返回的模型列表并自动添加，保留已有列表。不进行模型调用测试；输入的 API Key 需单独保存。"
+  },
+  "html_gender": {
+    "message": "性别"
+  },
+  "html_general_tab": {
+    "message": "常规"
+  },
+  "html_global_preset": {
+    "message": "全局提示词预设"
+  },
+  "html_glossary_cleanup_chapters": {
+    "message": "章整理一次"
+  },
+  "html_glossary_cleanup_every": {
+    "message": "每"
+  },
+  "html_glossary_cleanup_hint": {
+    "message": "整理间隔按成功完成术语提取的不同章节数计算。开启后会在后台调用所选模型：移除普通词汇，并把同一人物或地点的不同写法合并到一条，会产生额外的 API 费用。能力较弱的模型容易误删，建议选较强的模型。整理前的术语表会保留，可以撤销最近一次整理。"
+  },
+  "html_glossary_cleanup_interval_label": {
+    "message": "每隔多少章整理一次"
+  },
+  "html_glossary_cleanup_model_label": {
+    "message": "整理术语表使用的模型"
+  },
+  "html_glossary_cleanup_toggle": {
+    "message": "自动整理术语表"
+  },
+  "html_glossary_cleanup_use": {
+    "message": "使用"
+  },
+  "html_glossary_description": {
+    "message": "同一轻小说建立术语表后，可以在这里查看和编辑。修改只保存在本机，保存后对后续发起的翻译、润色和预翻译生效；已显示的译文和已有缓存不会自动更新。"
+  },
+  "html_glossary_edit_hint": {
+    "message": "原文通常是角色名、地名或技能名，译文是所选目标语言中的固定译法；分类和备注可选。"
+  },
+  "html_glossary_empty": {
+    "message": "还没有术语表。同一作品累计记录 3 个不同章节后，会在章节翻译完成时尝试提取术语；成功提取后可在这里查看。"
+  },
+  "html_glossary_list_label": {
+    "message": "已建立的术语表"
+  },
+  "html_glossary_pagination": {
+    "message": "术语分页"
+  },
+  "html_glossary_title": {
+    "message": "术语表"
+  },
+  "html_input_tokens": {
+    "message": "输入 Token"
+  },
+  "html_keep_original": {
+    "message": "保留原文"
+  },
+  "html_key_alt": {
+    "message": "Alt"
+  },
+  "html_key_s": {
+    "message": "S"
+  },
+  "html_key_shift": {
+    "message": "Shift"
+  },
+  "html_key_u": {
+    "message": "U"
+  },
+  "html_key_y": {
+    "message": "Y"
+  },
+  "html_last_updated": {
+    "message": "最近更新时间"
+  },
+  "html_loading_page_status": {
+    "message": "正在读取页面状态…"
+  },
+  "html_model": {
+    "message": "模型"
+  },
+  "html_model_access_description": {
+    "message": "翻译与润色可以分别使用不同模型（在「高级」中选择）；每个服务商单独保存一个 API Key，翻译与润色使用同一服务商时共用该 API Key。API Key 只保存在本机扩展存储中，仅由扩展后台用于请求对应服务。"
+  },
+  "html_model_access_title": {
+    "message": "模型接入"
+  },
+  "html_model_behavior_description": {
+    "message": "先选择服务商，再选择该服务商下的模型；翻译与润色可以分别配置模型和思考强度，修改后对后续请求生效。润色留空时跟随翻译模型。"
+  },
+  "html_model_behavior_title": {
+    "message": "模型行为"
+  },
+  "html_model_id_placeholder": {
+    "message": "发送给接口的 model 名称"
+  },
+  "html_model_list_fallback": {
+    "message": "模型清单加载失败，已使用后台兜底配置。"
+  },
+  "html_model_name_label": {
+    "message": "模型名称（发送给接口的 model 字段）"
+  },
+  "html_model_name_placeholder": {
+    "message": "例如 deepseek-chat"
+  },
+  "html_next_page": {
+    "message": "下一页"
+  },
+  "html_notes": {
+    "message": "备注"
+  },
+  "html_novel_support_note": {
+    "message": "轻小说模式：适配 ncode.syosetu.com（小説家になろう）与 kakuyomu.jp（カクヨム），自动识别章节与下一章链接。同一作品累计记录 3 个不同章节后，会在章节翻译完成时尝试提取术语；成功提取后会在本机建立术语表。目前仅支持以上站点。"
+  },
+  "html_open_extension_settings": {
+    "message": "打开扩展设置"
+  },
+  "html_open_settings": {
+    "message": "打开设置"
+  },
+  "html_options_subtitle": {
+    "message": "多模型网页翻译 · 润色 · 图片"
+  },
+  "html_options_title": {
+    "message": "Baka Translator · 设置"
+  },
+  "html_output_tokens": {
+    "message": "输出 Token"
+  },
+  "html_page_actions": {
+    "message": "页面操作"
+  },
+  "html_page_jump_label": {
+    "message": "跳到第几页"
+  },
+  "html_page_number": {
+    "message": "页码"
+  },
+  "html_page_size_100": {
+    "message": "100 条"
+  },
+  "html_page_size_30": {
+    "message": "30 条"
+  },
+  "html_page_size_50": {
+    "message": "50 条"
+  },
+  "html_per_page": {
+    "message": "每页"
+  },
+  "html_polish_effort": {
+    "message": "润色思考强度"
+  },
+  "html_polish_model": {
+    "message": "润色模型"
+  },
+  "html_polish_prompt": {
+    "message": "润色提示词"
+  },
+  "html_polish_provider": {
+    "message": "润色服务商"
+  },
+  "html_polish_summary_initial": {
+    "message": "润色模型：—"
+  },
+  "html_polish_this_site": {
+    "message": "本站润色"
+  },
+  "html_popup_bilingual_hint": {
+    "message": "双语显示：译文下方保留原文，便于对照。"
+  },
+  "html_popup_missing_key": {
+    "message": "尚未配置所选模型的 API Key，请在扩展设置中填写，或改用已配置 API Key 的模型。"
+  },
+  "html_popup_privacy": {
+    "message": "翻译内容仅发送至所选模型服务商；API Key 仅保存在本机。"
+  },
+  "html_popup_subtitle": {
+    "message": "整页 · 划词 · 图片 · 润色"
+  },
+  "html_pretranslate_next": {
+    "message": "预翻译下一章"
+  },
+  "html_previous_page": {
+    "message": "上一页"
+  },
+  "html_privacy_images": {
+    "message": "图片翻译为实验性功能：只处理当前可见画面中的图片，识别到的原文和译文展示在页面中的图片翻译面板中。"
+  },
+  "html_privacy_keys": {
+    "message": "API Key 仅保存在本机扩展存储（chrome.storage.local）中，只有扩展后台在请求对应服务时使用。"
+  },
+  "html_privacy_network": {
+    "message": "扩展不含统计代码、广告或第三方请求；网络请求只发送到你配置的模型服务地址，以及轻小说功能读取的原小说站。"
+  },
+  "html_privacy_permissions": {
+    "message": "浏览器安装时可能会请求网站访问权限，用于网页翻译和直连模型接口；翻译结果始终以纯文本写入页面，不会被当作 HTML 执行。"
+  },
+  "html_privacy_pretranslation": {
+    "message": "开启预翻译后，扩展会在受支持的小说站读取下一章，并在后台发送给所选模型服务。"
+  },
+  "html_privacy_requests": {
+    "message": "翻译由你主动触发，选中的文本、页面文本或截图随后发送给所选模型服务。翻译整页后，同一页面新出现的内容也会自动发送，直到还原、切换到其他页面地址或达到上限。"
+  },
+  "html_privacy_title": {
+    "message": "图片翻译与隐私"
+  },
+  "html_prompt_defaults_status": {
+    "message": "正在使用预设默认提示词。"
+  },
+  "html_prompt_placeholders": {
+    "message": "可用占位符：{{targetLanguage}}、{{targetNative}}、{{sourceHint}}。若存在术语表，则术语表固定附在系统提示词末尾。"
+  },
+  "html_prompts_description": {
+    "message": "编辑当前预设的翻译与润色提示词。保存后只覆盖当前预设；恢复默认可清除本机覆盖。"
+  },
+  "html_prompts_title": {
+    "message": "提示词模板"
+  },
+  "html_provider": {
+    "message": "服务商"
+  },
+  "html_provider_draft_hint": {
+    "message": "保存服务商后即可填写 API Key 并测试连接。"
+  },
+  "html_provider_list": {
+    "message": "服务商列表"
+  },
+  "html_provider_models_label": {
+    "message": "该服务商的模型"
+  },
+  "html_provider_name": {
+    "message": "服务商名称"
+  },
+  "html_provider_name_placeholder": {
+    "message": "例如 本地 Ollama"
+  },
+  "html_reasoning_effort": {
+    "message": "思考强度"
+  },
+  "html_recorded_requests": {
+    "message": "已统计请求数"
+  },
+  "html_refresh_list": {
+    "message": "刷新列表"
+  },
+  "html_reload": {
+    "message": "重新加载"
+  },
+  "html_reset_usage": {
+    "message": "清零使用量"
+  },
+  "html_reset_usage_label": {
+    "message": "清零累计 Token 使用量"
+  },
+  "html_restore_defaults": {
+    "message": "恢复默认"
+  },
+  "html_restore_page": {
+    "message": "还原页面"
+  },
+  "html_save": {
+    "message": "保存"
+  },
+  "html_save_api_key": {
+    "message": "保存 API Key"
+  },
+  "html_save_glossary": {
+    "message": "保存术语表"
+  },
+  "html_save_glossary_title_label": {
+    "message": "保存术语表（含作品名称的修改）"
+  },
+  "html_save_prompts": {
+    "message": "保存提示词"
+  },
+  "html_save_provider": {
+    "message": "保存服务商"
+  },
+  "html_saved_key_hint": {
+    "message": "已保存的 API Key 不会显示完整内容。"
+  },
+  "html_settings": {
+    "message": "设置"
+  },
+  "html_settings_categories": {
+    "message": "设置分类"
+  },
+  "html_shortcut_page": {
+    "message": "翻译整页 / 还原页面"
+  },
+  "html_shortcuts_hint": {
+    "message": "若快捷键与其他扩展或系统快捷键冲突，可在浏览器扩展管理页的“键盘快捷键”中调整。"
+  },
+  "html_shortcuts_title": {
+    "message": "快捷键"
+  },
+  "html_show": {
+    "message": "显示"
+  },
+  "html_show_api_key": {
+    "message": "显示 API Key"
+  },
+  "html_site_features_hint": {
+    "message": "润色与预翻译仅对当前站点生效。"
+  },
+  "html_site_placeholder": {
+    "message": "example.com"
+  },
+  "html_site_preset": {
+    "message": "本站预设"
+  },
+  "html_site_preset_label": {
+    "message": "本站提示词预设"
+  },
+  "html_sites_description": {
+    "message": "开启后，翻译完当前章节会在后台预翻译下一章（受配额/缓存限制）；打开下一章自动应用。提示词预设可按站点覆盖：例如普通网站用常规、轻小说站点用轻小说，留空则跟随全局。站点按域名匹配，不含端口。"
+  },
+  "html_sites_empty": {
+    "message": "还没有站点设置。扩展弹窗中的“本站润色 / 预翻译下一章”开关会自动添加当前站点，也可以在下方手动添加。"
+  },
+  "html_sites_title": {
+    "message": "站点设置"
+  },
+  "html_source_name": {
+    "message": "原文 / 名称"
+  },
+  "html_target_language": {
+    "message": "目标语言"
+  },
+  "html_target_short": {
+    "message": "目标"
+  },
+  "html_test_connection": {
+    "message": "测试连接"
+  },
+  "html_this_page": {
+    "message": "本页"
+  },
+  "html_token_unit": {
+    "message": "Token"
+  },
+  "html_total_short": {
+    "message": "累计"
+  },
+  "html_total_tokens": {
+    "message": "累计 Token"
+  },
+  "html_translate_images": {
+    "message": "翻译可见图片"
+  },
+  "html_translate_page": {
+    "message": "翻译整页"
+  },
+  "html_translate_selection": {
+    "message": "翻译选中文本"
+  },
+  "html_translation": {
+    "message": "译文"
+  },
+  "html_translation_effort": {
+    "message": "翻译思考强度"
+  },
+  "html_translation_model": {
+    "message": "翻译模型"
+  },
+  "html_translation_progress": {
+    "message": "翻译进度"
+  },
+  "html_translation_prompt": {
+    "message": "翻译提示词"
+  },
+  "html_translation_provider": {
+    "message": "翻译服务商"
+  },
+  "html_translation_settings": {
+    "message": "翻译设置"
+  },
+  "html_translation_summary_initial": {
+    "message": "翻译模型：—"
+  },
+  "html_undo_cleanup": {
+    "message": "撤销这次整理"
+  },
+  "html_usage_description": {
+    "message": "按服务商返回的使用量统计，费用按模型定价估算，仅供参考；实际账单以服务商为准。"
+  },
+  "html_usage_empty": {
+    "message": "暂无使用记录。收到模型返回的使用量后会自动累计，也可以随时清零。"
+  },
+  "html_usage_title": {
+    "message": "使用量统计"
+  },
+  "html_usage_tooltip": {
+    "message": "累计 Token 使用量（按服务商返回的使用量统计，仅供参考）"
+  },
+  "html_user_model_hint": {
+    "message": "添加后可在「高级 → 模型行为」选择；新增模型使用默认思考行为，输出上限 4096 Token，不估算费用。图片输入能力未知时允许尝试，模型明确返回不支持后会记住并禁用图片翻译。"
+  },
+  "html_version_label": {
+    "message": "版本"
+  },
+  "html_work_title": {
+    "message": "作品名称"
+  },
+  "html_work_title_hint": {
+    "message": "用于列表显示和后续翻译，不影响站点和术语匹配。"
+  },
+  "language_en": {
+    "message": "英语"
+  },
+  "language_ja": {
+    "message": "日语"
+  },
+  "language_ko": {
+    "message": "韩语"
+  },
+  "language_ru": {
+    "message": "俄语"
+  },
+  "language_short_en": {
+    "message": "英"
+  },
+  "language_short_ja": {
+    "message": "日"
+  },
+  "language_short_ko": {
+    "message": "韩"
+  },
+  "language_short_ru": {
+    "message": "俄"
+  },
+  "language_short_zh": {
+    "message": "中"
+  },
+  "language_unknown": {
+    "message": "未知"
+  },
+  "language_zh": {
+    "message": "中文"
+  },
+  "model_custom_name": {
+    "message": "自定义模型"
+  },
+  "opt_background_unavailable": {
+    "message": "扩展后台暂时不可用，请稍后重试。"
+  },
+  "opt_custom_selection_missing": {
+    "message": "原先选用的自定义服务商或模型已不存在：翻译会停用，直到你在「常规 → 服务商」重新添加它或在此改选其他模型（选择后立即生效）。"
+  },
+  "opt_default_target_saved": {
+    "message": "默认目标语言已保存：$arg1$。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_discovery_fetch": {
+    "message": "获取模型"
+  },
+  "opt_discovery_fetch_failed": {
+    "message": "获取模型失败，请重试。"
+  },
+  "opt_discovery_fetch_named": {
+    "message": "获取 $arg1$ 可用模型",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_discovery_fetched": {
+    "message": "已获取 $arg1$ 个模型，新增 $arg2$ 个；可在「高级 → 模型行为」选择。$arg3$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      },
+      "arg3": {
+        "content": "$3"
+      }
+    }
+  },
+  "opt_discovery_fetching": {
+    "message": "正在获取…"
+  },
+  "opt_discovery_fetching_list": {
+    "message": "正在获取模型列表…"
+  },
+  "opt_discovery_key_required": {
+    "message": "请先输入或保存该服务商的 API Key。"
+  },
+  "opt_discovery_limit_hint": {
+    "message": "已达本次导入或列表上限（$arg1$ 个），部分模型未添加。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_discovery_model_add_failed": {
+    "message": "添加模型失败，请重试。"
+  },
+  "opt_discovery_model_added": {
+    "message": "已添加 $arg1$，可在「高级 → 模型行为」选择。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_discovery_model_exists": {
+    "message": "该服务商已有这个模型。"
+  },
+  "opt_discovery_model_in_use": {
+    "message": "$arg1$ 正在使用中，请先在「高级 → 模型行为」切换到其他模型。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_discovery_model_limit": {
+    "message": "每个服务商最多添加 $arg1$ 个模型。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_discovery_model_no_whitespace": {
+    "message": "模型名称不能包含空白字符。"
+  },
+  "opt_discovery_model_remove_failed": {
+    "message": "移除模型失败，请重试。"
+  },
+  "opt_discovery_model_removed": {
+    "message": "已移除 $arg1$。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_discovery_no_models": {
+    "message": "没有获取到适合文本翻译的模型，已有列表已保留。"
+  },
+  "opt_discovery_remove": {
+    "message": "移除"
+  },
+  "opt_discovery_remove_named": {
+    "message": "移除模型 $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_discovery_retry_allowed": {
+    "message": "已允许 $arg1$ 重新尝试图片翻译，下次使用时会重新确认能力。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_discovery_retry_failed": {
+    "message": "未能恢复图片翻译，请重试。"
+  },
+  "opt_discovery_retry_images": {
+    "message": "重试图片"
+  },
+  "opt_discovery_retry_images_named": {
+    "message": "允许 $arg1$ 重新尝试图片翻译",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_discovery_save_failed": {
+    "message": "保存模型列表失败，请重试；已有列表已保留。"
+  },
+  "opt_effort_fixed": {
+    "message": "当前模型不支持调整思考强度（固定为“$arg1$”）。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_effort_follow": {
+    "message": "跟随翻译（默认）"
+  },
+  "opt_effort_high": {
+    "message": "高"
+  },
+  "opt_effort_latency_hint": {
+    "message": "思考强度越高越慢、通常也越贵；网页翻译建议关闭或使用低强度。"
+  },
+  "opt_effort_low": {
+    "message": "低"
+  },
+  "opt_effort_max": {
+    "message": "最大"
+  },
+  "opt_effort_medium": {
+    "message": "中"
+  },
+  "opt_effort_none": {
+    "message": "关闭（最快）"
+  },
+  "opt_effort_xhigh": {
+    "message": "超高"
+  },
+  "opt_glossary_add_alias": {
+    "message": "添加其他写法"
+  },
+  "opt_glossary_add_alias_label": {
+    "message": "为第 $arg1$ 条术语添加其他写法",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_add_alias_short": {
+    "message": "+ 写法"
+  },
+  "opt_glossary_alias_placeholder": {
+    "message": "其他写法"
+  },
+  "opt_glossary_alias_source_label": {
+    "message": "$arg1$的其他写法",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_alias_target_label": {
+    "message": "$arg1$这个写法的译文",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_alias_target_placeholder": {
+    "message": "译文（留空则保存时使用上方译文）"
+  },
+  "opt_glossary_cancel": {
+    "message": "取消"
+  },
+  "opt_glossary_category_character": {
+    "message": "人物"
+  },
+  "opt_glossary_category_item": {
+    "message": "物品"
+  },
+  "opt_glossary_category_organization": {
+    "message": "组织"
+  },
+  "opt_glossary_category_place": {
+    "message": "地点"
+  },
+  "opt_glossary_category_skill": {
+    "message": "技能"
+  },
+  "opt_glossary_category_term": {
+    "message": "术语"
+  },
+  "opt_glossary_clear": {
+    "message": "清空术语表"
+  },
+  "opt_glossary_clear_confirm": {
+    "message": "确认清空？"
+  },
+  "opt_glossary_clear_confirm_label": {
+    "message": "再次点击以确认清空该作品的术语表"
+  },
+  "opt_glossary_clear_failed": {
+    "message": "清空术语表失败，请重试。"
+  },
+  "opt_glossary_cleared": {
+    "message": "术语表已清空。"
+  },
+  "opt_glossary_clearing": {
+    "message": "正在清空术语表…"
+  },
+  "opt_glossary_delete": {
+    "message": "删除"
+  },
+  "opt_glossary_delete_row_label": {
+    "message": "删除第 $arg1$ 条术语",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_discard_confirm": {
+    "message": "术语表有未保存的修改，继续操作会丢失这些修改。确定继续吗？"
+  },
+  "opt_glossary_edit": {
+    "message": "编辑"
+  },
+  "opt_glossary_edit_work": {
+    "message": "编辑 $arg1$ 的术语表",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_gender": {
+    "message": "性别"
+  },
+  "opt_glossary_gender_female": {
+    "message": "女"
+  },
+  "opt_glossary_gender_male": {
+    "message": "男"
+  },
+  "opt_glossary_gender_none": {
+    "message": "无"
+  },
+  "opt_glossary_jump_row": {
+    "message": "跳到第 $arg1$ 行",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_keep_term": {
+    "message": "请至少保留一条术语，或使用“清空术语表”。"
+  },
+  "opt_glossary_last_tidy": {
+    "message": "最近一次自动整理（$arg1$）：移除 $arg2$ 条，合并 $arg3$ 组。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      },
+      "arg3": {
+        "content": "$3"
+      }
+    }
+  },
+  "opt_glossary_list_meta": {
+    "message": "$arg1$ · $arg2$ · $arg3$ 条术语",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      },
+      "arg3": {
+        "content": "$3"
+      }
+    }
+  },
+  "opt_glossary_load_failed": {
+    "message": "读取术语表失败，请重试。"
+  },
+  "opt_glossary_model_polish": {
+    "message": "润色"
+  },
+  "opt_glossary_model_translation": {
+    "message": "翻译"
+  },
+  "opt_glossary_note_placeholder": {
+    "message": "备注（可选）"
+  },
+  "opt_glossary_operation_failed": {
+    "message": "术语表操作失败，请重试。"
+  },
+  "opt_glossary_page_total": {
+    "message": "/ $arg1$ 页 · 共 $arg2$ 条",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "opt_glossary_refreshed": {
+    "message": "术语表列表已刷新。"
+  },
+  "opt_glossary_remove_alias": {
+    "message": "移除"
+  },
+  "opt_glossary_remove_alias_label": {
+    "message": "移除$arg1$的这个写法",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_revert_row_label": {
+    "message": "撤销第 $arg1$ 条术语未保存的修改",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_row_category_label": {
+    "message": "第 $arg1$ 条术语分类",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_row_duplicate": {
+    "message": "第 $arg1$ 行“$arg2$”与第 $arg3$ 行重复。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      },
+      "arg3": {
+        "content": "$3"
+      }
+    }
+  },
+  "opt_glossary_row_gender_label": {
+    "message": "第 $arg1$ 条术语的角色性别",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_row_incomplete": {
+    "message": "第 $arg1$ 行需要同时填写原文和译文。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_row_invalid": {
+    "message": "第 $arg1$ 行术语格式不正确，请检查原文和译文。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_row_note_label": {
+    "message": "第 $arg1$ 条术语备注",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_row_source_label": {
+    "message": "第 $arg1$ 条术语原文",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_row_target_label": {
+    "message": "第 $arg1$ 条术语译文",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_save": {
+    "message": "保存"
+  },
+  "opt_glossary_save_failed": {
+    "message": "保存术语表失败，请重试或检查扩展存储空间。"
+  },
+  "opt_glossary_save_row_label": {
+    "message": "保存术语表（含第 $arg1$ 条的修改）",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_saved": {
+    "message": "已保存 $arg1$ 条术语和作品名称，对之后发起的翻译生效。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_saving": {
+    "message": "正在保存术语表…"
+  },
+  "opt_glossary_source_placeholder": {
+    "message": "原文/名称"
+  },
+  "opt_glossary_term_label": {
+    "message": "第 $arg1$ 条术语",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_tidy_already_undone": {
+    "message": "这次整理已撤销，无需重复操作。"
+  },
+  "opt_glossary_tidy_disabled": {
+    "message": "自动整理已关闭。"
+  },
+  "opt_glossary_tidy_enabled": {
+    "message": "自动整理已开启。"
+  },
+  "opt_glossary_tidy_interval_invalid": {
+    "message": "请填写 1 到 $arg1$ 的整数，设置没有改动。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_tidy_interval_saved": {
+    "message": "每 $arg1$ 章整理一次。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_tidy_model_saved": {
+    "message": "整理改用$arg1$模型。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_tidy_settings_load_failed": {
+    "message": "读取设置失败，请刷新页面后重试。"
+  },
+  "opt_glossary_tidy_settings_save_failed": {
+    "message": "保存设置失败，请重试。"
+  },
+  "opt_glossary_tidy_undone": {
+    "message": "已撤销这次整理。"
+  },
+  "opt_glossary_translation": {
+    "message": "译文"
+  },
+  "opt_glossary_undo_confirm": {
+    "message": "确认撤销？未保存的修改会丢失"
+  },
+  "opt_glossary_undo_failed": {
+    "message": "撤销失败，请重试。"
+  },
+  "opt_glossary_undo_tidy": {
+    "message": "撤销这次整理"
+  },
+  "opt_glossary_undoing_tidy": {
+    "message": "正在撤销这次整理…"
+  },
+  "opt_keep_original_off": {
+    "message": "默认保留原文已关闭。"
+  },
+  "opt_keep_original_on": {
+    "message": "默认保留原文已开启。"
+  },
+  "opt_keep_original_save_failed": {
+    "message": "保存“保留原文”设置失败，请重试。"
+  },
+  "opt_key_clear": {
+    "message": "清除 API Key"
+  },
+  "opt_key_clear_failed": {
+    "message": "清除 API Key 失败，请重试。"
+  },
+  "opt_key_clear_named": {
+    "message": "清除本机保存的 $arg1$ API Key",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_key_clear_warning": {
+    "message": "再次点击“确认清除？”将删除本机保存的 API Key。"
+  },
+  "opt_key_cleared_named": {
+    "message": "$arg1$ API Key 已清除。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_key_confirm_clear": {
+    "message": "确认清除？"
+  },
+  "opt_key_confirm_clear_named": {
+    "message": "再次点击以确认清除本机保存的 $arg1$ API Key",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_key_enter_first": {
+    "message": "请先输入 API Key。"
+  },
+  "opt_key_hide": {
+    "message": "隐藏"
+  },
+  "opt_key_hide_named": {
+    "message": "隐藏 $arg1$ API Key",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_key_invalid_characters": {
+    "message": "API Key 只能包含字母、数字、点、短横线和下划线。"
+  },
+  "opt_key_label": {
+    "message": "$arg1$ API Key",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_key_missing": {
+    "message": "未配置 API Key"
+  },
+  "opt_key_model_available": {
+    "message": "模型可用"
+  },
+  "opt_key_model_missing": {
+    "message": "但模型列表中未找到当前模型，请确认账户权限"
+  },
+  "opt_key_no_whitespace": {
+    "message": "API Key 不能包含空白字符。"
+  },
+  "opt_key_not_required": {
+    "message": "无需 API Key"
+  },
+  "opt_key_optional": {
+    "message": "可选，按服务要求填写"
+  },
+  "opt_key_optional_clear_hint": {
+    "message": "该服务不强制要求 API Key；如需清除已保存的 API Key，请使用“清除 API Key”。"
+  },
+  "opt_key_optional_hint": {
+    "message": "该服务不强制要求 API Key；如服务需要，请填写后保存。"
+  },
+  "opt_key_prefix_required": {
+    "message": "API Key 应以 $arg1$ 开头。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_key_registry_unavailable": {
+    "message": "模型清单不可用"
+  },
+  "opt_key_replace": {
+    "message": "替换 API Key"
+  },
+  "opt_key_replace_named": {
+    "message": "替换 $arg1$ API Key",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_key_save": {
+    "message": "保存 API Key"
+  },
+  "opt_key_save_failed": {
+    "message": "保存 API Key 失败，请重试。"
+  },
+  "opt_key_save_named": {
+    "message": "保存 $arg1$ API Key",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_key_saved": {
+    "message": "已保存 API Key"
+  },
+  "opt_key_saved_hidden": {
+    "message": "已保存的 API Key 不会显示完整内容。"
+  },
+  "opt_key_saved_masked": {
+    "message": "已保存 · $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_key_saved_named": {
+    "message": "$arg1$ API Key 已保存。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_key_saving": {
+    "message": "正在保存…"
+  },
+  "opt_key_show": {
+    "message": "显示"
+  },
+  "opt_key_show_named": {
+    "message": "显示 $arg1$ API Key",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_key_test_auth_hint": {
+    "message": "$arg1$ 请检查 API Key 是否正确或已被撤销。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_key_test_failed": {
+    "message": "测试连接失败，请重试。"
+  },
+  "opt_key_test_latency": {
+    "message": "耗时 $arg1$ ms",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_key_test_missing_key": {
+    "message": "$arg1$ 尚未配置所需的 API Key，请先保存后再测试。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_key_test_named": {
+    "message": "测试 $arg1$ 连接",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_key_test_result": {
+    "message": "$arg1$。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_key_test_save_first": {
+    "message": "请先保存 $arg1$ 的 API Key 后再测试连接。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_key_test_settings_only": {
+    "message": "请在扩展设置页面中执行测试连接。"
+  },
+  "opt_key_test_success": {
+    "message": "$arg1$ 连接成功",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_key_test_unsaved": {
+    "message": "输入框中的 API Key 尚未保存，测试连接只使用已保存的 API Key，请先保存后再测试。"
+  },
+  "opt_key_testing_named": {
+    "message": "正在测试 $arg1$ 连接…",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_key_too_long": {
+    "message": "API Key 过长，请检查输入。"
+  },
+  "opt_key_too_short": {
+    "message": "API Key 长度不足，请检查是否复制完整。"
+  },
+  "opt_key_unsaved": {
+    "message": "尚未保存"
+  },
+  "opt_list_separator": {
+    "message": "、"
+  },
+  "opt_loading": {
+    "message": "正在加载…"
+  },
+  "opt_model_capabilities": {
+    "message": "能力：$arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_model_choose_another": {
+    "message": "模型已失效：$arg1$。请改选其他模型。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_model_context": {
+    "message": "上下文：$arg1$ Token",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_model_endpoint": {
+    "message": "接口地址：$arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_model_follow": {
+    "message": "跟随翻译模型"
+  },
+  "opt_model_follow_description": {
+    "message": "跟随翻译模型：$arg1$。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_model_follow_named": {
+    "message": "跟随翻译模型（$arg1$）",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_model_image_disabled": {
+    "message": "图片翻译：已禁用（模型已确认不支持）"
+  },
+  "opt_model_image_unsupported": {
+    "message": "图片翻译：不支持"
+  },
+  "opt_model_image_unverified": {
+    "message": "图片（待确认）"
+  },
+  "opt_model_images": {
+    "message": "图片"
+  },
+  "opt_model_list_unavailable": {
+    "message": "模型清单不可用"
+  },
+  "opt_model_output": {
+    "message": "最大输出：$arg1$ Token",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_model_provider": {
+    "message": "服务商：$arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_model_same_translation": {
+    "message": "与翻译模型相同"
+  },
+  "opt_model_unavailable": {
+    "message": "已失效"
+  },
+  "opt_model_unavailable_name": {
+    "message": "（已失效）$arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_models_about": {
+    "message": "翻译：$arg1$ / 润色：$arg2$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "opt_models_reloaded": {
+    "message": "模型清单已重新加载。"
+  },
+  "opt_novel_support": {
+    "message": "轻小说模式：适配 $arg1$，自动识别章节与下一章链接。同一作品累计记录 3 个不同章节后，会在章节翻译完成时尝试提取术语；成功提取后会在本机建立术语表。目前仅支持以上站点。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_polish_effort_default": {
+    "message": "未指定时使用该模型默认值（$arg1$）。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_polish_effort_default_same": {
+    "message": "未指定时使用该模型默认值（$arg1$）；与翻译同模型时跟随翻译强度。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_polish_effort_follow_saved": {
+    "message": "润色思考强度已改为跟随翻译/使用模型默认值。"
+  },
+  "opt_polish_effort_inherited": {
+    "message": "润色思考强度：$arg1$（模型跟随翻译）。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_polish_effort_latency": {
+    "message": " 润色强度越高等待越久：关闭思考最快，中/高强度可能等待数十秒到数分钟。"
+  },
+  "opt_polish_effort_save_failed": {
+    "message": "保存润色思考强度失败，请重试。"
+  },
+  "opt_polish_effort_saved": {
+    "message": "润色思考强度已保存：$arg1$。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_polish_effort_value": {
+    "message": "润色思考强度：$arg1$。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_polish_follow_both": {
+    "message": "跟随翻译模型（$arg1$）与思考强度。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_polish_label": {
+    "message": "润色"
+  },
+  "opt_polish_model_follow_saved": {
+    "message": "润色模型已改为跟随翻译模型。"
+  },
+  "opt_polish_model_named_saved": {
+    "message": "润色模型已切换：$arg1$。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_polish_model_save_failed": {
+    "message": "保存润色模型失败，请重试。"
+  },
+  "opt_polish_prompt_required": {
+    "message": "润色提示词不能为空。"
+  },
+  "opt_polish_provider_model_saved": {
+    "message": "润色服务商已切换为 $arg1$，模型：$arg2$。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "opt_polish_provider_save_failed": {
+    "message": "保存润色服务商失败，请重试。"
+  },
+  "opt_polish_provider_saved": {
+    "message": "润色服务商已切换为 $arg1$。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_polish_summary": {
+    "message": "润色模型：$arg1$ · 思考强度：$arg2$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "opt_polish_summary_empty": {
+    "message": "润色模型：—"
+  },
+  "opt_polish_summary_follow": {
+    "message": "润色模型：跟随翻译（$arg1$） · 思考强度：$arg2$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "opt_preset_save_failed": {
+    "message": "保存提示词预设失败，请重试。"
+  },
+  "opt_preset_saved": {
+    "message": "已切换全局提示词预设：$arg1$。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_preset_unavailable": {
+    "message": "预设不可用"
+  },
+  "opt_pretranslate_label": {
+    "message": "预翻译"
+  },
+  "opt_prompt_custom_active": {
+    "message": "当前预设正在使用保存在本机的自定义提示词。"
+  },
+  "opt_prompt_default_active": {
+    "message": "当前预设正在使用预设默认提示词。"
+  },
+  "opt_prompt_defaults_failed": {
+    "message": "恢复默认提示词失败，请重试。"
+  },
+  "opt_prompt_defaults_restored": {
+    "message": "已恢复该预设的默认提示词。"
+  },
+  "opt_prompt_discard_confirm": {
+    "message": "提示词有未保存的修改，切换预设会丢失这些修改。确定继续吗？"
+  },
+  "opt_prompt_placeholders": {
+    "message": "可用占位符：$arg1$。术语表固定附在系统提示词末尾。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_prompt_preset_load_failed": {
+    "message": "提示词预设加载失败，请刷新页面后重试。"
+  },
+  "opt_prompts_save_failed": {
+    "message": "保存提示词失败，请重试。"
+  },
+  "opt_prompts_saved": {
+    "message": "提示词已保存，将用于后续翻译与润色。"
+  },
+  "opt_provider_add": {
+    "message": "添加服务商"
+  },
+  "opt_provider_added": {
+    "message": "已添加 $arg1$，可继续填写 API Key。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_provider_confirm_delete": {
+    "message": "确认删除？"
+  },
+  "opt_provider_confirm_save": {
+    "message": "确认保存？"
+  },
+  "opt_provider_default_name": {
+    "message": "自定义接口"
+  },
+  "opt_provider_default_numbered_name": {
+    "message": "自定义接口 $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_provider_delete": {
+    "message": "删除服务商"
+  },
+  "opt_provider_delete_failed": {
+    "message": "删除服务商失败，请重试。"
+  },
+  "opt_provider_delete_warning": {
+    "message": "再次点击“确认删除？”将删除该服务商及其 API Key。"
+  },
+  "opt_provider_deleted": {
+    "message": "已删除 $arg1$。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_provider_deleted_elsewhere": {
+    "message": "$arg1$ 已在其他设置页删除，本次修改未保存。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_provider_endpoint_invalid": {
+    "message": "接口地址必须是有效的 http(s) URL。"
+  },
+  "opt_provider_endpoint_protocol": {
+    "message": "接口地址必须是 http(s) URL。"
+  },
+  "opt_provider_endpoint_required": {
+    "message": "请填写自定义接口的 base URL。"
+  },
+  "opt_provider_https_required": {
+    "message": "http 接口仅支持 localhost / 127.0.0.1，请改用 https。"
+  },
+  "opt_provider_in_use": {
+    "message": "$arg1$ 正被$arg2$使用，请先在「高级 → 模型行为」切换到其他服务商。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "opt_provider_label_separator": {
+    "message": "，"
+  },
+  "opt_provider_limit": {
+    "message": "最多添加 $arg1$ 个自定义服务商。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_provider_model_required": {
+    "message": "请填写发送给接口的模型名称。"
+  },
+  "opt_provider_model_too_long": {
+    "message": "模型名称过长，请检查输入。"
+  },
+  "opt_provider_move_warning": {
+    "message": "接口主机已变更，再次点击“确认保存？”将清除已保存的 API Key。"
+  },
+  "opt_provider_new": {
+    "message": "新服务商"
+  },
+  "opt_provider_other_settings": {
+    "message": "其他设置页"
+  },
+  "opt_provider_registry_unavailable": {
+    "message": "模型清单不可用，无法配置服务商。"
+  },
+  "opt_provider_save": {
+    "message": "保存服务商"
+  },
+  "opt_provider_save_failed": {
+    "message": "保存服务商失败，请重试。"
+  },
+  "opt_provider_saved": {
+    "message": "已保存 $arg1$。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_provider_saved_key_cleared": {
+    "message": "已保存 $arg1$。接口地址换了主机，原 API Key 已清除，请重新填写。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_provider_unsaved": {
+    "message": "未保存"
+  },
+  "opt_provider_usage_label": {
+    "message": "$arg1$使用中",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_provider_usage_separator": {
+    "message": "、"
+  },
+  "opt_provider_use_polishing": {
+    "message": "润色"
+  },
+  "opt_provider_use_translation": {
+    "message": "翻译"
+  },
+  "opt_registry_failed": {
+    "message": "模型清单加载失败，请在扩展详情中检查 profile/ 下的配置后重新加载扩展。"
+  },
+  "opt_registry_fallback": {
+    "message": "模型清单加载失败，已使用后台兜底配置（功能可能受限）。"
+  },
+  "opt_registry_repair": {
+    "message": "请修复 profile/ 下的配置后重新加载扩展。"
+  },
+  "opt_registry_retry_failed": {
+    "message": "重试仍失败。$arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_reload": {
+    "message": "重新加载"
+  },
+  "opt_remove": {
+    "message": "移除"
+  },
+  "opt_resources_unavailable": {
+    "message": "扩展资源加载失败，请重新加载扩展后重试。"
+  },
+  "opt_restore_defaults": {
+    "message": "恢复默认"
+  },
+  "opt_restore_defaults_aria": {
+    "message": "再次点击以确认丢弃自定义提示词并恢复默认"
+  },
+  "opt_restore_defaults_confirm": {
+    "message": "确认恢复默认？"
+  },
+  "opt_selection_missing": {
+    "message": "原先选用的模型已不存在：翻译会停用，直到你在此改选模型（选择后立即生效）。"
+  },
+  "opt_site_added": {
+    "message": "已添加站点：$arg1$。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_site_domain_invalid": {
+    "message": "域名格式不正确，例如 example.com 或 sub.example.com。"
+  },
+  "opt_site_domain_required": {
+    "message": "请输入站点域名，例如 example.com。"
+  },
+  "opt_site_exists": {
+    "message": "站点 $arg1$ 已在列表中。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_site_follow_global": {
+    "message": "跟随全局（当前 $arg1$）",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_site_polish_aria": {
+    "message": "为 $arg1$ 开启整页润色",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_site_polish_off": {
+    "message": "$arg1$ 的润色已关闭。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_site_polish_on": {
+    "message": "$arg1$ 的润色已开启。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_site_preset_aria": {
+    "message": "为 $arg1$ 选择提示词预设",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_site_preset_follow_saved": {
+    "message": "$arg1$ 的提示词预设已改为跟随全局。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_site_preset_saved": {
+    "message": "$arg1$ 的提示词预设已设为 $arg2$。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "opt_site_pretranslate_aria": {
+    "message": "为 $arg1$ 开启预翻译下一章",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_site_pretranslate_off": {
+    "message": "$arg1$ 的预翻译已关闭。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_site_pretranslate_on": {
+    "message": "$arg1$ 的预翻译已开启。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_site_remove_aria": {
+    "message": "移除 $arg1$ 的站点设置",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_site_removed": {
+    "message": "已移除站点设置：$arg1$。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_site_save_failed": {
+    "message": "保存站点设置失败，请重试。"
+  },
+  "opt_site_url_invalid": {
+    "message": "站点地址格式不正确。"
+  },
+  "opt_storage_read_failed": {
+    "message": "读取本机设置失败，请刷新页面后重试。"
+  },
+  "opt_target_save_failed": {
+    "message": "保存默认目标语言失败，请重试。"
+  },
+  "opt_translation_effort_save_failed": {
+    "message": "保存翻译思考强度失败，请重试。"
+  },
+  "opt_translation_effort_saved": {
+    "message": "翻译思考强度已保存：$arg1$。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_translation_model_named_saved": {
+    "message": "翻译模型已切换：$arg1$。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_translation_model_save_failed": {
+    "message": "保存翻译模型失败，请重试。"
+  },
+  "opt_translation_model_saved": {
+    "message": "翻译模型已切换。"
+  },
+  "opt_translation_prompt_required": {
+    "message": "翻译提示词不能为空。"
+  },
+  "opt_translation_provider_model_saved": {
+    "message": "翻译服务商已切换为 $arg1$，模型：$arg2$。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "opt_translation_provider_save_failed": {
+    "message": "保存翻译服务商失败，请重试。"
+  },
+  "opt_translation_provider_saved": {
+    "message": "翻译服务商已切换为 $arg1$。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_translation_select_first": {
+    "message": "翻译模型已失效，请先改选模型。"
+  },
+  "opt_translation_summary": {
+    "message": "翻译模型：$arg1$ · 思考强度：$arg2$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "opt_translation_summary_empty": {
+    "message": "翻译模型：—"
+  },
+  "opt_translation_summary_unavailable": {
+    "message": "翻译模型：已失效"
+  },
+  "opt_unknown": {
+    "message": "未知"
+  },
+  "opt_usage_reset": {
+    "message": "清零使用量"
+  },
+  "opt_usage_reset_aria": {
+    "message": "清零累计 Token 使用量"
+  },
+  "opt_usage_reset_confirm": {
+    "message": "确认清零？"
+  },
+  "opt_usage_reset_confirm_aria": {
+    "message": "再次点击以确认清零累计 Token 使用量"
+  },
+  "opt_usage_reset_done": {
+    "message": "累计使用量已清零。"
+  },
+  "opt_usage_reset_failed": {
+    "message": "清零失败，请重试。"
+  },
+  "opt_usage_reset_options_only": {
+    "message": "请在扩展设置页面中执行清零操作。"
+  },
+  "opt_usage_reset_unsupported": {
+    "message": "当前版本尚不支持清零，请重新加载扩展后重试。"
+  },
+  "opt_usage_reset_warning": {
+    "message": "再次点击“确认清零？”会将本机累计的使用量归零，此操作不可恢复。"
+  },
+  "opt_usage_resetting": {
+    "message": "正在清零…"
+  },
+  "pop_background_unavailable": {
+    "message": "扩展后台暂时不可用，请关闭扩展弹窗后重新打开。"
+  },
+  "pop_bilingual": {
+    "message": "（双语）"
+  },
+  "pop_busy": {
+    "message": "处理中…"
+  },
+  "pop_cached": {
+    "message": "已应用本章缓存译文。"
+  },
+  "pop_cancelled": {
+    "message": "翻译已取消。"
+  },
+  "pop_chapter_only": {
+    "message": "预翻译仅适用于受支持轻小说站点的章节页"
+  },
+  "pop_chapter_site_only": {
+    "message": "预翻译仅适用于受支持轻小说站点的章节页（当前：$arg1$）。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "pop_done": {
+    "message": "已翻译为$arg1$$arg2$$arg3$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      },
+      "arg3": {
+        "content": "$3"
+      }
+    }
+  },
+  "pop_extension_page": {
+    "message": "当前标签页是扩展自身页面，无法翻译，请在普通网页上使用。"
+  },
+  "pop_failed": {
+    "message": "翻译失败"
+  },
+  "pop_failed_count": {
+    "message": "，$arg1$ 处失败",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "pop_file_access": {
+    "message": "无法访问本地文件。请在扩展详情中启用“允许访问文件网址”。"
+  },
+  "pop_follow_global": {
+    "message": "跟随全局（当前 $arg1$）",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "pop_idle": {
+    "message": "页面尚未翻译"
+  },
+  "pop_image_open": {
+    "message": "图片翻译面板已打开"
+  },
+  "pop_images": {
+    "message": "翻译可见图片"
+  },
+  "pop_images_empty": {
+    "message": "当前画面中没有找到可翻译的图片。"
+  },
+  "pop_images_running": {
+    "message": "图片翻译已在进行中，请稍候。"
+  },
+  "pop_init_failed": {
+    "message": "扩展初始化失败，请关闭后重试。"
+  },
+  "pop_invalid_sender": {
+    "message": "请从浏览器工具栏的扩展图标打开此面板来操作页面。"
+  },
+  "pop_invalid_tab": {
+    "message": "没有可操作的标签页。"
+  },
+  "pop_loading": {
+    "message": "正在读取页面状态…"
+  },
+  "pop_missing_key": {
+    "message": "尚未配置所选模型的 API Key，请在扩展设置中填写，或改用已配置 API Key 的模型。"
+  },
+  "pop_model_changed": {
+    "message": "模型已切换，请重新发起图片翻译。"
+  },
+  "pop_no_text": {
+    "message": "页面中没有找到可翻译的文本。"
+  },
+  "pop_not_detected": {
+    "message": "未检测"
+  },
+  "pop_nothing_restore": {
+    "message": "页面没有可还原的翻译内容。"
+  },
+  "pop_operation_failed": {
+    "message": "操作失败，请重试。"
+  },
+  "pop_page_access": {
+    "message": "无法访问此页面，请刷新页面后重试。"
+  },
+  "pop_page_running": {
+    "message": "整页翻译已在进行中。"
+  },
+  "pop_page_unavailable": {
+    "message": "无法在此页面使用"
+  },
+  "pop_page_unknown": {
+    "message": "页面状态未知"
+  },
+  "pop_partial": {
+    "message": "部分完成：$arg1$/$arg2$$arg3$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      },
+      "arg3": {
+        "content": "$3"
+      }
+    }
+  },
+  "pop_polish_missing_key": {
+    "message": "本站润色已开启，请先在扩展设置中配置润色模型的 API Key。"
+  },
+  "pop_polish_off": {
+    "message": "本站润色已关闭，重新翻译后生效。"
+  },
+  "pop_polish_on": {
+    "message": "本站润色已开启，重新翻译后生效。"
+  },
+  "pop_polish_warning": {
+    "message": "润色未完成：$arg1$（页面已保留初译）",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "pop_polished": {
+    "message": " · 已润色"
+  },
+  "pop_polishing": {
+    "message": "正在润色…"
+  },
+  "pop_popup_failed": {
+    "message": "扩展弹窗初始化失败，请关闭弹窗后重新打开。"
+  },
+  "pop_preparing": {
+    "message": "准备中"
+  },
+  "pop_preset_global": {
+    "message": "本站提示词预设已改为跟随全局，重新翻译后生效。"
+  },
+  "pop_preset_save_failed": {
+    "message": "保存本站提示词预设失败，请重试。"
+  },
+  "pop_preset_saved": {
+    "message": "本站提示词预设已设为 $arg1$，重新翻译后生效。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "pop_pretranslate_next": {
+    "message": "预翻译下一章"
+  },
+  "pop_pretranslate_off": {
+    "message": "预翻译下一章已关闭。"
+  },
+  "pop_pretranslate_on": {
+    "message": "预翻译下一章已开启；请翻译或重新翻译本章以应用设置。"
+  },
+  "pop_pretranslating": {
+    "message": "正在预翻译下一章"
+  },
+  "pop_pretranslation": {
+    "message": "预翻译"
+  },
+  "pop_progress": {
+    "message": "$arg1$ $arg2$/$arg3$ 段",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      },
+      "arg3": {
+        "content": "$3"
+      }
+    }
+  },
+  "pop_protected_page": {
+    "message": "此页面是浏览器内置页面或受保护页面，浏览器不允许扩展修改它，请在普通网页上使用。"
+  },
+  "pop_resources_failed": {
+    "message": "扩展资源加载失败，请重新加载扩展后重试。"
+  },
+  "pop_restore_page": {
+    "message": "还原页面"
+  },
+  "pop_resume": {
+    "message": "正在接续本章预翻译"
+  },
+  "pop_retranslate_page": {
+    "message": "重新翻译整页"
+  },
+  "pop_retranslate_settings": {
+    "message": "按新设置重新翻译"
+  },
+  "pop_retry": {
+    "message": "重试"
+  },
+  "pop_retry_failed": {
+    "message": "重试失败部分"
+  },
+  "pop_segments": {
+    "message": "$arg1$/$arg2$ 段",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "pop_selection_empty": {
+    "message": "未检测到选中的文本，请先在页面上选择文字。"
+  },
+  "pop_selection_running": {
+    "message": "划词翻译已在进行中，请稍候。"
+  },
+  "pop_site_hint": {
+    "message": "润色与预翻译仅对 $arg1$ 生效；预翻译会缓存下一章，打开下一章自动应用。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "pop_site_regular": {
+    "message": "请在普通网页上设置站点选项。"
+  },
+  "pop_site_save_failed": {
+    "message": "保存站点设置失败，请重试。"
+  },
+  "pop_site_unavailable": {
+    "message": "此页面无法使用站点设置。"
+  },
+  "pop_stage_fetch": {
+    "message": "读取章节"
+  },
+  "pop_stage_polish": {
+    "message": "润色"
+  },
+  "pop_stage_save": {
+    "message": "保存译文"
+  },
+  "pop_stage_translate": {
+    "message": "翻译"
+  },
+  "pop_state_failed": {
+    "message": "暂时无法读取页面状态，请刷新页面后重试。"
+  },
+  "pop_stop_restore": {
+    "message": "停止并还原页面"
+  },
+  "pop_tab_closed": {
+    "message": "页面已关闭。"
+  },
+  "pop_translate_failed": {
+    "message": "翻译失败，请重试。"
+  },
+  "pop_translate_page": {
+    "message": "翻译整页"
+  },
+  "pop_translated": {
+    "message": "已翻译"
+  },
+  "pop_translating": {
+    "message": "正在翻译…"
+  },
+  "pop_truncated": {
+    "message": "页面内容超出单次翻译上限，仅翻译了前面一部分。"
+  },
+  "pop_usage_title": {
+    "message": "累计 Token 使用量：$arg1$ Token（按服务商返回的使用量统计，仅供参考）",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "pop_vision_unsupported": {
+    "message": "当前模型不支持图片输入，图片翻译已禁用；请选择支持图片输入的模型。"
+  },
+  "preset_academic_description": {
+    "message": "适合论文、技术文档与教程，强调术语、论证和引用准确。"
+  },
+  "preset_academic_name": {
+    "message": "学术"
+  },
+  "preset_general_description": {
+    "message": "适合新闻、博客、论坛和日常网页，兼顾准确与流畅。"
+  },
+  "preset_general_name": {
+    "message": "常规"
+  },
+  "preset_light_novel_description": {
+    "message": "适合日轻、网文与小说，保留叙述口吻、对白节奏与角色语气。"
+  },
+  "preset_light_novel_name": {
+    "message": "轻小说"
+  },
+  "provider_custom_key_label": {
+    "message": "自定义接口 API Key"
+  },
+  "provider_custom_key_placeholder": {
+    "message": "可选，按服务要求填写"
+  },
+  "provider_custom_name": {
+    "message": "自定义 OpenAI 兼容接口"
+  },
+  "shared_custom_endpoint": {
+    "message": "请先在高级设置中填写自定义接口地址。"
+  },
+  "shared_custom_missing": {
+    "message": "所选的自定义服务商或模型已不存在，请在设置页重新添加，或改选其他模型。"
+  },
+  "shared_custom_model": {
+    "message": "请先在高级设置中填写自定义模型名称。"
+  },
+  "shared_endpoint_missing": {
+    "message": "模型 $arg1$ 缺少接口地址。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "shared_model_missing": {
+    "message": "所选模型已不存在，请在设置页改选其他模型。"
+  },
+  "shared_models_empty": {
+    "message": "没有可用的模型，请检查 profile/ 下的模型配置。"
+  },
+  "shared_provider_missing": {
+    "message": "模型 $arg1$ 的 provider 不存在。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "ui_language": {
+    "message": "zh-CN"
+  }
+}

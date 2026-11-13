@@ -1,6 +1,7 @@
 /** Page behavior for the content script. */
 (function registerContentModule(globalScope) {
   'use strict';
+  const { t } = globalScope.DSHT.i18n;
   const modules = globalScope.DSHT.contentModules ||= {};
   modules['page'] = function createModule(app) {
   const { languages, textUtils, novelUtils, MSG, LIMITS, FATAL_ERROR_CODES, page, overlay } = app;
@@ -164,7 +165,7 @@
           }
           page.progress.done += batch.length;
           page.progress.failed += batch.length;
-          if (!page.error) page.error = error.message || '部分内容翻译失败。';
+          if (!page.error) page.error = error.message || t('content_some_translation_failed');
           if (!page.errorCode) page.errorCode = error.code || '';
           if (fatal) page.abortFatal = true;
           app.renderPagePanel();
@@ -231,7 +232,7 @@
 
     if (page.translatedNodes.size === 0) {
       page.status = 'error';
-      page.error = page.error || '没有成功翻译任何内容，请稍后重试。';
+      page.error = page.error || t('content_nothing_translated');
     } else if (page.progress.failed > 0 || page.abortFatal) {
       page.status = 'partial';
     } else {
@@ -333,7 +334,7 @@
         : app.collectComposedTextRoots(document);
       page.translatedDocuments = new WeakSet(roots.map((root) => root.ownerDocument || document));
       if (roots.length === 0) {
-        throw new Error('页面还没有可翻译的内容。');
+        throw new Error(t('content_page_not_ready'));
       }
 
       const collected = app.collectTargets(roots, { bilingual });
@@ -362,7 +363,7 @@
         cacheRecord && cacheRecord.targetCode === targetCode ? cacheRecord : null;
       page.cachedPretranslation = false;
       page.targetCode = targetCode;
-      page.targetLabel = target.label;
+      page.targetLabel = globalScope.DSHT.i18n.languageLabel(target.code);
       page.bilingual = bilingual;
       page.source = source;
       page.truncated = collected.truncated;
@@ -387,7 +388,7 @@
         if (runId !== page.runId) return;
         page.phase = '';
         page.status = page.translatedNodes.size > 0 ? 'partial' : 'error';
-        page.error = error.message || '页面翻译失败。';
+        page.error = error.message || t('content_page_failed_short');
         page.errorCode = error.code || '';
         page.panelDismissed = false;
         app.renderPagePanel();
@@ -399,7 +400,7 @@
       if (runId !== page.runId) return { started: false, reason: 'cancelled' };
       page.phase = '';
       page.status = page.translatedNodes.size > 0 ? 'partial' : 'error';
-      page.error = error.message || '页面翻译失败，请稍后重试。';
+      page.error = error.message || t('content_page_failed_retry');
       page.errorCode = error.code || '';
       app.renderPagePanel();
       app.notifyBadge(page.status);
@@ -472,7 +473,7 @@
     overlay.hidePanel();
     app.notifyBadge('idle');
     if (!opts.silent && hadTranslation) {
-      overlay.showToast('已还原原始页面。', 'success');
+      overlay.showToast(t('content_page_restored'), 'success');
     }
     return hadTranslation;
   }

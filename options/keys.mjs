@@ -1,13 +1,13 @@
 // Settings-page API Key controls for the provider shown in the detail panel.
-import { CONFIRM_RESET_MS, FEEDBACK_CLEAR_MS, KEYS, KEY_MAX_LENGTH, KEY_MIN_LENGTH, MSG, state, ui } from './context.mjs';
+import { CONFIRM_RESET_MS, FEEDBACK_CLEAR_MS, KEYS, KEY_MAX_LENGTH, KEY_MIN_LENGTH, MSG, state, ui, t } from './context.mjs';
 import { isCustomProvider, providerKeyFor } from './models.mjs';
-import { getProvider, keyRequired, renderProviders, selectedProvider } from './providers.mjs';
+import { getProvider, keyRequired, providerDisplayName, renderProviders, selectedProvider } from './providers.mjs';
 import { maskKey, persist, restoreFocus, sendMessage, setFeedback } from './utils.mjs';
 
 /* ---------- 当前服务商的 API Key ---------- */
 
 function providerName(provider) {
-  return (provider && (provider.name || provider.id)) || '';
+  return providerDisplayName(provider);
 }
 
 export function renderKeyPanel(provider) {
@@ -15,7 +15,7 @@ export function renderKeyPanel(provider) {
   if (ui.providerKeyFields) ui.providerKeyFields.hidden = draft;
   if (ui.providerDraftHint) ui.providerDraftHint.hidden = !(draft && state.providerDraft);
   if (draft) {
-    ui.keyStatus.textContent = state.providerDraft ? '尚未保存' : '模型清单不可用';
+    ui.keyStatus.textContent = state.providerDraft ? t('opt_key_unsaved') : t('opt_key_registry_unavailable');
     ui.keyStatus.dataset.tone = state.providerDraft ? 'muted' : 'error';
     if (ui.testConnectionButton) ui.testConnectionButton.disabled = true;
     return;
@@ -24,35 +24,37 @@ export function renderKeyPanel(provider) {
   const required = keyRequired(provider);
   const name = providerName(provider);
 
-  if (ui.providerKeyLabel) ui.providerKeyLabel.textContent = provider.apiKeyLabel || `${name} API Key`;
-  ui.apiKeyInput.placeholder = provider.apiKeyPlaceholder || (required ? 'sk-...' : '可选，按服务要求填写');
+  const custom = isCustomProvider(provider);
+  if (ui.providerKeyLabel) ui.providerKeyLabel.textContent =
+    (!custom && provider.apiKeyLabel) || t('opt_key_label', [name]);
+  ui.apiKeyInput.placeholder = (!custom && provider.apiKeyPlaceholder) || (required ? 'sk-...' : t('opt_key_optional'));
   if (ui.apiKeyHint) {
     ui.apiKeyHint.textContent = required
-      ? '保存后此处只显示 Key 的末尾四位，不会回显明文。'
-      : '该服务不强制要求 API Key；如服务需要，请填写后保存。';
+      ? t('opt_key_saved_hidden')
+      : t('opt_key_optional_hint');
   }
   if (key) {
-    ui.keyStatus.textContent = `已保存 · ${maskKey(key)}`;
+    ui.keyStatus.textContent = t('opt_key_saved_masked', [maskKey(key)]);
     ui.keyStatus.dataset.tone = 'success';
   } else {
-    ui.keyStatus.textContent = required ? '未配置 API Key' : '无需 API Key';
+    ui.keyStatus.textContent = required ? t('opt_key_missing') : t('opt_key_not_required');
     ui.keyStatus.dataset.tone = 'muted';
   }
 
-  ui.saveKeyButton.textContent = key ? '替换 API Key' : '保存 API Key';
-  ui.saveKeyButton.setAttribute('aria-label', `${key ? '替换' : '保存'} ${name} API Key`);
+  ui.saveKeyButton.textContent = key ? t('opt_key_replace') : t('opt_key_save');
+  ui.saveKeyButton.setAttribute('aria-label', t(key ? 'opt_key_replace_named' : 'opt_key_save_named', [name]));
   ui.saveKeyButton.disabled = state.busy;
   ui.clearKeyButton.hidden = !key;
   ui.clearKeyButton.disabled = state.busy;
   if (state.confirmClear !== provider.id) {
     ui.clearKeyButton.classList.remove('is-confirming');
-    ui.clearKeyButton.textContent = '清除 API Key';
-    ui.clearKeyButton.setAttribute('aria-label', `清除本机保存的 ${name} API Key`);
+    ui.clearKeyButton.textContent = t('opt_key_clear');
+    ui.clearKeyButton.setAttribute('aria-label', t('opt_key_clear_named', [name]));
   }
   ui.apiKeyInput.disabled = state.busy;
   ui.toggleKeyVisibility.disabled = state.busy;
   if (ui.testConnectionButton) {
-    ui.testConnectionButton.setAttribute('aria-label', `测试 ${name} 连接`);
+    ui.testConnectionButton.setAttribute('aria-label', t('opt_key_test_named', [name]));
     ui.testConnectionButton.disabled = state.busy || (isCustomProvider(provider) && !provider.endpoint);
   }
 }
@@ -64,24 +66,24 @@ export function validateProviderKey(provider, raw) {
     return {
       ok: false,
       message: required
-        ? '请先输入 API Key。'
-        : '该服务不强制要求 API Key；如需清除已保存的 Key，请使用“清除 API Key”。'
+        ? t('opt_key_enter_first')
+        : t('opt_key_optional_clear_hint')
     };
   }
-  if (key.length > KEY_MAX_LENGTH) return { ok: false, message: 'API Key 过长，请检查输入。' };
+  if (key.length > KEY_MAX_LENGTH) return { ok: false, message: t('opt_key_too_long') };
   if (isCustomProvider(provider)) {
     if (/\s/.test(key) || /[\r\n]/.test(key)) {
-      return { ok: false, message: 'API Key 不能包含空白字符。' };
+      return { ok: false, message: t('opt_key_no_whitespace') };
     }
     return { ok: true, key };
   }
   const prefix = (provider && provider.apiKeyPrefix) || '';
-  if (!key.startsWith(prefix)) return { ok: false, message: `API Key 应以 ${prefix} 开头。` };
+  if (!key.startsWith(prefix)) return { ok: false, message: t('opt_key_prefix_required', [prefix]) };
   if (key.length < KEY_MIN_LENGTH) {
-    return { ok: false, message: 'API Key 长度不足，请检查是否复制完整。' };
+    return { ok: false, message: t('opt_key_too_short') };
   }
   if (!/^[A-Za-z0-9_.-]+$/.test(key)) {
-    return { ok: false, message: 'API Key 只能包含字母、数字、点、短横线和下划线。' };
+    return { ok: false, message: t('opt_key_invalid_characters') };
   }
   return { ok: true, key };
 }
@@ -112,7 +114,7 @@ export async function handleSaveKey() {
   }
 
   setKeyBusy(true);
-  setFeedback(ui.keyFeedback, '正在保存…', 'muted');
+  setFeedback(ui.keyFeedback, t('opt_key_saving'), 'muted');
   try {
     const nextKeys = Object.assign({}, state.providerKeys);
     nextKeys[providerIdValue] = validation.key;
@@ -123,9 +125,9 @@ export async function handleSaveKey() {
     if (providerIdValue === 'deepseek') state.legacyApiKey = validation.key;
     ui.apiKeyInput.value = '';
     setKeyVisibility(false);
-    setFeedback(ui.keyFeedback, `${providerName(provider)} API Key 已保存。`, 'success', FEEDBACK_CLEAR_MS);
+    setFeedback(ui.keyFeedback, t('opt_key_saved_named', [providerName(provider)]), 'success', FEEDBACK_CLEAR_MS);
   } catch (_error) {
-    setFeedback(ui.keyFeedback, '保存 API Key 失败，请重试。', 'error');
+    setFeedback(ui.keyFeedback, t('opt_key_save_failed'), 'error');
   } finally {
     setKeyBusy(false);
   }
@@ -136,8 +138,8 @@ export function setKeyVisibility(visible) {
   const name = providerName(selectedProvider());
   ui.apiKeyInput.type = visible ? 'text' : 'password';
   ui.toggleKeyVisibility.setAttribute('aria-pressed', visible ? 'true' : 'false');
-  ui.toggleKeyVisibility.setAttribute('aria-label', [visible ? '隐藏' : '显示', name, 'API Key'].filter(Boolean).join(' '));
-  ui.toggleKeyVisibility.textContent = visible ? '隐藏' : '显示';
+  ui.toggleKeyVisibility.setAttribute('aria-label', t(visible ? 'opt_key_hide_named' : 'opt_key_show_named', [name]));
+  ui.toggleKeyVisibility.textContent = visible ? t('opt_key_hide') : t('opt_key_show');
 }
 
 export function handleToggleKeyVisibility() {
@@ -151,8 +153,8 @@ export function resetClearConfirm() {
     state.clearTimer = 0;
   }
   ui.clearKeyButton.classList.remove('is-confirming');
-  ui.clearKeyButton.textContent = '清除 API Key';
-  ui.clearKeyButton.setAttribute('aria-label', `清除本机保存的 ${providerName(selectedProvider())} API Key`);
+  ui.clearKeyButton.textContent = t('opt_key_clear');
+  ui.clearKeyButton.setAttribute('aria-label', t('opt_key_clear_named', [providerName(selectedProvider())]));
 }
 
 export async function clearKey(providerIdValue) {
@@ -170,12 +172,12 @@ export async function clearKey(providerIdValue) {
     if (providerIdValue === 'deepseek') state.legacyApiKey = '';
     cleared = true;
   } catch (_error) {
-    setFeedback(ui.keyFeedback, '清除 API Key 失败，请重试。', 'error');
+    setFeedback(ui.keyFeedback, t('opt_key_clear_failed'), 'error');
   } finally {
     setKeyBusy(false);
   }
   if (!cleared) return;
-  setFeedback(ui.keyFeedback, `${providerName(provider)} API Key 已清除。`, 'success', FEEDBACK_CLEAR_MS);
+  setFeedback(ui.keyFeedback, t('opt_key_cleared_named', [providerName(provider)]), 'success', FEEDBACK_CLEAR_MS);
   ui.saveKeyButton.focus();
 }
 
@@ -186,10 +188,10 @@ export function handleClearKeyClick() {
   if (state.confirmClear !== provider.id) {
     resetClearConfirm();
     state.confirmClear = provider.id;
-    ui.clearKeyButton.textContent = '确认清除？';
+    ui.clearKeyButton.textContent = t('opt_key_confirm_clear');
     ui.clearKeyButton.classList.add('is-confirming');
-    ui.clearKeyButton.setAttribute('aria-label', `再次点击以确认清除本机保存的 ${providerName(provider)} API Key`);
-    const warning = '再次点击“确认清除？”将删除本机保存的 API Key。';
+    ui.clearKeyButton.setAttribute('aria-label', t('opt_key_confirm_clear_named', [providerName(provider)]));
+    const warning = t('opt_key_clear_warning');
     setFeedback(ui.keyFeedback, warning, 'warning');
     state.clearTimer = window.setTimeout(() => {
       resetClearConfirm();
@@ -206,12 +208,12 @@ export function testErrorMessage(error, provider) {
   const base =
     error && typeof error.message === 'string' && error.message.trim()
       ? error.message.trim()
-      : '测试连接失败，请重试。';
-  if (code === 'MISSING_API_KEY') return `${providerName(provider)} 尚未配置所需的 API Key，请先保存后再测试。`;
+      : t('opt_key_test_failed');
+  if (code === 'MISSING_API_KEY') return t('opt_key_test_missing_key', [providerName(provider)]);
   // A 403 message already names Key, region and model permission as causes.
-  if (code === 'AUTH_FAILED' && error.status !== 403) return `${base} 请检查 API Key 是否正确或已被撤销。`;
+  if (code === 'AUTH_FAILED' && error.status !== 403) return t('opt_key_test_auth_hint', [base]);
   if (code === 'BACKGROUND_UNAVAILABLE') return base;
-  if (code === 'INVALID_SENDER') return '请在扩展设置页面中执行测试连接。';
+  if (code === 'INVALID_SENDER') return t('opt_key_test_settings_only');
   return base;
 }
 
@@ -220,19 +222,19 @@ export async function handleTestConnection() {
   const provider = selectedProvider();
   if (!provider) return;
   if (keyRequired(provider) && !providerKeyFor(provider.id)) {
-    setFeedback(ui.keyFeedback, `请先保存 ${providerName(provider)} 的 API Key 后再测试连接。`, 'warning');
+    setFeedback(ui.keyFeedback, t('opt_key_test_save_first', [providerName(provider)]), 'warning');
     ui.apiKeyInput.focus();
     return;
   }
   // The test runs with the saved key, so a typed one would not be what gets tested.
   if (ui.apiKeyInput.value.trim()) {
-    setFeedback(ui.keyFeedback, '输入框中的 API Key 尚未保存，测试连接只使用已保存的 Key，请先保存后再测试。', 'warning');
+    setFeedback(ui.keyFeedback, t('opt_key_test_unsaved'), 'warning');
     ui.apiKeyInput.focus();
     return;
   }
 
   setKeyBusy(true);
-  setFeedback(ui.keyFeedback, `正在测试 ${providerName(provider)} 连接…`, 'muted');
+  setFeedback(ui.keyFeedback, t('opt_key_testing_named', [providerName(provider)]), 'muted');
   const response = await sendMessage({ type: MSG.TEST_CONNECTION, providerId: provider.id });
   setKeyBusy(false);
 
@@ -240,16 +242,16 @@ export async function handleTestConnection() {
     const error =
       response && response.error
         ? response.error
-        : { code: 'UNKNOWN_ERROR', message: '测试连接失败，请重试。' };
+        : { code: 'UNKNOWN_ERROR', message: t('opt_key_test_failed') };
     setFeedback(ui.keyFeedback, testErrorMessage(error, provider), 'error');
     return;
   }
 
-  const parts = [`${providerName(provider)} 连接成功`];
+  const parts = [t('opt_key_test_success', [providerName(provider)])];
   if (typeof response.modelName === 'string' && response.modelName) parts.push(response.modelName);
-  if (Number.isFinite(response.latencyMs)) parts.push(`耗时 ${Math.round(response.latencyMs)} ms`);
-  if (response.modelAvailable === true) parts.push('模型可用');
-  else if (response.modelAvailable === false) parts.push('但模型列表中未找到当前模型，请确认账户权限');
+  if (Number.isFinite(response.latencyMs)) parts.push(t('opt_key_test_latency', [Math.round(response.latencyMs)]));
+  if (response.modelAvailable === true) parts.push(t('opt_key_model_available'));
+  else if (response.modelAvailable === false) parts.push(t('opt_key_model_missing'));
   const tone = response.modelAvailable === false ? 'warning' : 'success';
-  setFeedback(ui.keyFeedback, `${parts.join(' · ')}。`, tone);
+  setFeedback(ui.keyFeedback, t('opt_key_test_result', [parts.join(' · ')]), tone);
 }

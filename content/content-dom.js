@@ -1,6 +1,7 @@
 /** Dom behavior for the content script. */
 (function registerContentModule(globalScope) {
   'use strict';
+  const { t } = globalScope.DSHT.i18n;
   const modules = globalScope.DSHT.contentModules ||= {};
   modules['dom'] = function createModule(app) {
   const { detect, textUtils, LIMITS, page } = app;
@@ -288,7 +289,7 @@
     const result = detect.detectPageLanguage(sample, document.documentElement.lang || '');
     const value = {
       code: result.code,
-      label: result.label || '未知',
+      label: globalScope.DSHT.i18n.languageLabel(result.code),
       confidence: result.confidence || 0,
       mixed: Boolean(result.mixed)
     };
@@ -305,7 +306,7 @@
     const result = detect.detectPageLanguage(sample, document.documentElement.lang || '');
     return {
       code: result.code,
-      label: result.label || '未知',
+      label: globalScope.DSHT.i18n.languageLabel(result.code),
       confidence: result.confidence || 0,
       mixed: Boolean(result.mixed)
     };
@@ -325,9 +326,9 @@
       // Ignore DOM inspection failures.
     }
     if (inaccessibleIframes > 0) {
-      return '没有找到可翻译的文本。正文可能位于受保护的跨域 iframe 中：可尝试在邮件客户端中选择“在新窗口打开”邮件，或直接选中正文使用划词翻译。';
+      return t('content_no_text_iframe');
     }
-    return '没有找到可翻译的文本。';
+    return t('content_no_translatable_text');
   }
 
   function collectTargets(rootOrRoots, options) {

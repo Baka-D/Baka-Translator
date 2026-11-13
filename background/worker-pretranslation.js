@@ -11,7 +11,7 @@ function pretranslationRequest(message, sender) {
   if (!sender || !sender.tab || !Number.isInteger(sender.tab.id) || sender.tab.id < 0 ||
       !source || !source.isChapter || !chapter || !chapter.isChapter ||
       source.siteId !== chapter.siteId || source.workId !== chapter.workId) {
-    throw new PageAccessError('INVALID_SENDER', '只能预翻译当前小说作品的章节。');
+    throw new PageAccessError('INVALID_SENDER', t('bg_pretranslation_work_only'));
   }
   const targetCode = validateTargetCode(message.targetCode);
   const cacheKey = pretranslationNovel.cacheKeyForChapter(chapter);
@@ -20,23 +20,23 @@ function pretranslationRequest(message, sender) {
 
 function pretranslationSegments(value) {
   if (!Array.isArray(value) || !value.length || value.length > LIMITS.PAGE_MAX_NODES) {
-    throw new PageAccessError('INVALID_REQUEST', '下一章文本为空或片段过多。');
+    throw new PageAccessError('INVALID_REQUEST', t('bg_next_chapter_empty'));
   }
   let chars = 0;
   const ids = new Set();
   const segments = value.map((segment) => {
     if (!segment || segment.id === undefined || typeof segment.text !== 'string' ||
         !segment.text.trim() || segment.text.length > LIMITS.API_MAX_SEGMENT_CHARS) {
-      throw new PageAccessError('INVALID_REQUEST', '下一章文本格式不正确或片段过长。');
+      throw new PageAccessError('INVALID_REQUEST', t('bg_next_chapter_invalid'));
     }
     const id = String(segment.id);
-    if (!id || ids.has(id)) throw new PageAccessError('INVALID_REQUEST', '下一章文本片段编号重复。');
+    if (!id || ids.has(id)) throw new PageAccessError('INVALID_REQUEST', t('bg_next_chapter_duplicate_ids'));
     ids.add(id);
     chars += segment.text.length;
     return { id, text: segment.text };
   });
   if (chars > LIMITS.NOVEL_PRETRANSLATE_MAX_CHARS) {
-    throw new PageAccessError('TEXT_TOO_LONG', '下一章过长，跳过预翻译。');
+    throw new PageAccessError('TEXT_TOO_LONG', t('bg_next_chapter_too_long'));
   }
   return segments;
 }
@@ -60,7 +60,7 @@ function stopPretranslation(job) {
   if (!job) return;
   job.cancelled = true;
   job.status = 'none';
-  job.note = '已停止预翻译。';
+  job.note = t('bg_pretranslation_stopped');
 }
 
 function trimPretranslationJobs() {
@@ -122,7 +122,7 @@ function savePretranslationCache(job, polished) {
     if (!pretranslationActive(job)) return false;
     const record = pretranslationRecord(job, polished);
     if (!record || record.entries.length !== job.segments.length) {
-      throw new PageAccessError('INCOMPLETE_TRANSLATION', '下一章翻译结果不完整。');
+      throw new PageAccessError('INCOMPLETE_TRANSLATION', t('bg_next_chapter_incomplete'));
     }
     await chrome.storage.local.set({ [job.cacheKey]: record });
     job.hasDraft = true;
@@ -146,7 +146,7 @@ function addPretranslationResult(job, result, segments) {
   }
   addPretranslationCost(job, result.billing);
   for (const billing of result.discardedBilling || []) addPretranslationCost(job, billing);
-  if (expected.size) throw new PageAccessError('INCOMPLETE_TRANSLATION', '下一章翻译结果不完整。');
+  if (expected.size) throw new PageAccessError('INCOMPLETE_TRANSLATION', t('bg_next_chapter_incomplete'));
 }
 
 function mergeTranslationBatchResults(first, second) {
@@ -207,7 +207,7 @@ async function translatePretranslationBatch(job, batch, depth = 0) {
   // Keep what came back and ask again only for the ids the model skipped.
   const missing = new Set(result.missing);
   if (missing.size === 0 || !pretranslationActive(job)) return result;
-  if (depth >= 2) throw new PageAccessError('INCOMPLETE_TRANSLATION', '下一章翻译结果不完整。');
+  if (depth >= 2) throw new PageAccessError('INCOMPLETE_TRANSLATION', t('bg_next_chapter_incomplete'));
   const rest = batch.filter((segment) => missing.has(segment.id));
   return mergeTranslationBatchResults(
     result,
@@ -245,7 +245,7 @@ async function polishPretranslation(job) {
     id: segment.id, original: segment.text, translation: job.translations.get(segment.id)
   }));
   job.progress = { stage: 'polishing', done: 0, total: pairs.length };
-  job.note = '初译已缓存，正在润色下一章…';
+  job.note = t('bg_next_chapter_polishing');
   // Keep the outer chunk loop so the pretranslation panel advances its
   // progress between chunks. handlePolishSegments parallelizes the inner
   // chunks of each slice.
@@ -276,7 +276,7 @@ async function runPretranslation(job) {
     const hostname = hostnameFromSender(job.sender);
     const settings = await readSettings();
     if (job.translationKey && job.translationKey !== config.translationCacheKey(settings, job.targetCode, hostname)) {
-      throw new PageAccessError('SETTINGS_CHANGED', '翻译设置已更改，请重新开始本章翻译。');
+      throw new PageAccessError('SETTINGS_CHANGED', t('bg_translation_settings_changed'));
     }
     const cached = await readPretranslationCache(job);
     if (!pretranslationActive(job)) return;
@@ -284,7 +284,7 @@ async function runPretranslation(job) {
         pretranslationNovel.mapCachedTranslations(job.segments, cached.entries).complete) {
       job.status = 'ready';
       job.progress = { stage: 'saving', done: job.segments.length, total: job.segments.length };
-      job.note = cached.polished ? '下一章已有完整预翻译缓存。' : '下一章已有完整初译缓存。';
+      job.note = cached.polished ? t('bg_next_chapter_cached') : t('bg_next_chapter_draft_cached');
       return;
     }
     // Every batch belongs to the same settings snapshot as the chapter's cache key.
@@ -300,19 +300,19 @@ async function runPretranslation(job) {
     await translatePretranslationBatches(job);
     if (!pretranslationActive(job)) return;
     job.progress.stage = 'saving';
-    job.note = '正在保存下一章初译…';
+    job.note = t('bg_next_chapter_saving_draft');
     await savePretranslationCache(job, false);
     if (!pretranslationActive(job)) return;
     if (job.polish) {
       await polishPretranslation(job);
       if (!pretranslationActive(job)) return;
       job.progress.stage = 'saving';
-      job.note = '正在保存下一章润色结果…';
+      job.note = t('bg_next_chapter_saving_polish');
       await savePretranslationCache(job, true);
       if (!pretranslationActive(job)) return;
     }
     job.status = 'ready';
-    job.note = job.polish ? '下一章预翻译及润色已完成。' : '下一章预翻译已完成。';
+    job.note = job.polish ? t('bg_next_chapter_polish_done') : t('bg_next_chapter_done');
   } catch (error) {
     const superseded = () => job.cancelled || pretranslationOwners.get(job.cacheKey) !== job;
     if (superseded()) return;
@@ -322,8 +322,8 @@ async function runPretranslation(job) {
     if (superseded()) return;
     job.status = job.hasDraft ? 'ready' : 'error';
     job.note = job.hasDraft
-      ? `下一章初译已缓存，润色未完成：${detail.message}`
-      : `预翻译下一章失败：${detail.message}`;
+      ? t('bg_next_chapter_polish_failed', [detail.message])
+      : t('bg_next_chapter_failed', [detail.message]);
     if (!job.hasDraft) job.error = detail;
   }
 }
@@ -350,7 +350,7 @@ async function handlePretranslateChapter(message, sender) {
     polish: message.polish === true,
     translationKey,
     status: 'running', progress: { stage: 'translating', done: 0, total: segments.length },
-    note: '正在预翻译下一章…', translations: new Map(), costUsd: 0,
+    note: t('bg_next_chapter_running'), translations: new Map(), costUsd: 0,
     hasDraft: false, failed: false, cancelled: false
   };
   pretranslationJobs.set(request.key, job);
@@ -376,10 +376,10 @@ async function saveChapterCache(message, sender) {
     entries
   });
   if (!record || record.entries.length !== entries.length) {
-    throw new PageAccessError('INCOMPLETE_TRANSLATION', '本章翻译结果不完整。');
+    throw new PageAccessError('INCOMPLETE_TRANSLATION', t('bg_chapter_incomplete'));
   }
   const chars = record.entries.reduce((sum, entry) => sum + entry.source.length, 0);
-  if (chars > LIMITS.PAGE_MAX_CHARS) throw new PageAccessError('TEXT_TOO_LONG', '本章过长，跳过缓存。');
+  if (chars > LIMITS.PAGE_MAX_CHARS) throw new PageAccessError('TEXT_TOO_LONG', t('bg_chapter_cache_too_long'));
   let saved = false;
   pretranslationCacheWrites = pretranslationCacheWrites.catch(() => {}).then(async () => {
     // A chapter has one slot; another language's paid translation keeps it until it expires.
@@ -407,7 +407,7 @@ async function getPretranslation(message, sender) {
   return {
     status: 'ready',
     progress: { stage: 'saving', done: cached.entries.length, total: cached.entries.length },
-    note: cached.polished ? '本章已有预翻译缓存。' : '本章已有初译缓存。'
+    note: cached.polished ? t('bg_chapter_cached') : t('bg_chapter_draft_cached')
   };
 }
 

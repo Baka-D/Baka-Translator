@@ -3,6 +3,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
+const { createLocalizedContext } = require('./i18n');
 
 function createElement(tag) {
   const listeners = new Map();
@@ -70,13 +71,13 @@ function find(node, className) {
   return node.children.map((child) => find(child, className)).find(Boolean);
 }
 
-function loadOverlay(callbacks = {}) {
+function loadOverlay(callbacks = {}, options = {}) {
   const documentElement = createElement('html');
-  const context = vm.createContext({
+  const context = createLocalizedContext({
     document: { documentElement, createElement, addEventListener() {} },
     window: { innerWidth: 1200, innerHeight: 800 }, navigator: {},
     CSSStyleSheet: class { replaceSync() {} }, setTimeout, clearTimeout
-  });
+  }, options);
   for (const file of [
     'overlay-style-base.js', 'overlay-style-images.js', 'overlay-ui.js',
     'overlay-panel.js', 'overlay-bubble.js', 'overlay-images.js', 'overlay.js'

@@ -1,5 +1,5 @@
 /** Page state polling and translation / restore commands. */
-import { languages, POLL_INTERVAL_MS, PRETRANSLATE_POLL_MS, VISION_NOTICE_TEXT, ui, state } from './popup-state.mjs';
+import { t, i18n, languages, POLL_INTERVAL_MS, PRETRANSLATE_POLL_MS, VISION_NOTICE_TEXT, ui, state } from './popup-state.mjs';
 import { errorText, pageCommand } from './popup-transport.mjs';
 import { render, computeMainAction } from './popup-view.mjs';
 
@@ -117,7 +117,7 @@ function applyStateResponse(response) {
   const raw = extractInfo(response);
   if (!raw) {
     if (!state.info) {
-      state.pageMessage = { tone: 'warning', message: '暂时无法读取页面状态，请刷新页面后重试。' };
+      state.pageMessage = { tone: 'warning', message: t('pop_state_failed') };
     }
     render();
     return;
@@ -227,11 +227,11 @@ async function startPageTranslation() {
 
   if (response.started === false) {
     if (response.reason === 'running') {
-      state.pageMessage = { tone: 'info', message: '整页翻译已在进行中。' };
+      state.pageMessage = { tone: 'info', message: t('pop_page_running') };
     } else if (response.reason === 'cancelled') {
-      state.pageMessage = { tone: 'info', message: '翻译已取消。' };
+      state.pageMessage = { tone: 'info', message: t('pop_cancelled') };
     } else {
-      state.pageMessage = { tone: 'warning', message: '页面中没有找到可翻译的文本。' };
+      state.pageMessage = { tone: 'warning', message: t('pop_no_text') };
     }
     if (state.info) state.info = Object.assign({}, state.info, { status: 'idle' });
     render();
@@ -261,7 +261,7 @@ async function restorePage() {
   }
 
   if (response.restored === false || response.hadTranslation === false) {
-    state.pageMessage = { tone: 'info', message: '页面没有可还原的翻译内容。' };
+    state.pageMessage = { tone: 'info', message: t('pop_nothing_restore') };
     await refreshState();
     return;
   }
@@ -325,7 +325,7 @@ async function runQuickCommand(kind) {
   if (response.started === false) {
     let message;
     if (kind === 'images' && response.reason === 'model-changed') {
-      state.pageMessage = { tone: 'info', message: '模型已切换，请重新发起图片翻译。' };
+      state.pageMessage = { tone: 'info', message: t('pop_model_changed') };
       render();
       return;
     }
@@ -337,12 +337,12 @@ async function runQuickCommand(kind) {
       return;
     } else if (response.reason === 'running') {
       message =
-        kind === 'selection' ? '划词翻译已在进行中，请稍候。' : '图片识别已在进行中，请稍候。';
+        kind === 'selection' ? t('pop_selection_running') : t('pop_images_running');
     } else {
       message =
         kind === 'selection'
-          ? '未检测到选中的文本，请先在页面上选择文字。'
-          : '当前画面中没有找到可翻译的图片。';
+          ? t('pop_selection_empty')
+          : t('pop_images_empty');
     }
     state.pageMessage = { tone: 'warning', message };
     render();

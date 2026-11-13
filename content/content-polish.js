@@ -1,6 +1,7 @@
 /** Proofreading pass for the content script. */
 (function registerContentModule(globalScope) {
   'use strict';
+  const { t } = globalScope.DSHT.i18n;
   const modules = globalScope.DSHT.contentModules ||= {};
   modules['polish'] = function createModule(app) {
   const { textUtils, MSG, LIMITS, page } = app;
@@ -124,7 +125,7 @@
         } catch (error) {
           if (runId !== page.runId) return;
           if (error.code === 'PAGE_CHANGED') throw error;
-          failures.push((error && error.message) || '润色失败，已保留初译。');
+          failures.push((error && error.message) || t('content_polish_failed_draft_kept'));
           page.polishProgress.failed += 1;
         }
         if (runId !== page.runId) return;
@@ -144,9 +145,9 @@
         if (chunks.length === 1) {
           page.polishError = failures[0];
         } else if (failures.length === chunks.length) {
-          page.polishError = `润色失败：${failures[0]}`;
+          page.polishError = t('content_polish_failure_detail', [failures[0]]);
         } else {
-          page.polishError = `部分润色未完成（${failures.length}/${chunks.length} 块）：${failures[0]}`;
+          page.polishError = t('content_polish_partial_detail', [failures.length, chunks.length, failures[0]]);
         }
       }
     } finally {

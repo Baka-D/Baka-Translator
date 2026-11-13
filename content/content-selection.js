@@ -1,6 +1,7 @@
 /** Selection behavior for the content script. */
 (function registerContentModule(globalScope) {
   'use strict';
+  const { t } = globalScope.DSHT.i18n;
   const modules = globalScope.DSHT.contentModules ||= {};
   modules['selection'] = function createModule(app) {
   const { languages, detect, MSG, LIMITS, bubble, overlay } = app;
@@ -61,8 +62,8 @@
   function selectionDirection(source, targetCode) {
     const target = languages.getTargetLanguage(targetCode);
     const sourceLabel =
-      source && source.label && source.label !== '未知' ? source.label : '自动检测';
-    return `${sourceLabel} → ${target ? target.label : '目标语言'}`;
+      source && source.code && source.code !== 'unknown' ? globalScope.DSHT.i18n.languageLabel(source.code) : t('content_auto_detect');
+    return `${sourceLabel} → ${target ? globalScope.DSHT.i18n.languageLabel(target.code) : t('content_target_language')}`;
   }
 
   function renderBubbleLoading() {
@@ -106,7 +107,7 @@
       original: bubble.text,
       targetCode: bubble.targetCode,
       translation: '',
-      error: (error && error.message) || '翻译失败，请重试。',
+      error: (error && error.message) || t('content_translation_failed'),
       canRetry: true,
       showSettings: app.isSettingsError(error && error.code),
       rect: bubble.rect
@@ -125,7 +126,7 @@
       const item = Array.isArray(response.translations) ? response.translations[0] : null;
       const translation = item && typeof item.text === 'string' ? item.text.trim() : '';
       if (!translation) {
-        const error = new Error('该段文本没有返回译文，请重试。');
+        const error = new Error(t('content_selection_empty_result'));
         error.code = 'EMPTY_SELECTION_TRANSLATION';
         renderBubbleError(error);
         return;
@@ -143,14 +144,14 @@
     let text = typeof request.text === 'string' ? request.text.trim() : '';
     if (!text) text = selection.text;
     if (!text) {
-      overlay.showToast('请先在网页中选中要翻译的文本。', 'info');
+      overlay.showToast(t('content_select_text_notice'), 'info');
       return {
         ok: false,
-        error: { code: 'NO_SELECTION', message: '请先选中要翻译的文本。' }
+        error: { code: 'NO_SELECTION', message: t('content_select_text') }
       };
     }
     if (text.length > LIMITS.SELECTION_MAX_CHARS) {
-      const messageText = `选中文本过长，最多支持 ${LIMITS.SELECTION_MAX_CHARS} 个字符，请分段选择。`;
+      const messageText = t('content_selection_too_long', [LIMITS.SELECTION_MAX_CHARS]);
       overlay.showToast(messageText, 'error');
       return {
         ok: false,

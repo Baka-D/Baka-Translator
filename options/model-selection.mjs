@@ -1,5 +1,5 @@
 // Settings-page model selection.
-import { KEYS, config, fallback, modelsTools, visionTools, state, ui } from './context.mjs';
+import { t, KEYS, config, fallback, modelsTools, visionTools, state, ui } from './context.mjs';
 import { renderProviders } from './providers.mjs';
 import { polishInheritsModel, polishModel, populateEffortSelect, populateModelSelect, populatePolishEffortSelect, populateProviderSelects, renderMetaAbout, renderModelDetails, renderPolishModelDetails, translationModel } from './models.mjs';
 import { isObject, persist, setFeedback } from './utils.mjs';
@@ -77,8 +77,8 @@ export async function loadRegistry() {
   } catch (_error) {
     state.baseRegistry = buildFallbackRegistry(state.snapshot);
     state.registryError = state.baseRegistry
-      ? '模型清单加载失败，已使用后台兜底配置（功能可能受限）。'
-      : '模型清单加载失败，请在扩展详情中检查 profile/ 下的配置后重新加载扩展。';
+      ? t('opt_registry_fallback')
+      : t('opt_registry_failed');
   }
   applyCustomProviders();
   renderModelsLoadError();
@@ -116,11 +116,11 @@ export function normalizeTranslationSelection() {
   if (modelsTools.isCustomModelId(state.modelId) && !modelsTools.getModel(state.registry, state.modelId)) {
     setFeedback(
       ui.behaviorFeedback,
-      '原先选用的自定义服务商或模型已不存在：翻译会停用，直到你在「常规 → 服务商」重新添加它或在此改选其他模型（选择后立即生效）。',
+      t('opt_custom_selection_missing'),
       'warning'
     );
   } else if (state.modelId && !modelsTools.getModel(state.registry, state.modelId)) {
-    setFeedback(ui.behaviorFeedback, '原先选用的模型已不存在：翻译会停用，直到你在此改选模型（选择后立即生效）。', 'warning');
+    setFeedback(ui.behaviorFeedback, t('opt_selection_missing'), 'warning');
   }
   let model = modelsTools.getModel(state.registry, state.modelId);
   if (!model) model = modelsTools.getModel(state.registry, snapshotFallbackModelId('translation'));
@@ -256,7 +256,7 @@ export function applyResolvedModel() {
       ui.polishEffortSelect.disabled = true;
     }
     renderProviders();
-    if (ui.modelDetails) ui.modelDetails.textContent = '请修复 profile/ 下的配置后重新加载扩展。';
+    if (ui.modelDetails) ui.modelDetails.textContent = t('opt_registry_repair');
     if (ui.polishModelDetails) ui.polishModelDetails.textContent = '—';
     return;
   }

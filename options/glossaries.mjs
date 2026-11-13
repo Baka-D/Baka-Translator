@@ -1,5 +1,5 @@
 // Novel glossary editor for the advanced settings tab.
-import { FEEDBACK_CLEAR_MS, state, ui } from './context.mjs';
+import { FEEDBACK_CLEAR_MS, i18n, state, t, ui } from './context.mjs';
 import {
   GLOSSARY_PREFIX, describeGlossary, glossaryPageRange, normalizeGlossaryRows, readGlossaryStorage
 } from './glossary-data.mjs';
@@ -28,7 +28,7 @@ export async function loadGlossaries() {
     .sort((left, right) =>
       `${left.siteName}\u0000${left.title}\u0000${left.targetLabel}`.localeCompare(
         `${right.siteName}\u0000${right.title}\u0000${right.targetLabel}`,
-        'zh-CN'
+        i18n.locale
       )
     );
   return state.glossaries;
@@ -49,7 +49,7 @@ function resetClearButton() {
     state.glossaryClearTimer = 0;
   }
   if (ui.glossaryClearButton) {
-    ui.glossaryClearButton.textContent = '清空术语库';
+    ui.glossaryClearButton.textContent = t('opt_glossary_clear');
     ui.glossaryClearButton.classList.remove('is-confirming');
     ui.glossaryClearButton.removeAttribute('aria-label');
   }
@@ -75,13 +75,13 @@ function renderGlossaryList() {
     title.textContent = entry.title;
     const meta = document.createElement('span');
     meta.className = 'glossary-meta';
-    meta.textContent = `${entry.siteName} · ${entry.targetLabel} · ${entry.terms.length} 条术语`;
+    meta.textContent = t('opt_glossary_list_meta', [entry.siteName, entry.targetLabel, entry.terms.length]);
     info.append(title, meta);
 
     const actions = document.createElement('div');
     actions.className = 'glossary-actions';
     // The list's click handler opens it, after asking about unsaved edits.
-    const edit = makeButton('编辑', 'button button-secondary button-compact', null, `编辑 ${entry.title} 的术语库`);
+    const edit = makeButton(t('opt_glossary_edit'), 'button button-secondary button-compact', null, t('opt_glossary_edit_work', [entry.title]));
     edit.dataset.glossaryEdit = entry.key;
     actions.append(edit);
 
@@ -191,7 +191,7 @@ function showGlossaryPage(requested) {
   ui.glossaryPager.hidden = draft.length <= GLOSSARY_MIN_PAGE_SIZE;
   ui.glossaryPageInput.value = String(page + 1);
   ui.glossaryPageInput.max = String(pages);
-  ui.glossaryPageTotal.textContent = `/ ${pages} 页 · 共 ${draft.length} 条`;
+  ui.glossaryPageTotal.textContent = t('opt_glossary_page_total', [pages, draft.length]);
   ui.glossaryPrevButton.disabled = page === 0;
   ui.glossaryNextButton.disabled = page === pages - 1;
 }
@@ -226,7 +226,7 @@ function showGlossaryRowError({ error, row, other }) {
   alert.setAttribute('role', 'alert');
   alert.textContent = error;
   if (Number.isInteger(other)) {
-    alert.append(' ', makeButton(`跳到第 ${other + 1} 行`, 'button button-secondary button-compact', () => {
+    alert.append(' ', makeButton(t('opt_glossary_jump_row', [other + 1]), 'button button-secondary button-compact', () => {
       syncGlossaryDraft();
       focusGlossaryRow(other);
     }));
@@ -279,7 +279,7 @@ function hasUnsavedGlossaryEdits() {
 
 function confirmDiscardGlossaryEdits() {
   return !hasUnsavedGlossaryEdits() ||
-    window.confirm('术语库有未保存的修改，继续操作会丢失这些修改。确定继续吗？');
+    window.confirm(t('opt_glossary_discard_confirm'));
 }
 
 function addGlossaryTermRow() {
@@ -312,7 +312,7 @@ async function saveGlossary(rowIndex) {
   const title = (rawTitle || entry.title || entry.workId).slice(0, 200);
   const finish = beginGlossaryOperation();
   let saved = false;
-  setFeedback(ui.glossaryFeedback, '正在保存术语库…', '');
+  setFeedback(ui.glossaryFeedback, t('opt_glossary_saving'), '');
   try {
     const result = await editGlossary(entry, 'save', {
       terms: normalized.terms,
@@ -320,7 +320,7 @@ async function saveGlossary(rowIndex) {
       title,
       expectedTidyAt: openedTidyAt
     });
-    setFeedback(ui.glossaryFeedback, `已保存 ${result.count} 条术语和作品名称，对之后发起的翻译生效。`, 'success', FEEDBACK_CLEAR_MS);
+    setFeedback(ui.glossaryFeedback, t('opt_glossary_saved', [result.count]), 'success', FEEDBACK_CLEAR_MS);
     await loadGlossaries();
     renderGlossaryList();
     renderGlossaryEditor();
@@ -333,7 +333,7 @@ async function saveGlossary(rowIndex) {
       renderGlossaryList();
       showSaveError(error.message, rowIndex);
     } else {
-      showSaveError('保存术语库失败，请重试或检查扩展存储空间。', rowIndex);
+      showSaveError(t('opt_glossary_save_failed'), rowIndex);
     }
   } finally {
     finish();
@@ -347,23 +347,23 @@ async function clearGlossary() {
   if (!entry) return;
   if (!state.glossaryClearArmed) {
     state.glossaryClearArmed = true;
-    ui.glossaryClearButton.textContent = '确认清空？';
+    ui.glossaryClearButton.textContent = t('opt_glossary_clear_confirm');
     ui.glossaryClearButton.classList.add('is-confirming');
-    ui.glossaryClearButton.setAttribute('aria-label', '再次点击以确认清空该作品的术语库');
+    ui.glossaryClearButton.setAttribute('aria-label', t('opt_glossary_clear_confirm_label'));
     state.glossaryClearTimer = window.setTimeout(resetClearButton, CLEAR_CONFIRM_MS);
     return;
   }
   resetClearButton();
   const finish = beginGlossaryOperation();
-  setFeedback(ui.glossaryFeedback, '正在清空术语库…', '');
+  setFeedback(ui.glossaryFeedback, t('opt_glossary_clearing'), '');
   try {
     await editGlossary(entry, 'clear');
     await loadGlossaries();
     closeGlossaryEditor();
     renderGlossaryList();
-    setFeedback(ui.glossaryFeedback, '术语库已清空。', 'success', FEEDBACK_CLEAR_MS);
+    setFeedback(ui.glossaryFeedback, t('opt_glossary_cleared'), 'success', FEEDBACK_CLEAR_MS);
   } catch (_error) {
-    setFeedback(ui.glossaryFeedback, '清空术语库失败，请重试。', 'error');
+    setFeedback(ui.glossaryFeedback, t('opt_glossary_clear_failed'), 'error');
   } finally {
     finish();
   }
@@ -427,9 +427,9 @@ export function wireGlossaryEvents() {
         try {
           await loadGlossaries();
           renderGlossaryList();
-          setFeedback(ui.glossaryFeedback, '术语库列表已刷新。', 'success', FEEDBACK_CLEAR_MS);
+          setFeedback(ui.glossaryFeedback, t('opt_glossary_refreshed'), 'success', FEEDBACK_CLEAR_MS);
         } catch (_error) {
-          setFeedback(ui.glossaryFeedback, '读取术语库失败，请重试。', 'error');
+          setFeedback(ui.glossaryFeedback, t('opt_glossary_load_failed'), 'error');
         }
       })();
     });
@@ -441,7 +441,7 @@ export async function initGlossaries() {
   try {
     await loadGlossaries();
   } catch (_error) {
-    setFeedback(ui.glossaryFeedback, '读取术语库失败，请重试。', 'error');
+    setFeedback(ui.glossaryFeedback, t('opt_glossary_load_failed'), 'error');
     state.glossaries = [];
   }
   renderGlossaryList();

@@ -4,40 +4,42 @@
  */
 (function initLanguages(globalScope) {
   'use strict';
+  const i18n = globalScope.DSHT?.i18n ||
+    (typeof require === 'function' ? require('./i18n.js') : null);
 
   const TARGET_LANGUAGES = Object.freeze([
     Object.freeze({
       code: 'zh',
-      label: '中文',
-      shortLabel: '中',
+      label: i18n.languageLabel('zh'),
+      shortLabel: i18n.t('language_short_zh'),
       promptName: 'Simplified Chinese',
       nativeName: '简体中文'
     }),
     Object.freeze({
       code: 'en',
-      label: '英语',
-      shortLabel: '英',
+      label: i18n.languageLabel('en'),
+      shortLabel: i18n.t('language_short_en'),
       promptName: 'English',
       nativeName: 'English'
     }),
     Object.freeze({
       code: 'ko',
-      label: '韩语',
-      shortLabel: '韩',
+      label: i18n.languageLabel('ko'),
+      shortLabel: i18n.t('language_short_ko'),
       promptName: 'Korean',
       nativeName: '한국어'
     }),
     Object.freeze({
       code: 'ja',
-      label: '日语',
-      shortLabel: '日',
+      label: i18n.languageLabel('ja'),
+      shortLabel: i18n.t('language_short_ja'),
       promptName: 'Japanese',
       nativeName: '日本語'
     }),
     Object.freeze({
       code: 'ru',
-      label: '俄语',
-      shortLabel: '俄',
+      label: i18n.languageLabel('ru'),
+      shortLabel: i18n.t('language_short_ru'),
       promptName: 'Russian',
       nativeName: 'Русский'
     })
@@ -56,7 +58,7 @@
 
   function getLanguageLabel(code) {
     const language = getTargetLanguage(code);
-    return language ? language.label : '未知';
+    return language ? language.label : i18n.languageLabel('unknown');
   }
 
   const api = Object.freeze({

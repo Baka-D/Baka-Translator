@@ -3,7 +3,8 @@
   "name": "Baka Translator",
   "short_name": "BakaTslt",
   "version": "1.1.6",
-  "description": "Baka Translator：一个网页翻译与润色扩展，支持整页、划词、图片翻译。",
+  "description": "__MSG_extension_description__",
+  "default_locale": "zh_CN",
   "minimum_chrome_version": "116",
   "permissions": [
     "activeTab",
@@ -22,6 +23,7 @@
     {
       "matches": ["https://ncode.syosetu.com/*", "https://kakuyomu.jp/*"],
       "js": [
+        "shared/i18n.js",
         "shared/config.js",
         "shared/languages.js",
         "shared/detect.js",
@@ -85,19 +87,19 @@
       "suggested_key": {
         "default": "Alt+Shift+Y"
       },
-      "description": "翻译 / 还原当前页面"
+      "description": "__MSG_command_translate_page__"
     },
     "translate-selection": {
       "suggested_key": {
         "default": "Alt+Shift+S"
       },
-      "description": "翻译选中的文本"
+      "description": "__MSG_command_translate_selection__"
     },
     "translate-images": {
       "suggested_key": {
         "default": "Alt+Shift+U"
       },
-      "description": "翻译当前画面中的图片"
+      "description": "__MSG_command_translate_images__"
     }
   }
 }

@@ -1,6 +1,7 @@
 /** Page ui behavior for the content script. */
 (function registerContentModule(globalScope) {
   'use strict';
+  const { t } = globalScope.DSHT.i18n;
   const modules = globalScope.DSHT.contentModules ||= {};
   modules['page-ui'] = function createModule(app) {
   const { SETTINGS_ERROR_CODES, page, imageJob, overlay } = app;
@@ -51,7 +52,7 @@
   function errorPayload(error) {
     return {
       code: (error && error.code) || 'UNKNOWN_ERROR',
-      message: (error && error.message) || '发生未知错误，请重试。'
+      message: (error && error.message) || t('content_unknown_error')
     };
   }
 
@@ -89,13 +90,13 @@
 
   function pretranslationDisplay() {
     const progress = page.pretranslationProgress || {};
-    const stages = { fetching: '读取章节', translating: '翻译', polishing: '润色', saving: '保存译文' };
+    const stages = { fetching: t('content_stage_fetch'), translating: t('content_stage_translate'), polishing: t('content_stage_polish'), saving: t('content_stage_save') };
     const total = Math.max(0, Number(progress.total) || 0);
     const done = Math.max(0, Math.min(total, Number(progress.done) || 0));
     return {
       active: page.pretranslationStatus === 'running',
-      title: page.pretranslationScope === 'current' ? '正在接续本章预翻译' : '正在预翻译下一章',
-      detail: `${stages[progress.stage] || '准备中'}${total > 0 ? ` ${done}/${total} 段` : '…'}`,
+      title: page.pretranslationScope === 'current' ? t('content_resume_chapter') : t('content_next_chapter_pretranslating'),
+      detail: t('content_stage_progress', [stages[progress.stage] || t('content_preparing'), total > 0 ? t('content_segment_progress', [done, total]) : '…']),
       showProgress: total > 0,
       ratio: total > 0 ? done / total : 0
     };
@@ -108,8 +109,8 @@
     }
     if (page.panelDismissed) return;
 
-    const sourceLabel = (page.source && page.source.label) || '自动识别';
-    const targetLabel = page.targetLabel || '目标语言';
+    const sourceLabel = page.source?.code ? globalScope.DSHT.i18n.languageLabel(page.source.code) : t('content_auto_detect');
+    const targetLabel = page.targetCode ? globalScope.DSHT.i18n.languageLabel(page.targetCode) : t('content_target_language');
     const costText = formatPageCost();
     const pretranslation = pretranslationDisplay();
     if (page.status === 'running') {
@@ -121,7 +122,7 @@
           subtitle: pretranslation.detail,
           showProgress: pretranslation.showProgress,
           progressRatio: pretranslation.ratio,
-          actions: [{ id: 'cancel', label: '停止并还原', variant: 'ghost' }],
+          actions: [{ id: 'cancel', label: t('content_stop_restore'), variant: 'ghost' }],
           showDismiss: true,
           note: ''
         });
@@ -135,29 +136,29 @@
         overlay.renderPanel({
           visible: true,
           status: 'running',
-          title: '正在后台润色…',
-          subtitle: `${sourceLabel} → ${targetLabel} · 润色 ${polish.done}/${polish.total} 块${polish.failed ? ` · ${polish.failed} 块失败` : ''} · 已用 ${elapsed}s`,
+          title: t('content_background_polish'),
+          subtitle: t('content_page_polish_progress', [sourceLabel, targetLabel, polish.done, polish.total, polish.failed ? t('content_failed_chunks', [polish.failed]) : '', elapsed]),
           showProgress: polish.total > 0,
           progressRatio: polish.total > 0 ? Math.min(1, polish.done / polish.total) : 0,
-          actions: [{ id: 'cancel', label: '停止并还原', variant: 'ghost' }],
+          actions: [{ id: 'cancel', label: t('content_stop_restore'), variant: 'ghost' }],
           showDismiss: true,
           note: page.truncated
-            ? '页面内容较多，正在处理可处理的前部分内容。'
-            : '初译已可阅读；每块完成会自动替换。首块响应可能需要数十秒至数分钟（取决于润色模型和 effort）。'
+            ? t('content_page_truncated_processing')
+            : t('content_draft_readable')
         });
         return;
       }
       const note = page.truncated
-        ? '页面内容较多，正在翻译可处理的前部分内容。'
+        ? t('content_page_truncated_translating')
         : '';
       overlay.renderPanel({
         visible: true,
         status: 'running',
-        title: '正在翻译页面…',
-        subtitle: `${sourceLabel} → ${targetLabel} · 已处理 ${page.progress.done}/${page.progress.total} 段`,
+        title: t('content_translating_page'),
+        subtitle: t('content_page_translate_progress', [sourceLabel, targetLabel, page.progress.done, page.progress.total]),
         showProgress: true,
         progressRatio: ratio(),
-        actions: [{ id: 'cancel', label: '停止并还原', variant: 'ghost' }],
+        actions: [{ id: 'cancel', label: t('content_stop_restore'), variant: 'ghost' }],
         showDismiss: true,
         note
       });
@@ -169,18 +170,18 @@
       if (page.cachedPretranslation) {
         const cachedCost = app.formatNovelCacheCost({ costUsd: page.estimatedCostUsd });
         notes.push(
-          `本章由翻译缓存直接恢复${cachedCost ? `（缓存费用 ${cachedCost}）` : ''}。`
+          t('content_chapter_restored', [cachedCost ? t('content_cached_cost', [cachedCost]) : ''])
         );
       }
-      if (page.polishError) notes.push(`润色未完成，已保留初译：${page.polishError}`);
+      if (page.polishError) notes.push(t('content_draft_kept_detail', [page.polishError]));
       if (pretranslation.active) notes.push(`${pretranslation.title} · ${pretranslation.detail}`);
       else if (page.pretranslationNote) notes.push(page.pretranslationNote);
-      if (page.truncated) notes.push('页面较长，仅翻译了前一部分可见文本。');
+      if (page.truncated) notes.push(t('content_page_truncated_done'));
       overlay.renderPanel({
         visible: true,
         status: 'done',
-        title: page.bilingual ? `已双语翻译为${targetLabel}` : `已翻译为${targetLabel}`,
-        subtitle: `${sourceLabel} → ${targetLabel}${page.proofreadEnabled && !page.polishError ? ' · 已润色' : ''} · ${page.progress.total} 个片段${costText ? ` · ${costText}` : ''}`,
+        title: page.bilingual ? t('content_page_bilingual_done', [targetLabel]) : t('content_page_translated_done', [targetLabel]),
+        subtitle: t('content_page_done_summary', [sourceLabel, targetLabel, page.proofreadEnabled && !page.polishError ? t('content_proofread_suffix') : '', page.progress.total, costText ? ` · ${costText}` : '']),
         showProgress: pretranslation.active && pretranslation.showProgress,
         progressRatio: pretranslation.ratio,
         actions: finishedActions(),
@@ -192,18 +193,18 @@
 
     if (page.status === 'partial') {
       const notes = [];
-      if (page.polishError) notes.push(`润色未完成，已保留初译：${page.polishError}`);
+      if (page.polishError) notes.push(t('content_draft_kept_detail', [page.polishError]));
       if (pretranslation.active) notes.push(`${pretranslation.title} · ${pretranslation.detail}`);
       else if (page.pretranslationNote) notes.push(page.pretranslationNote);
-      if (page.truncated) notes.push('页面较长，仅翻译了前一部分可见文本。');
+      if (page.truncated) notes.push(t('content_page_truncated_done'));
       const actions = finishedActions();
-      if (!page.novelMode) actions.push({ id: 'retry', label: '重试', variant: 'ghost' });
-      if (isSettingsError(page.errorCode)) actions.unshift({ id: 'settings', label: '打开设置', variant: 'ghost' });
+      if (!page.novelMode) actions.push({ id: 'retry', label: t('content_retry'), variant: 'ghost' });
+      if (isSettingsError(page.errorCode)) actions.unshift({ id: 'settings', label: t('content_open_settings'), variant: 'ghost' });
       overlay.renderPanel({
         visible: true,
         status: 'partial',
-        title: '页面翻译完成，但部分内容失败',
-        subtitle: `${page.error || `${page.progress.failed} 个片段未完成`}${costText ? ` · ${costText}` : ''}`,
+        title: t('content_page_partial'),
+        subtitle: `${page.error || t('content_segments_incomplete', [page.progress.failed])}${costText ? ` · ${costText}` : ''}`,
         showProgress: pretranslation.active && pretranslation.showProgress,
         progressRatio: pretranslation.ratio,
         actions,
@@ -216,17 +217,17 @@
     // error
     const actions = [];
     if (page.translatedNodes.size > 0) {
-      actions.push({ id: 'restore', label: '还原原文', variant: 'ghost' });
+      actions.push({ id: 'restore', label: t('content_restore_page'), variant: 'ghost' });
     }
-    actions.push({ id: 'retry', label: '重试', variant: 'primary' });
+    actions.push({ id: 'retry', label: t('content_retry'), variant: 'primary' });
     if (isSettingsError(page.errorCode)) {
-      actions.unshift({ id: 'settings', label: '打开设置', variant: 'ghost' });
+      actions.unshift({ id: 'settings', label: t('content_open_settings'), variant: 'ghost' });
     }
     overlay.renderPanel({
       visible: true,
       status: 'error',
-      title: '页面翻译失败',
-      subtitle: page.error || '请稍后重试。',
+      title: t('content_page_failed'),
+      subtitle: page.error || t('content_try_later'),
       showProgress: false,
       progressRatio: ratio(),
       actions,
@@ -237,8 +238,8 @@
 
   /** Chapters reopen from cache, so this is the only way to apply a new glossary to one. */
   function finishedActions() {
-    const actions = [{ id: 'restore', label: '还原原文', variant: 'primary' }];
-    if (page.novelMode) actions.unshift({ id: 'retranslate', label: '重新翻译', variant: 'ghost' });
+    const actions = [{ id: 'restore', label: t('content_restore_page'), variant: 'primary' }];
+    if (page.novelMode) actions.unshift({ id: 'retranslate', label: t('content_retranslate'), variant: 'ghost' });
     return actions;
   }
 
@@ -258,7 +259,7 @@
         ? { targetCode: page.targetCode, bilingual: page.bilingual, force: true }
         : { force: true };
       app.startPageTranslation(request).catch((error) => {
-        overlay.showToast(error.message || '重试失败，请稍后再试。', 'error');
+        overlay.showToast(error.message || t('content_retry_failed'), 'error');
       });
       return;
     }

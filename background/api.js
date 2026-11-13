@@ -9,6 +9,8 @@
  */
 (function initApi(globalScope) {
   'use strict';
+  const i18n = globalScope.DSHT?.i18n || (typeof require === 'function' ? require('../shared/i18n.js') : null);
+  const { t } = i18n;
 
   const config =
     (globalScope.DSHT && globalScope.DSHT.config) ||
@@ -159,19 +161,19 @@
   function extractMessageContent(data, providerName) {
     const choice = data && Array.isArray(data.choices) ? data.choices[0] : null;
     if (!choice) {
-      throw new ApiError(`${providerName || '模型服务'} 未返回结果，请重试。`, {
+      throw new ApiError(t('bg_no_result', [providerName || t('bg_provider_fallback')]), {
         code: 'EMPTY_RESPONSE',
         retryable: true
       });
     }
     if (choice.finish_reason === 'length') {
-      throw new ApiError('翻译结果超出长度限制，请缩短文本或使用更大输出上限的模型。', {
+      throw new ApiError(t('bg_output_truncated'), {
         code: 'OUTPUT_TRUNCATED',
         retryable: false
       });
     }
     if (choice.finish_reason === 'content_filter') {
-      throw new ApiError('内容被模型安全策略拦截，请尝试其他内容。', {
+      throw new ApiError(t('bg_content_filtered'), {
         code: 'CONTENT_FILTERED',
         retryable: false
       });
@@ -183,7 +185,7 @@
         .join('');
     }
     if (typeof content !== 'string' || !content.trim()) {
-      throw new ApiError(`${providerName || '模型服务'} 返回了空结果，请重试。`, {
+      throw new ApiError(t('bg_empty_result', [providerName || t('bg_provider_fallback')]), {
         code: 'EMPTY_RESPONSE',
         retryable: true
       });
@@ -235,7 +237,7 @@
           providerName: ctx.providerName
         }).catch((error) => {
           if (kind === 'image' && vision.isUnsupportedError(error)) {
-            throw new ApiError('当前模型不支持图片输入，请切换到支持视觉的模型。', {
+            throw new ApiError(t('bg_vision_unsupported'), {
               code: 'VISION_UNSUPPORTED', retryable: false, status: error.status
             });
           }
@@ -275,7 +277,7 @@
     const usable = partialOk && parsed.translations.length > 0 && !parsed.positional;
     if (!parsed.ok && !usable) {
       reportDiscardedUsage(options, extracted.usage, extracted.requestStartedAt);
-      throw new ApiError('模型返回的翻译结果不完整，请重试。', {
+      throw new ApiError(t('bg_incomplete_translation'), {
         code: 'INCOMPLETE_TRANSLATION',
         retryable: true
       });
@@ -294,7 +296,7 @@
   async function translateSegments(options) {
     const opts = options || {};
     if (!Array.isArray(opts.segments) || opts.segments.length === 0) {
-      throw new ApiError('没有可翻译的文本。', { code: 'EMPTY_SEGMENTS', retryable: false });
+      throw new ApiError(t('bg_no_translation_text'), { code: 'EMPTY_SEGMENTS', retryable: false });
     }
     const messages = protocol.buildTranslationMessages({
       segments: opts.segments,
@@ -319,7 +321,7 @@
   async function polishSegments(options) {
     const opts = options || {};
     if (!Array.isArray(opts.segments) || opts.segments.length === 0) {
-      throw new ApiError('没有可润色的文本。', { code: 'EMPTY_SEGMENTS', retryable: false });
+      throw new ApiError(t('bg_no_polish_text'), { code: 'EMPTY_SEGMENTS', retryable: false });
     }
     const messages = protocol.buildPolishMessages({
       segments: opts.segments,
@@ -342,19 +344,19 @@
     const ctx = resolveContext(opts);
     if (!ctx.model.supportsVision) {
       throw new ApiError(
-        `当前模型 ${ctx.model.name || ctx.model.model} 不支持图片输入，请切换到支持视觉的模型。`,
+        t('bg_model_vision_unsupported', [ctx.model.name || ctx.model.model]),
         { code: 'VISION_UNSUPPORTED', retryable: false }
       );
     }
     const imageDataUrl = typeof opts.imageDataUrl === 'string' ? opts.imageDataUrl : '';
     if (!/^data:image\/(png|jpeg|webp|gif);base64,/i.test(imageDataUrl)) {
-      throw new ApiError('图片格式不受支持。', {
+      throw new ApiError(t('bg_bad_image'), {
         code: 'BAD_IMAGE',
         retryable: false
       });
     }
     if (imageDataUrl.length > config.LIMITS.IMAGE_MAX_DATA_URL_CHARS) {
-      throw new ApiError('图片过大，请稍后再试。', {
+      throw new ApiError(t('bg_image_too_large'), {
         code: 'IMAGE_TOO_LARGE',
         retryable: false
       });
@@ -371,8 +373,8 @@
       reportDiscardedUsage(opts, extracted.usage, extracted.requestStartedAt);
       throw new ApiError(
         parsed.error === 'MISSING_IMAGE_TRANSLATION'
-          ? '图片文字识别成功，但翻译结果不完整，请重试。'
-          : '模型返回的图片识别结果异常，请重试。',
+          ? t('bg_image_translation_incomplete')
+          : t('bg_image_translation_invalid'),
         { code: 'INVALID_IMAGE_RESPONSE', retryable: true }
       );
     }
@@ -388,7 +390,7 @@
   async function extractTerms(options) {
     const opts = options || {};
     if (!Array.isArray(opts.segments) || opts.segments.length === 0) {
-      throw new ApiError('没有可提取术语的文本。', {
+      throw new ApiError(t('bg_no_terms_text'), {
         code: 'EMPTY_SEGMENTS',
         retryable: false
       });
@@ -408,7 +410,7 @@
     const parsed = protocol.parseTermResponse(extracted.content, 120);
     if (!parsed.ok && parsed.error !== 'NO_TERMS') {
       reportDiscardedUsage(opts, extracted.usage, extracted.requestStartedAt);
-      throw new ApiError('模型返回的术语表格式异常，请重试。', {
+      throw new ApiError(t('bg_terms_invalid'), {
         code: 'INVALID_TERMS_RESPONSE',
         retryable: true
       });
@@ -462,7 +464,7 @@
     }
     return {
       code: 'UNKNOWN_ERROR',
-      message: '发生未知错误，请重试。',
+      message: t('bg_unknown_error'),
       retryable: false,
       status: 0
     };
@@ -490,10 +492,4 @@
   if (typeof module === 'object' && module.exports) {
     module.exports = api;
   }
-})(
-  typeof globalThis !== 'undefined'
-    ? globalThis
-    : typeof self !== 'undefined'
-      ? self
-      : this
-);
+})(typeof globalThis !== 'undefined' ? globalThis : typeof self !== 'undefined' ? self : this);

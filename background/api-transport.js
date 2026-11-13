@@ -1,6 +1,8 @@
 /** HTTP transport, API errors and bounded retries shared by provider calls. */
 (function initApiTransport(globalScope) {
   'use strict';
+  const i18n = globalScope.DSHT?.i18n || (typeof require === 'function' ? require('../shared/i18n.js') : null);
+  const { t } = i18n;
   const config =
     (globalScope.DSHT && globalScope.DSHT.config) ||
     (typeof require === 'function' ? require('../shared/config.js') : null);
@@ -21,7 +23,7 @@
 
   function missingKeyError(providerName) {
     return new ApiError(
-      `尚未配置 ${providerName || '模型服务'} 的 API Key，请先在扩展设置中填写。`,
+      t('bg_missing_key', [providerName || t('bg_provider_fallback')]),
       { code: 'MISSING_API_KEY', retryable: false }
     );
   }
@@ -33,7 +35,7 @@
       throw missingKeyError(provider && (provider.name || provider.id));
     }
     if (key.length > 512 || /[\r\n]/.test(key)) {
-      throw new ApiError('API Key 格式不正确。', {
+      throw new ApiError(t('bg_invalid_key_format'), {
         code: 'INVALID_API_KEY_FORMAT',
         retryable: false
       });
@@ -52,7 +54,7 @@
   }
 
   function mapHttpError(status, payload, rawText, headers, providerName, apiKey) {
-    const label = providerName || '模型服务';
+    const label = providerName || t('bg_provider_fallback');
     const providerMessage = trimProviderMessage(
       (payload && payload.error && payload.error.message) ||
         (payload && payload.message) ||
@@ -65,11 +67,11 @@
       Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0
         ? Math.min(10000, retryAfterSeconds * 1000)
         : 0;
-    const detail = providerMessage ? `（${providerMessage}）` : '';
-    const httpDetail = `（HTTP ${status}${providerMessage ? `：${providerMessage}` : ''}）`;
+    const detail = providerMessage ? t('bg_provider_detail', [providerMessage]) : '';
+    const httpDetail = t('bg_http_detail', [status, providerMessage ? t('bg_http_message_detail', [providerMessage]) : '']);
 
     if (status === 401) {
-      return new ApiError(`${label} API Key 无效或已失效，请在设置中更新。`, {
+      return new ApiError(t('bg_auth_failed', [label]), {
         code: 'AUTH_FAILED',
         status,
         retryable: false,
@@ -77,7 +79,7 @@
       });
     }
     if (status === 403) {
-      return new ApiError(`${label} 拒绝访问${detail}，可能是 Key 无效，或所在地区、模型权限受限。`, {
+      return new ApiError(t('bg_access_denied', [label, detail]), {
         code: 'AUTH_FAILED',
         status,
         retryable: false,
@@ -85,7 +87,7 @@
       });
     }
     if (status === 402) {
-      return new ApiError(`${label} 账户余额不足，请充值后再试。`, {
+      return new ApiError(t('bg_balance_empty', [label]), {
         code: 'INSUFFICIENT_BALANCE',
         status,
         retryable: false,
@@ -102,14 +104,14 @@
         'project_spend_limit_exceeded'
       ];
       if (apiError && (quotaCodes.includes(apiError.code) || apiError.type === 'insufficient_quota')) {
-        return new ApiError(`${label} 余额或可用额度不足，请检查 API 账户余额与用量限额。`, {
+        return new ApiError(t('bg_quota_exhausted', [label]), {
           code: 'INSUFFICIENT_BALANCE',
           status,
           retryable: false,
           providerMessage
         });
       }
-      return new ApiError(`${label} 请求过于频繁，请稍后重试。`, {
+      return new ApiError(t('bg_rate_limited', [label]), {
         code: 'RATE_LIMITED',
         status,
         retryable: true,
@@ -117,7 +119,7 @@
       });
     }
     if (status >= 500) {
-      return new ApiError(`${label} 服务暂时不可用，请稍后重试。`, {
+      return new ApiError(t('bg_service_unavailable', [label]), {
         code: 'SERVICE_UNAVAILABLE',
         status,
         retryable: true,
@@ -126,7 +128,7 @@
       });
     }
     if (status === 400) {
-      return new ApiError(`${label} 拒绝了请求${detail}，请重试或检查模型参数。`, {
+      return new ApiError(t('bg_bad_request', [label, detail]), {
         code: 'BAD_REQUEST',
         status,
         retryable: false,
@@ -134,14 +136,14 @@
       });
     }
     if (status === 404) {
-      return new ApiError(`${label} 接口或模型不存在${httpDetail}，请检查模型接入点和模型名称。`, {
+      return new ApiError(t('bg_endpoint_not_found', [label, httpDetail]), {
         code: 'ENDPOINT_NOT_FOUND',
         status,
         retryable: false,
         providerMessage
       });
     }
-    return new ApiError(`${label} 请求失败${httpDetail}，请稍后重试。`, {
+    return new ApiError(t('bg_http_error', [label, httpDetail]), {
       code: 'HTTP_ERROR',
       status,
       retryable: status >= 500,
@@ -171,7 +173,7 @@
       bytes += value.byteLength;
       if (bytes > MAX_RESPONSE_BYTES) {
         reader.cancel().catch(() => {});
-        throw new ApiError(`${providerName || '模型服务'} 返回的响应过大，请检查接口地址。`, {
+        throw new ApiError(t('bg_response_too_large', [providerName || t('bg_provider_fallback')]), {
           code: 'RESPONSE_TOO_LARGE',
           retryable: false
         });
@@ -212,7 +214,7 @@
     const opts = options || {};
     const fetchImpl = opts.fetchImpl || globalScope.fetch;
     if (typeof fetchImpl !== 'function') {
-      throw new ApiError('当前运行环境不支持网络请求。', {
+      throw new ApiError(t('bg_fetch_unavailable'), {
         code: 'FETCH_UNAVAILABLE',
         retryable: false
       });
@@ -235,7 +237,7 @@
       // Page text must not follow a redirect to a host the user never chose.
       if (response.type === 'opaqueredirect') {
         throw new ApiError(
-          `${opts.providerName || '模型服务'} 的接口地址发生了跳转，请在设置中填写跳转后的最终地址。`,
+          t('bg_redirect_blocked', [opts.providerName || t('bg_provider_fallback')]),
           { code: 'REDIRECT_BLOCKED' }
         );
       }
@@ -253,7 +255,7 @@
       if (!payload || typeof payload !== 'object') {
         const rawText = String(text || '').trim();
         if (!rawText) {
-          throw new ApiError(`${opts.providerName || '模型服务'} 返回了空响应，请重试。`, {
+          throw new ApiError(t('bg_empty_response', [opts.providerName || t('bg_provider_fallback')]), {
             code: 'EMPTY_RESPONSE',
             retryable: true
           });
@@ -262,8 +264,8 @@
         const html = /html/i.test(contentType);
         throw new ApiError(
           html
-            ? `${opts.providerName || '模型服务'} 返回了网页而不是 JSON，可能被网络代理或网关拦截，请检查代理后重试。`
-            : `${opts.providerName || '模型服务'} 返回了无法解析的响应（可能被截断）${contentType ? `，Content-Type: ${contentType}` : ''}，请重试。`,
+            ? t('bg_html_response', [opts.providerName || t('bg_provider_fallback')])
+            : t('bg_invalid_response', [opts.providerName || t('bg_provider_fallback'), contentType ? t('bg_content_type_detail', [contentType]) : '']),
           {
             code: 'INVALID_HTTP_RESPONSE',
             retryable: true
@@ -278,7 +280,7 @@
         error.name === 'AbortError' ||
         error.name === 'TimeoutError'
       ) {
-        throw new ApiError(`${opts.providerName || '模型服务'} 响应超时，请稍后重试。`, {
+        throw new ApiError(t('bg_request_timeout', [opts.providerName || t('bg_provider_fallback')]), {
           code: 'TIMEOUT',
           // Long reasoning responses may legitimately exceed two minutes;
           // retrying a timed-out request blindly makes the UI appear hung.
@@ -286,7 +288,7 @@
         });
       }
       throw new ApiError(
-        `无法连接 ${opts.providerName || '模型服务'}，请检查网络、代理或自定义接口权限。`,
+        t('bg_network_error', [opts.providerName || t('bg_provider_fallback')]),
         { code: 'NETWORK_ERROR', retryable: true }
       );
     } finally {
@@ -310,7 +312,7 @@
         const apiError =
           error instanceof ApiError
             ? error
-            : new ApiError('翻译请求失败，请重试。', {
+            : new ApiError(t('bg_request_failed'), {
                 code: 'UNKNOWN_ERROR',
                 retryable: false
               });
@@ -325,7 +327,7 @@
       }
     }
 
-    throw lastError || new ApiError('翻译请求失败，请重试。', { code: 'UNKNOWN_ERROR' });
+    throw lastError || new ApiError(t('bg_request_failed'), { code: 'UNKNOWN_ERROR' });
   }
 
   /** Run `attempt` once more when it fails with `code`, unless `stopped` says not to. */

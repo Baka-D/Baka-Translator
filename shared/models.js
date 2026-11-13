@@ -5,6 +5,8 @@
  */
 (function initModels(globalScope) {
   'use strict';
+  const i18n = globalScope.DSHT?.i18n ||
+    (typeof require === 'function' ? require('./i18n.js') : null);
 
   function isObject(value) {
     return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -51,13 +53,19 @@
     return out;
   }
 
+  function displayText(raw, field, fallback) {
+    const value = trimString(raw[field], '');
+    const key = trimString(raw[`${field}Message`], '');
+    return value || (key ? i18n.t(key) : fallback);
+  }
+
   function normalizeProvider(raw, id) {
     if (!isObject(raw)) return null;
     const providerId = trimString(raw.id, id);
     if (!providerId) return null;
     return {
       id: providerId,
-      name: trimString(raw.name, providerId),
+      name: displayText(raw, 'name', providerId),
       endpoint: normalizeEndpoint(raw.endpoint),
       completionsPath: normalizePath(raw.completionsPath, '/chat/completions'),
       modelsPath: normalizePath(raw.modelsPath, '/models'),
@@ -65,8 +73,8 @@
       requestShape: trimString(raw.requestShape, 'openai'),
       requiresEndpoint: raw.requiresEndpoint === true,
       apiKeyRequired: raw.apiKeyRequired !== false,
-      apiKeyLabel: trimString(raw.apiKeyLabel, `${providerId} API Key`),
-      apiKeyPlaceholder: trimString(raw.apiKeyPlaceholder, ''),
+      apiKeyLabel: displayText(raw, 'apiKeyLabel', `${providerId} API Key`),
+      apiKeyPlaceholder: displayText(raw, 'apiKeyPlaceholder', ''),
       apiKeyPrefix: trimString(raw.apiKeyPrefix, ''),
       imageDetail: raw.imageDetail !== false,
       docsUrl: trimString(raw.docsUrl, '')
@@ -87,7 +95,7 @@
     return {
       id,
       provider: providerId,
-      name: trimString(raw.name, id),
+      name: displayText(raw, 'name', id),
       model: trimString(raw.model, ''),
       endpoint: normalizeEndpoint(raw.endpoint) || provider.endpoint,
       contextWindow: positiveInteger(raw.contextWindow, 128000),
@@ -197,29 +205,29 @@
     const opts = options || {};
     if (isCustomModelId(opts.modelId) && !getModel(registry, opts.modelId)) {
       // Never send text to a different provider than the one the user picked.
-      const error = new Error('所选的自定义服务商或模型已不存在，请在设置页重新添加，或改选其他模型。');
+      const error = new Error(i18n.t('shared_custom_missing'));
       error.code = 'MISSING_CUSTOM_PROVIDER';
       throw error;
     }
     if (opts.modelId && !getModel(registry, opts.modelId)) {
-      const error = new Error('所选模型已不存在，请在设置页改选其他模型。');
+      const error = new Error(i18n.t('shared_model_missing'));
       error.code = 'MISSING_MODEL';
       throw error;
     }
     if (opts.modelId && !getModel(registry, opts.modelId)) {
-      const error = new Error('所选模型已不存在，请在设置页改选其他模型。');
+      const error = new Error(i18n.t('shared_model_missing'));
       error.code = 'MISSING_MODEL';
       throw error;
     }
     const model = getModel(registry, opts.modelId) || getModel(registry, registry && registry.defaultModelId);
     if (!model) {
-      const error = new Error('没有可用的模型，请检查 profile/ 下的模型配置。');
+      const error = new Error(i18n.t('shared_models_empty'));
       error.code = 'NO_MODELS';
       throw error;
     }
     const provider = getProvider(registry, model.provider);
     if (!provider) {
-      const error = new Error(`模型 ${model.id} 的 provider 不存在。`);
+      const error = new Error(i18n.t('shared_provider_missing', [model.id]));
       error.code = 'MISSING_PROVIDER';
       throw error;
     }
@@ -231,7 +239,7 @@
     );
     if (!endpoint) {
       const error = new Error(
-        isCustom ? '请先在高级设置中填写自定义接口地址。' : `模型 ${model.id} 缺少接口地址。`
+        isCustom ? i18n.t('shared_custom_endpoint') : i18n.t('shared_endpoint_missing', [model.id])
       );
       error.code = isCustom ? 'MISSING_CUSTOM_ENDPOINT' : 'MISSING_ENDPOINT';
       throw error;
@@ -239,7 +247,7 @@
 
     const modelName = isCustom ? trimString(custom.model, model.model) : model.model;
     if (!modelName) {
-      const error = new Error('请先在高级设置中填写自定义模型名称。');
+      const error = new Error(i18n.t('shared_custom_model'));
       error.code = 'MISSING_MODEL_NAME';
       throw error;
     }

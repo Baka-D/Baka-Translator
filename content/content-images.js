@@ -1,11 +1,12 @@
 /** Images behavior for the content script. */
 (function registerContentModule(globalScope) {
   'use strict';
+  const { t } = globalScope.DSHT.i18n;
   const modules = globalScope.DSHT.contentModules ||= {};
   modules['images'] = function createModule(app) {
   const { languages, MSG, LIMITS, page, imageJob, overlay } = app;
   const { loadScreenshotImage, clamp, cropImageFromScreenshot, nextPaint } = app;
-  const UNSUPPORTED_NOTICE = '当前模型不支持图像识别，已停用图片翻译。请切换到支持图像识别的模型。';
+  const UNSUPPORTED_NOTICE = t('content_vision_unsupported');
   imageJob.unsupported = false;
   let capabilityRevision = 0;
   let captureRunId = null;
@@ -140,17 +141,17 @@
     const items = imageJob.items.map((item) => {
       const stateLabel =
         item.status === 'pending'
-          ? '排队中'
+          ? t('content_queued')
           : item.status === 'loading'
-            ? '识别中'
+            ? t('content_translating')
             : item.status === 'error'
-              ? '失败'
+              ? t('content_failed')
               : item.hasText
-                ? '已翻译'
-                : '无文字';
+                ? t('content_translated')
+                : t('content_no_text');
       return {
         thumbnail: item.thumbnail || '',
-        thumbnailAlt: item.alt ? `图片截图：${item.alt}` : '图片截图',
+        thumbnailAlt: item.alt ? t('content_image_alt', [item.alt]) : t('content_image_screenshot'),
         status: item.status,
         stateLabel,
         hasText: Boolean(item.hasText),
@@ -165,21 +166,21 @@
       (item) => item.status === 'error' || item.status === 'done'
     ).length;
     let subtitle = imageJob.subtitle || '';
-    const skipped = imageJob.skipped > 0 ? ` · 另有 ${imageJob.skipped} 张未处理` : '';
+    const skipped = imageJob.skipped > 0 ? t('content_images_skipped', [imageJob.skipped]) : '';
     if (imageJob.running) {
-      subtitle = `正在识别 · ${finished}/${imageJob.items.length || 0}${skipped}`;
+      subtitle = t('content_images_progress', [finished, imageJob.items.length || 0, skipped]);
     } else if (imageJob.items.length > 0) {
       subtitle = failed > 0
-        ? `${imageJob.items.length} 张图片 · ${failed} 张失败${skipped}`
-        : `${imageJob.items.length} 张图片 · 识别完成${skipped}`;
+        ? t('content_images_failed_count', [imageJob.items.length, failed, skipped])
+        : t('content_images_done_count', [imageJob.items.length, skipped]);
     }
     return {
       visible: imageJob.open,
-      title: imageJob.unsupported ? '图片翻译已停用' : imageJob.error && imageJob.items.length === 0 ? '图片翻译失败' : '图片翻译',
+      title: imageJob.unsupported ? t('content_image_disabled') : imageJob.error && imageJob.items.length === 0 ? t('content_image_failed') : t('content_image_translation'),
       subtitle,
       items,
       emptyMessage: imageJob.error || '',
-      footer: '仅截取当前画面中可见的图片区域并发送给所选模型服务商识别，不会上传整页截图。'
+      footer: t('content_image_privacy')
     };
   }
 
@@ -238,7 +239,7 @@
             translation: '',
             original: '',
             sourceLabel: '',
-            error: error.message || '图片裁剪失败。'
+            error: error.message || t('content_image_crop_error')
           });
         }
       }
@@ -251,7 +252,7 @@
       if (runId !== imageJob.runId) return;
       if (!panelReady) {
         closeImagePanel();
-        overlay.showToast('当前页面的安全策略不允许显示结果窗口，图片未发送。', 'error');
+        overlay.showToast(t('content_image_panel_blocked'), 'error');
         return;
       }
 
@@ -265,7 +266,7 @@
           const item = imageJob.items[index];
           if (!item.dataUrl) {
             item.status = 'error';
-            item.error = item.error || '图片截图失败，请重试。';
+            item.error = item.error || t('content_image_capture_error');
             renderImagePanel();
             continue;
           }
@@ -283,8 +284,9 @@
             item.hasText = Boolean(response.hasText);
             item.translation = typeof response.translation === 'string' ? response.translation : '';
             item.original = typeof response.original === 'string' ? response.original : '';
+            const sourceLanguage = String(response.sourceLanguage || '').slice(0, 40);
             item.sourceLabel = response.sourceLanguage
-              ? `识别语言：${String(response.sourceLanguage).slice(0, 40)}`
+              ? t('content_detected_language', [globalScope.DSHT.i18n.languageLabel(sourceLanguage, sourceLanguage)])
               : '';
             item.error = '';
           } catch (error) {
@@ -294,9 +296,9 @@
               return;
             }
             item.status = 'error';
-            item.error = error.message || '图片识别失败，请重试。';
+            item.error = error.message || t('content_image_translation_error');
             if (app.isSettingsError(error.code)) {
-              overlay.showToast('图片翻译失败，请检查所选服务商的设置。', 'error');
+              overlay.showToast(t('content_image_provider_error'), 'error');
             }
           }
           renderImagePanel();
@@ -318,11 +320,11 @@
         showImageUnsupported();
         return;
       }
-      imageJob.error = error.message || '图片翻译失败，请重试。';
+      imageJob.error = error.message || t('content_image_translation_error');
       imageJob.running = false;
       imageJob.items = [];
-      imageJob.subtitle = '请保持页面在前台后重试。';
-      overlay.showToast('图片翻译失败，请在图片结果面板查看详情。', 'error');
+      imageJob.subtitle = t('content_keep_page_foreground');
+      overlay.showToast(t('content_image_error_details'), 'error');
       renderImagePanel();
     } finally {
       finishCapture(runId);
@@ -332,7 +334,7 @@
   async function startImageTranslation(message) {
     const request = message || {};
     if (imageJob.running) {
-      overlay.showToast('正在识别图片，请稍候。', 'info');
+      overlay.showToast(t('content_images_busy'), 'info');
       return { started: false, reason: 'running' };
     }
 
@@ -361,12 +363,12 @@
     // Two starts can both pass the check at the top while these awaits are pending.
     if (imageJob.running) return { started: false, reason: 'running' };
     if (collected.candidates.length === 0) {
-      overlay.showToast('当前画面中没有找到足够大的图片，请滚动到图片处再试。', 'info');
+      overlay.showToast(t('content_no_large_images'), 'info');
       return {
         ok: false,
         error: {
           code: 'NO_VISIBLE_IMAGES',
-          message: '当前画面中没有找到可翻译的图片。'
+          message: t('content_no_images')
         }
       };
     }
@@ -391,7 +393,7 @@
     }));
     imageJob.error = '';
     imageJob.skipped = Math.max(0, collected.totalEligible - LIMITS.IMAGE_MAX_COUNT);
-    imageJob.subtitle = '正在截取当前画面…';
+    imageJob.subtitle = t('content_capturing');
     // Do not paint the image panel before captureVisibleTab() runs.
     overlay.hideImagePanel();
 

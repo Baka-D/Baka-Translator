@@ -5,6 +5,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
+const { createLocalizedContext } = require('../helpers/i18n');
 
 const root = path.join(__dirname, '../..');
 const extensionId = 'abcdefghijklmnopabcdefghijklmnop';
@@ -27,7 +28,7 @@ function event() {
 function loadBroker() {
   const connect = event(), updated = event(), removed = event();
   const sent = [], timers = new Set();
-  const context = vm.createContext({ URL, console,
+  const context = createLocalizedContext({ URL, console,
     DSHT: { config: { MSG, LIMITS: { IMAGE_MAX_COUNT: 6, IMAGE_MAX_DATA_URL_CHARS: 8388608 } } },
     setTimeout(fn) { timers.add(fn); return fn; }, clearTimeout(fn) { timers.delete(fn); },
     chrome: { runtime: { id: extensionId, getURL: (file) => extensionUrl + file, onConnect: connect },
@@ -152,7 +153,7 @@ function loadBridge(sendMessage) {
   const layer = node('div');
   const bytesOf = (id) => id.replaceAll('-', '').match(/../g).map((pair) => parseInt(pair, 16));
   const nextId = (() => { let count = 0; return () => count++ ? otherId : sessionId; })();
-  const context = vm.createContext({
+  const context = createLocalizedContext({
     // Only getRandomValues: crypto.randomUUID does not exist on http pages.
     crypto: { getRandomValues(bytes) { bytes.set(bytesOf(nextId())); return bytes; } },
     setTimeout, clearTimeout,
@@ -214,7 +215,7 @@ test('bridge absorbs runtime errors and pagehide closes the private session', as
 
 test('a generated session id is a valid v4 UUID without randomUUID', async () => {
   const updates = [];
-  const context = vm.createContext({ crypto: { getRandomValues: (bytes) => bytes.fill(0xff) },
+  const context = createLocalizedContext({ crypto: { getRandomValues: (bytes) => bytes.fill(0xff) },
     document: { createElement: node }, addEventListener() {},
     DSHT: { config: { MSG }, overlayParts: { setImportant() {} } },
     chrome: { runtime: { id: extensionId, getURL: (file) => extensionUrl + file, onMessage: event(),
@@ -276,7 +277,7 @@ test('moving the host rebuilds the window around the same model', async () => {
 test('renderer uses a private runtime port and clears its DOM when disconnected', () => {
   const accepted = viewer();
   const rendered = [], events = [], intervals = new Set();
-  const context = vm.createContext({ URL, location: { hash: `#${sessionId}` },
+  const context = createLocalizedContext({ URL, location: { hash: `#${sessionId}` },
     document: { body: node('body'), createElement: node },
     addEventListener(type) { events.push(type); },
     setInterval(fn) { intervals.add(fn); return fn; }, clearInterval(fn) { intervals.delete(fn); },

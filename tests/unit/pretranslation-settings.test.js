@@ -5,6 +5,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
+const { createLocalizedContext } = require('../helpers/i18n');
 
 const root = path.resolve(__dirname, '../..');
 const extensionUrl = 'chrome-extension://pretranslation-settings-test/';
@@ -45,7 +46,7 @@ function loadWorker() {
       };
     };
   }
-  const context = vm.createContext({
+  const context = createLocalizedContext({
     URL, AbortController, setTimeout, clearTimeout, setInterval, clearInterval,
     location: { hostname: new URL(currentUrl).hostname },
     fetch: async (url) => {

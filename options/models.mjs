@@ -1,5 +1,5 @@
 // Settings-page models.
-import { modelsTools, state, ui } from './context.mjs';
+import { t, i18n, modelsTools, state, ui } from './context.mjs';
 import { effortLabel, formatNumber, getVersion } from './utils.mjs';
 
 /* ---------- 模型注册表 ---------- */
@@ -17,8 +17,8 @@ export function staleTranslationModelId() {
 
 /** The translation model's name, or 已失效 so the stand-in never reads as the active model. */
 function translationName(translation) {
-  if (staleTranslationModelId()) return '已失效';
-  return translation ? translation.name : '—';
+  if (staleTranslationModelId()) return t('opt_model_unavailable');
+  return translation ? i18n.modelName(translation.id, translation.name) : '—';
 }
 
 export function translationProvider() {
@@ -100,7 +100,7 @@ export function listProviders() {
 export function providerNameById(providerIdValue) {
   if (!providerIdValue || !state.registry || !modelsTools) return providerIdValue || '';
   const provider = modelsTools.getProvider(state.registry, providerIdValue);
-  return provider && provider.name ? provider.name : providerIdValue;
+  return provider && provider.name ? i18n.providerName(provider.id, provider.name) : providerIdValue;
 }
 
 export function fillProviderOptions(select, includeInherit, inheritLabel) {
@@ -109,13 +109,13 @@ export function fillProviderOptions(select, includeInherit, inheritLabel) {
   if (includeInherit) {
     const option = document.createElement('option');
     option.value = '';
-    option.textContent = inheritLabel || '与翻译模型相同';
+    option.textContent = inheritLabel || t('opt_model_same_translation');
     select.appendChild(option);
   }
   for (const entry of listProviders()) {
     const option = document.createElement('option');
     option.value = entry.provider.id;
-    option.textContent = entry.provider.name || entry.provider.id;
+    option.textContent = i18n.providerName(entry.provider.id, entry.provider.name || entry.provider.id);
     select.appendChild(option);
   }
 }
@@ -139,7 +139,7 @@ export function populateProviderSelects() {
       select.textContent = '';
       select.disabled = true;
     } else {
-      fillProviderOptions(select, true, '与翻译模型相同');
+      fillProviderOptions(select, true, t('opt_model_same_translation'));
       select.disabled = false;
       const provider = polishInheritsModel() ? null : polishProvider();
       select.value = provider ? provider.id : '';
@@ -153,7 +153,7 @@ export function fillProviderModelOptions(select, providerIdValue, selectedId) {
   for (const model of models) {
     const option = document.createElement('option');
     option.value = model.id;
-    option.textContent = model.name;
+    option.textContent = i18n.modelName(model.id, model.name);
     select.appendChild(option);
   }
   const selected = state.registry ? modelsTools.getModel(state.registry, selectedId) : null;
@@ -169,7 +169,7 @@ export function populateModelSelect() {
     select.textContent = '';
     const option = document.createElement('option');
     option.value = '';
-    option.textContent = '模型清单不可用';
+    option.textContent = t('opt_model_list_unavailable');
     select.appendChild(option);
     select.disabled = true;
     if (ui.polishModelSelect) {
@@ -186,7 +186,7 @@ export function populateModelSelect() {
     // Selected so that picking any real model, the stand-in included, fires a change.
     const option = document.createElement('option');
     option.value = '';
-    option.textContent = `（已失效）${stale}`;
+    option.textContent = t('opt_model_unavailable_name', [stale]);
     option.disabled = true;
     select.prepend(option);
     option.selected = true;
@@ -196,7 +196,7 @@ export function populateModelSelect() {
       ui.polishModelSelect.textContent = '';
       const option = document.createElement('option');
       option.value = '';
-      option.textContent = `跟随翻译模型${translation ? `（${translationName(translation)}）` : ''}`;
+      option.textContent = translation ? t('opt_model_follow_named', [translationName(translation)]) : t('opt_model_follow');
       ui.polishModelSelect.appendChild(option);
       ui.polishModelSelect.disabled = true;
     } else {
@@ -215,23 +215,23 @@ export function modelDetailText(model) {
   if (!model || !modelsTools) return '—';
   const provider = modelsTools.getProvider(state.registry, model.provider);
   const parts = [];
-  if (provider && provider.name) parts.push(`服务商：${provider.name}`);
-  parts.push(`上下文：${formatNumber(model.contextWindow)} tokens`);
-  parts.push(`最大输出：${formatNumber(model.maxOutputTokens)} tokens`);
+  if (provider && provider.name) parts.push(t('opt_model_provider', [i18n.providerName(provider.id, provider.name)]));
+  parts.push(t('opt_model_context', [formatNumber(model.contextWindow)]));
+  parts.push(t('opt_model_output', [formatNumber(model.maxOutputTokens)]));
   const endpoint = model.endpoint || (provider && provider.endpoint) || '';
-  if (endpoint) parts.push(`端点：${endpoint}`);
+  if (endpoint) parts.push(t('opt_model_endpoint', [endpoint]));
   const caps = [];
-  if (model.supportsVision) caps.push(model.visionUnverified ? '图片（待确认）' : '图片');
-  else parts.push(model.visionUnsupported ? '图片翻译：已禁用（模型已确认不支持）' : '图片翻译：不支持');
+  if (model.supportsVision) caps.push(model.visionUnverified ? t('opt_model_image_unverified') : t('opt_model_images'));
+  else parts.push(model.visionUnsupported ? t('opt_model_image_disabled') : t('opt_model_image_unsupported'));
   if (model.supportsJson) caps.push('JSON');
-  if (caps.length > 0) parts.push(`能力：${caps.join(' / ')}`);
+  if (caps.length > 0) parts.push(t('opt_model_capabilities', [caps.join(' / ')]));
   return parts.join(' · ');
 }
 
 export function renderModelDetails(model) {
   if (!ui.modelDetails) return;
   const stale = staleTranslationModelId();
-  ui.modelDetails.textContent = stale ? `模型已失效：${stale}。请改选其他模型。` : modelDetailText(model);
+  ui.modelDetails.textContent = stale ? t('opt_model_choose_another', [stale]) : modelDetailText(model);
 }
 
 export function renderPolishModelDetails(model) {
@@ -241,7 +241,7 @@ export function renderPolishModelDetails(model) {
     return;
   }
   ui.polishModelDetails.textContent = polishInheritsModel()
-    ? `跟随翻译模型：${translationName(model)}。`
+    ? t('opt_model_follow_description', [translationName(model)])
     : modelDetailText(model);
 }
 
@@ -257,7 +257,7 @@ export function fillEffortOptions(select, levels, includeFollow, followLabel) {
   if (includeFollow) {
     const option = document.createElement('option');
     option.value = '';
-    option.textContent = followLabel || '跟随翻译（默认）';
+    option.textContent = followLabel || t('opt_effort_follow');
     select.appendChild(option);
   }
   for (const level of levels) {
@@ -281,10 +281,10 @@ export function populateEffortSelect(model) {
   select.disabled = stale || levels.length <= 1;
   if (ui.effortHint) {
     ui.effortHint.textContent = stale
-      ? '翻译模型已失效，请先改选模型。'
+      ? t('opt_translation_select_first')
       : levels.length <= 1
-        ? `当前模型不支持调整思考强度（固定为“${effortLabel(levels[0])}”）。`
-        : '思考强度越高越慢、通常也越贵；网页翻译建议关闭或使用低强度。';
+        ? t('opt_effort_fixed', [effortLabel(levels[0])])
+        : t('opt_effort_latency_hint');
   }
 }
 
@@ -293,7 +293,7 @@ export function populatePolishEffortSelect() {
   if (!select) return;
   const model = polishModel();
   const levels = effortLevelsFor(model);
-  fillEffortOptions(select, levels, true, '跟随翻译（默认）');
+  fillEffortOptions(select, levels, true, t('opt_effort_follow'));
   const value =
     state.polishEffortRaw && levels.includes(state.polishEffortRaw) ? state.polishEffortRaw : '';
   select.value = value;
@@ -302,15 +302,17 @@ export function populatePolishEffortSelect() {
   if (ui.polishEffortHint) {
     if (value) {
       ui.polishEffortHint.textContent =
-        `润色思考强度：${effortLabel(value)}${polishInheritsModel() ? '（模型跟随翻译）' : ''}。`;
+        polishInheritsModel()
+          ? t('opt_polish_effort_inherited', [effortLabel(value)])
+          : t('opt_polish_effort_value', [effortLabel(value)]);
     } else if (polishInheritsModel()) {
-      ui.polishEffortHint.textContent = `跟随翻译模型（${translationName(translation)}）与思考强度。`;
+      ui.polishEffortHint.textContent = t('opt_polish_follow_both', [translationName(translation)]);
     } else {
-      ui.polishEffortHint.textContent = `未指定时使用该模型默认值（${effortLabel(
-        model ? model.defaultEffort : 'none'
-      )}）${sameModel ? '；与翻译同模型时跟随翻译强度' : ''}。`;
+      ui.polishEffortHint.textContent = t(sameModel ? 'opt_polish_effort_default_same' : 'opt_polish_effort_default', [
+        effortLabel(model ? model.defaultEffort : 'none')
+      ]);
     }
-    ui.polishEffortHint.textContent += ' 润色强度越高等待越久：关闭思考最快，中/高强度可能等待数十秒到数分钟。';
+    ui.polishEffortHint.textContent += t('opt_polish_effort_latency');
   }
 }
 
@@ -319,38 +321,34 @@ export function renderSummaries() {
   const polish = polishModel();
   if (ui.translationSummary) {
     ui.translationSummary.textContent = staleTranslationModelId()
-      ? '翻译模型：已失效'
+      ? t('opt_translation_summary_unavailable')
       : translation
-        ? `翻译模型：${translation.name} · 思考强度：${effortLabel(state.effortLevel)}`
-        : '翻译模型：—';
+        ? t('opt_translation_summary', [i18n.modelName(translation.id, translation.name), effortLabel(state.effortLevel)])
+        : t('opt_translation_summary_empty');
   }
   if (ui.polishSummary) {
     if (!polish) {
-      ui.polishSummary.textContent = '润色模型：—';
+      ui.polishSummary.textContent = t('opt_polish_summary_empty');
     } else if (polishInheritsModel()) {
-      ui.polishSummary.textContent = `润色模型：跟随翻译（${translationName(polish)}） · 思考强度：${effortLabel(
-        polishEffortLevel()
-      )}`;
+      ui.polishSummary.textContent = t('opt_polish_summary_follow', [translationName(polish), effortLabel(polishEffortLevel())]);
     } else {
-      ui.polishSummary.textContent = `润色模型：${polish.name} · 思考强度：${effortLabel(
-        polishEffortLevel()
-      )}`;
+      ui.polishSummary.textContent = t('opt_polish_summary', [i18n.modelName(polish.id, polish.name), effortLabel(polishEffortLevel())]);
     }
   }
 }
 
 export function renderMetaAbout() {
   const version = getVersion();
-  if (ui.versionText) ui.versionText.textContent = version || '未知';
+  if (ui.versionText) ui.versionText.textContent = version || t('opt_unknown');
   const model = translationModel();
   const polish = polishModel();
   if (ui.modelText) {
     const stale = Boolean(staleTranslationModelId());
     if (!model) ui.modelText.textContent = '—';
     else if (polish && !polishInheritsModel() && (stale || polish.id !== model.id)) {
-      ui.modelText.textContent = `翻译：${translationName(model)} / 润色：${polish.name}`;
+      ui.modelText.textContent = t('opt_models_about', [translationName(model), i18n.modelName(polish.id, polish.name)]);
     } else if (polish && !polishInheritsModel()) {
-      ui.modelText.textContent = `${model.name} / ${polish.name}`;
+      ui.modelText.textContent = `${i18n.modelName(model.id, model.name)} / ${i18n.modelName(polish.id, polish.name)}`;
     } else {
       ui.modelText.textContent = translationName(model);
     }

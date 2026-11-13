@@ -1,5 +1,5 @@
 // Settings-page provider manager: a side list of providers plus one detail panel.
-import { state, ui } from './context.mjs';
+import { state, ui, i18n, t } from './context.mjs';
 import { renderCustomFields } from './custom-provider.mjs';
 import { renderKeyPanel, resetClearConfirm, setKeyVisibility } from './keys.mjs';
 import { renderProviderModels } from './provider-models.mjs';
@@ -18,11 +18,17 @@ export function keyRequired(provider) {
   return !provider || provider.apiKeyRequired !== false;
 }
 
-/** Purposes ("翻译" / "润色") that currently use this provider. */
+export function providerDisplayName(provider) {
+  if (!provider) return '';
+  const name = provider.name || provider.id;
+  return provider.custom ? name : i18n.providerName(provider.id, name);
+}
+
+/** Purposes (translation / polishing) that currently use this provider. */
 export function providerUses(providerIdValue) {
   const uses = [];
-  if (translationProvider() && translationProvider().id === providerIdValue) uses.push('翻译');
-  if (polishProvider() && polishProvider().id === providerIdValue) uses.push('润色');
+  if (translationProvider() && translationProvider().id === providerIdValue) uses.push(t('opt_provider_use_translation'));
+  if (polishProvider() && polishProvider().id === providerIdValue) uses.push(t('opt_provider_use_polishing'));
   return uses;
 }
 
@@ -33,8 +39,8 @@ export function selectedProvider() {
 }
 
 function keyTone(provider) {
-  if (providerKeyFor(provider.id)) return { tone: 'success', text: '已保存 Key' };
-  return keyRequired(provider) ? { tone: 'muted', text: '未配置 Key' } : { tone: 'muted', text: '无需 Key' };
+  if (providerKeyFor(provider.id)) return { tone: 'success', text: t('opt_key_saved') };
+  return keyRequired(provider) ? { tone: 'muted', text: t('opt_key_missing') } : { tone: 'muted', text: t('opt_key_not_required') };
 }
 
 function tagList(uses) {
@@ -58,14 +64,15 @@ function navItem(provider, label, uses, selected, onClick) {
   name.textContent = label;
   const meta = document.createElement('span');
   meta.className = 'provider-nav-meta';
-  const status = provider ? keyTone(provider) : { tone: 'muted', text: '未保存' };
+  const status = provider ? keyTone(provider) : { tone: 'muted', text: t('opt_provider_unsaved') };
   const dot = document.createElement('span');
   dot.className = 'provider-dot';
   dot.dataset.tone = status.tone;
   meta.append(...tagList(uses), dot);
   button.append(name, meta);
-  button.setAttribute('aria-label', [label, uses.length ? `${uses.join('、')}使用中` : '', status.text]
-    .filter(Boolean).join('，'));
+  button.setAttribute('aria-label', [label,
+    uses.length ? t('opt_provider_usage_label', [uses.join(t('opt_provider_usage_separator'))]) : '', status.text]
+    .filter(Boolean).join(t('opt_provider_label_separator')));
   button.disabled = state.busy || state.customBusy;
   button.addEventListener('click', onClick);
   item.append(button);
@@ -111,16 +118,16 @@ export function renderProviders() {
   ensureSelection();
   const providers = registryProviders();
   const items = providers.map((provider) => navItem(
-    provider, provider.name || provider.id, providerUses(provider.id),
+    provider, providerDisplayName(provider), providerUses(provider.id),
     !state.providerDraft && provider.id === state.selectedProviderId,
     () => selectProvider(provider.id)
   ));
-  if (state.providerDraft) items.push(navItem(null, '新服务商', [], true, () => startAddProvider()));
+  if (state.providerDraft) items.push(navItem(null, t('opt_provider_new'), [], true, () => startAddProvider()));
   // Rebuilding the list detaches the focused button; hand focus to its replacement.
   const active = typeof document.activeElement === 'object' ? document.activeElement : null;
   const hadFocus = Boolean(active && ui.providerNav.contains && ui.providerNav.contains(active));
   if (providers.length === 0 && !state.providerDraft) {
-    ui.providerNav.textContent = '模型清单不可用，无法配置服务商。';
+    ui.providerNav.textContent = t('opt_provider_registry_unavailable');
   } else {
     ui.providerNav.replaceChildren(...items);
   }
@@ -138,7 +145,7 @@ export function renderProviders() {
     setFeedback(ui.keyFeedback, '');
   }
 
-  ui.providerDetailTitle.textContent = provider ? provider.name || provider.id : state.providerDraft ? '新服务商' : '—';
+  ui.providerDetailTitle.textContent = provider ? providerDisplayName(provider) : state.providerDraft ? t('opt_provider_new') : '—';
   ui.providerDetailTags.replaceChildren(...tagList(provider ? providerUses(provider.id) : []));
   renderCustomFields(provider, switched);
   renderKeyPanel(provider);

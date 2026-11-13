@@ -1,4 +1,5 @@
 // Other expressions of a glossary term. Each has its own fields: names can hold any character.
+import { t } from './context.mjs';
 import { makeButton } from './utils.mjs';
 
 function makeAliasInput(role, value, label, placeholder) {
@@ -19,10 +20,10 @@ function renderAliasRow(alias, termLabel) {
   row.className = 'glossary-alias-row';
   row.dataset.aliasRow = '';
   row.append(
-    makeAliasInput('alias-source', alias.source, `${termLabel}的其他写法`, '其他写法'),
+    makeAliasInput('alias-source', alias.source, t('opt_glossary_alias_source_label', [termLabel]), t('opt_glossary_alias_placeholder')),
     // A blank translation is filled with the term's when saved; a saved one is never inferred to follow it.
-    makeAliasInput('alias-target', alias.target, `${termLabel}这个写法的译文`, '译文（留空则保存时使用上方译文）'),
-    makeButton('移除', 'button button-ghost-danger glossary-delete', () => removeAliasRow(row), `移除${termLabel}的这个写法`)
+    makeAliasInput('alias-target', alias.target, t('opt_glossary_alias_target_label', [termLabel]), t('opt_glossary_alias_target_placeholder')),
+    makeButton(t('opt_glossary_remove_alias'), 'button button-ghost-danger glossary-delete', () => removeAliasRow(row), t('opt_glossary_remove_alias_label', [termLabel]))
   );
   return row;
 }
@@ -44,13 +45,13 @@ function removeAliasRow(row) {
 export function renderAliases(aliases, index) {
   const list = document.createElement('div');
   list.className = 'glossary-aliases';
-  list.append(...(aliases || []).map((alias) => renderAliasRow(alias, `第 ${index + 1} 条术语`)));
+  list.append(...(aliases || []).map((alias) => renderAliasRow(alias, t('opt_glossary_term_label', [index + 1]))));
   return list;
 }
 
 /** Add an empty alias row to a term's list and put the cursor in it. */
 export function addAlias(list, index) {
-  const row = renderAliasRow({}, `第 ${index + 1} 条术语`);
+  const row = renderAliasRow({}, t('opt_glossary_term_label', [index + 1]));
   list.append(row);
   row.querySelector('[data-role="alias-source"]').focus();
 }

@@ -8,6 +8,8 @@
  */
 (function initUsage(globalScope) {
   'use strict';
+  const i18n = globalScope.DSHT?.i18n ||
+    (typeof require === 'function' ? require('./i18n.js') : null);
 
   const EMPTY_USAGE = Object.freeze({
     totalTokens: 0,
@@ -126,7 +128,7 @@
   function formatTokenCount(value) {
     const number = tokenNumber(value);
     try {
-      return number.toLocaleString('zh-CN');
+      return number.toLocaleString(i18n.locale);
     } catch (_error) {
       return String(number).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     }

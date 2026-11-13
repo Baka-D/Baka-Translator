@@ -1,5 +1,5 @@
 /** Bind popup controls and initialize the active tab. */
-import { config, languages, KEYS, TARGETS, ui, state, PAGE_ERROR_MESSAGES, VISION_NOTICE_TEXT, EXT_PAGE_MESSAGE, normalizeUsage, renderUsage } from './popup-state.mjs';
+import { t, i18n, config, languages, KEYS, TARGETS, ui, state, PAGE_ERROR_MESSAGES, VISION_NOTICE_TEXT, EXT_PAGE_MESSAGE, normalizeUsage, renderUsage } from './popup-state.mjs';
 import { hostFromUrl, presetDisplayName, populateSitePresetSelect, readSiteSettings, saveSiteFlag, loadPresetIndex } from './popup-site.mjs';
 import { persistSettings, openOptions, readConfig, queryActiveTab, isRestrictedUrl } from './popup-transport.mjs';
 import { render } from './popup-view.mjs';
@@ -30,7 +30,7 @@ function populateTargetSelect() {
   for (const language of TARGETS) {
     const option = document.createElement('option');
     option.value = language.code;
-    option.textContent = language.label;
+    option.textContent = i18n.languageLabel(language.code);
     fragment.appendChild(option);
   }
   ui.targetSelect.textContent = '';
@@ -63,26 +63,26 @@ function wireEvents() {
       void (async () => {
         const saved = await saveSiteFlag(host, { [flag]: enabled });
         if (!saved) {
-          state.pageMessage = { tone: 'error', message: '保存站点开关失败，请重试。' };
+          state.pageMessage = { tone: 'error', message: t('pop_site_save_failed') };
           render();
           return;
         }
         if (flag === 'polish' && enabled && !state.polishHasApiKey) {
           state.pageMessage = {
             tone: 'warning',
-            message: '本站润色已开启，但润色模型尚未配置 API Key，润色会失败；请在设置中填写。'
+            message: t('pop_polish_missing_key')
           };
         } else if (flag === 'polish') {
           state.pageMessage = {
             tone: 'info',
-            message: enabled ? '本站润色已开启，重新翻译后生效。' : '本站润色已关闭，重新翻译后生效。'
+            message: enabled ? t('pop_polish_on') : t('pop_polish_off')
           };
         } else {
           state.pageMessage = {
             tone: 'info',
             message: enabled
-              ? '已开启预翻译：重新翻译当前页后，下一章会自动预翻译。'
-              : '已关闭预翻译。'
+              ? t('pop_pretranslate_on')
+              : t('pop_pretranslate_off')
           };
         }
         render();
@@ -107,15 +107,15 @@ function wireEvents() {
           value ? [] : ['presetId']
         );
         if (!saved) {
-          state.pageMessage = { tone: 'error', message: '保存本站提示词预设失败，请重试。' };
+          state.pageMessage = { tone: 'error', message: t('pop_preset_save_failed') };
           render();
           return;
         }
         state.pageMessage = {
           tone: 'info',
           message: value
-            ? `本站提示词预设已设为 ${presetDisplayName(value)}，重新翻译后生效。`
-            : '本站提示词预设已改为跟随全局，重新翻译后生效。'
+            ? t('pop_preset_saved', [presetDisplayName(value)])
+            : t('pop_preset_global')
         };
         render();
       })();
@@ -228,7 +228,7 @@ async function init() {
     render();
     await refreshState();
   } catch (_error) {
-    state.pageMessage = { tone: 'error', message: '扩展初始化失败，请关闭后重试。' };
+    state.pageMessage = { tone: 'error', message: t('pop_popup_failed') };
   } finally {
     state.loading = false;
     state.initialFetch = false;

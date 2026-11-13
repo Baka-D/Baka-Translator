@@ -1,9 +1,9 @@
 // Settings-page model names the user adds to a provider, built-in ones included.
-import { FEEDBACK_CLEAR_MS, KEYS, MSG, modelsTools, visionTools, state, ui } from './context.mjs';
+import { FEEDBACK_CLEAR_MS, KEYS, MSG, modelsTools, visionTools, state, ui, i18n, t } from './context.mjs';
 import { setKeyBusy, validateProviderKey } from './keys.mjs';
 import { applyCustomProviders, renderModelArea } from './model-selection.mjs';
 import { providerKeyFor } from './models.mjs';
-import { selectedProvider } from './providers.mjs';
+import { providerDisplayName, selectedProvider } from './providers.mjs';
 import { persist, restoreFocus, sendMessage, setFeedback, storedModelIds } from './utils.mjs';
 
 function modelItem(provider, model) {
@@ -11,16 +11,16 @@ function modelItem(provider, model) {
   item.className = 'provider-model-item';
   const name = document.createElement('span');
   name.className = 'provider-model-name';
-  name.textContent = model.model || model.name;
+  name.textContent = model.model || (provider.custom ? model.name : i18n.modelName(model.id, model.name));
   item.append(name);
   if (model.visionUnsupported) {
     const retry = document.createElement('button');
     retry.type = 'button';
     retry.className = 'button button-secondary button-compact';
-    retry.textContent = '重试图片';
+    retry.textContent = t('opt_discovery_retry_images');
     retry.dataset.visionRetry = model.id;
     retry.disabled = state.busy || state.customBusy;
-    retry.setAttribute('aria-label', `允许 ${model.model} 重新尝试图片翻译`);
+    retry.setAttribute('aria-label', t('opt_discovery_retry_images_named', [model.model]));
     retry.addEventListener('click', () => void handleRetryVision(provider, model));
     item.append(retry);
   }
@@ -28,9 +28,9 @@ function modelItem(provider, model) {
     const remove = document.createElement('button');
     remove.type = 'button';
     remove.className = 'button button-ghost-danger button-compact';
-    remove.textContent = '移除';
+    remove.textContent = t('opt_discovery_remove');
     remove.disabled = state.busy || state.customBusy;
-    remove.setAttribute('aria-label', `移除模型 ${model.model}`);
+    remove.setAttribute('aria-label', t('opt_discovery_remove_named', [model.model]));
     remove.addEventListener('click', () => void handleRemoveModel(provider.id, model.model));
     item.append(remove);
   }
@@ -47,7 +47,7 @@ export function renderProviderModels(provider, switched) {
   if (!provider) return;
   const busy = state.busy || state.customBusy;
   ui.fetchProviderModelsButton.disabled = busy || !provider.endpoint;
-  ui.fetchProviderModelsButton.setAttribute('aria-label', `获取 ${provider.name || provider.id} 可用模型`);
+  ui.fetchProviderModelsButton.setAttribute('aria-label', t('opt_discovery_fetch_named', [providerDisplayName(provider)]));
   ui.addUserModelButton.disabled = busy;
   ui.userModelInput.disabled = busy;
   const models = modelsTools.listModels(state.registry, provider.id);
@@ -80,9 +80,9 @@ export async function handleRetryVision(provider, model) {
     }
     applyCustomProviders();
     renderModelArea();
-    setFeedback(ui.providerModelFeedback, `已允许 ${model.model} 重新尝试图片翻译，下次使用时会重新确认能力。`, 'success');
+    setFeedback(ui.providerModelFeedback, t('opt_discovery_retry_allowed', [model.model]), 'success');
   } catch (_error) {
-    setFeedback(ui.providerModelFeedback, '未能恢复图片翻译，请重试。', 'error');
+    setFeedback(ui.providerModelFeedback, t('opt_discovery_retry_failed'), 'error');
   } finally {
     setKeyBusy(false);
     // The list was rebuilt; the retry button is new, or gone once the retry is allowed.
@@ -105,26 +105,26 @@ export async function handleFetchModels() {
       return;
     }
   } else if (provider.apiKeyRequired !== false && !providerKeyFor(provider.id)) {
-    setFeedback(ui.providerModelFeedback, '请先输入或保存该服务商的 API Key。', 'error');
+    setFeedback(ui.providerModelFeedback, t('opt_discovery_key_required'), 'error');
     ui.apiKeyInput.focus();
     return;
   }
 
-  ui.fetchProviderModelsButton.textContent = '正在获取…';
+  ui.fetchProviderModelsButton.textContent = t('opt_discovery_fetching');
   ui.fetchProviderModelsButton.setAttribute('aria-busy', 'true');
   setKeyBusy(true);
-  setFeedback(ui.providerModelFeedback, '正在获取模型列表…', 'muted');
+  setFeedback(ui.providerModelFeedback, t('opt_discovery_fetching_list'), 'muted');
   try {
     const response = await sendMessage({
       type: MSG.FETCH_MODELS, providerId: provider.id, ...(rawKey ? { apiKey: rawKey } : {})
     });
     if (!response.ok) {
-      setFeedback(ui.providerModelFeedback, response.error?.message || '获取模型失败，请重试。', 'error');
+      setFeedback(ui.providerModelFeedback, response.error?.message || t('opt_discovery_fetch_failed'), 'error');
       return;
     }
     const names = modelsTools.normalizeUserModels({ [provider.id]: response.models })[provider.id] || [];
     if (names.length === 0) {
-      setFeedback(ui.providerModelFeedback, '没有获取到适合文本翻译的模型，已有列表已保留。', 'warning');
+      setFeedback(ui.providerModelFeedback, t('opt_discovery_no_models'), 'warning');
       return;
     }
     const builtins = modelsTools.listModels(state.registry, provider.id).filter((model) => !model.userAdded);
@@ -140,14 +140,14 @@ export async function handleFetchModels() {
       return Math.min(additions.length, room);
     });
     const capped = Array.isArray(response.models) && response.models.length > modelsTools.MAX_USER_MODELS;
-    const limitHint = skipped || capped ? `已达本次导入或列表上限（${modelsTools.MAX_USER_MODELS} 个），部分模型未添加。` : '';
+    const limitHint = skipped || capped ? t('opt_discovery_limit_hint', [modelsTools.MAX_USER_MODELS]) : '';
     setFeedback(ui.providerModelFeedback,
-      `已获取 ${names.length} 个模型，新增 ${added} 个；可在「高级 → 模型行为」选择。${limitHint}`,
+      t('opt_discovery_fetched', [names.length, added, limitHint]),
       limitHint ? 'warning' : 'success');
   } catch (_error) {
-    setFeedback(ui.providerModelFeedback, '保存模型列表失败，请重试；已有列表已保留。', 'error');
+    setFeedback(ui.providerModelFeedback, t('opt_discovery_save_failed'), 'error');
   } finally {
-    ui.fetchProviderModelsButton.textContent = '获取模型';
+    ui.fetchProviderModelsButton.textContent = t('opt_discovery_fetch');
     ui.fetchProviderModelsButton.removeAttribute('aria-busy');
     setKeyBusy(false);
   }
@@ -160,12 +160,12 @@ export async function handleAddModel() {
   const name = ui.userModelInput.value.trim();
   const models = modelsTools.listModels(state.registry, provider.id);
   let problem = '';
-  if (!name) problem = '请填写发送给接口的模型名称。';
-  else if (/\s/.test(name)) problem = '模型名称不能包含空白字符。';
-  else if (name.length > 200) problem = '模型名称过长，请检查输入。';
-  else if (models.some((model) => model.model === name)) problem = '该服务商已有这个模型。';
+  if (!name) problem = t('opt_provider_model_required');
+  else if (/\s/.test(name)) problem = t('opt_discovery_model_no_whitespace');
+  else if (name.length > 200) problem = t('opt_provider_model_too_long');
+  else if (models.some((model) => model.model === name)) problem = t('opt_discovery_model_exists');
   else if ((state.userModels[provider.id] || []).length >= modelsTools.MAX_USER_MODELS) {
-    problem = `每个服务商最多添加 ${modelsTools.MAX_USER_MODELS} 个模型。`;
+    problem = t('opt_discovery_model_limit', [modelsTools.MAX_USER_MODELS]);
   }
   if (problem) {
     setFeedback(ui.providerModelFeedback, problem, 'error');
@@ -177,9 +177,9 @@ export async function handleAddModel() {
       next[provider.id] = (next[provider.id] || []).concat(name);
     });
     ui.userModelInput.value = '';
-    setFeedback(ui.providerModelFeedback, `已添加 ${name}，可在「高级 → 模型行为」选择。`, 'success', FEEDBACK_CLEAR_MS);
+    setFeedback(ui.providerModelFeedback, t('opt_discovery_model_added', [name]), 'success', FEEDBACK_CLEAR_MS);
   } catch (_error) {
-    setFeedback(ui.providerModelFeedback, '添加模型失败，请重试。', 'error');
+    setFeedback(ui.providerModelFeedback, t('opt_discovery_model_add_failed'), 'error');
   }
 }
 
@@ -188,16 +188,16 @@ export async function handleRemoveModel(providerIdValue, name) {
   const id = modelsTools.userModelId(providerIdValue, name);
   try {
     if ([state.modelId, state.polishModelIdRaw, ...await storedModelIds()].includes(id)) {
-      setFeedback(ui.providerModelFeedback, `${name} 正在使用中，请先在「高级 → 模型行为」切换到其他模型。`, 'warning');
+      setFeedback(ui.providerModelFeedback, t('opt_discovery_model_in_use', [name]), 'warning');
       return;
     }
     await commitUserModels((next) => {
       next[providerIdValue] = (next[providerIdValue] || []).filter((item) => item !== name);
       if (next[providerIdValue].length === 0) delete next[providerIdValue];
     });
-    setFeedback(ui.providerModelFeedback, `已移除 ${name}。`, 'success', FEEDBACK_CLEAR_MS);
+    setFeedback(ui.providerModelFeedback, t('opt_discovery_model_removed', [name]), 'success', FEEDBACK_CLEAR_MS);
     ui.userModelInput.focus();
   } catch (_error) {
-    setFeedback(ui.providerModelFeedback, '移除模型失败，请重试。', 'error');
+    setFeedback(ui.providerModelFeedback, t('opt_discovery_model_remove_failed'), 'error');
   }
 }

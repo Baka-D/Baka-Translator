@@ -1,5 +1,5 @@
 /** Background messages and loading extension configuration. */
-import { MSG, KEYS, languages, config, PAGE_ERROR_MESSAGES, normalizeUsage, state } from './popup-state.mjs';
+import { t, i18n, MSG, KEYS, languages, config, PAGE_ERROR_MESSAGES, normalizeUsage, state } from './popup-state.mjs';
 
 /* ---------- 与 background 通信 ---------- */
 
@@ -7,7 +7,7 @@ function errorText(error) {
   const code = error && typeof error.code === 'string' ? error.code : 'UNKNOWN_ERROR';
   if (PAGE_ERROR_MESSAGES[code]) return PAGE_ERROR_MESSAGES[code];
   const message = error && typeof error.message === 'string' ? error.message.trim() : '';
-  return message || '操作失败，请重试。';
+  return message || t('pop_operation_failed');
 }
 
 async function sendMessage(payload) {

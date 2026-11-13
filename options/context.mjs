@@ -1,5 +1,7 @@
 // Shared settings-page state and DOM references.
 export const root = globalThis.DSHT || {};
+export const i18n = root.i18n;
+export const t = i18n.t;
 export const config = root.config;
 export const languages = root.languages;
 export const modelsTools = root.models || null;
@@ -11,7 +13,7 @@ export const novelUtils = root.novel || null;
 export const fallback = document.getElementById('keyFeedback');
 
 if (!config || !languages) {
-  if (fallback) fallback.textContent = '扩展资源加载失败，请重新加载扩展后重试。';
+  if (fallback) fallback.textContent = t('opt_resources_unavailable');
   throw new Error('Options UI resources are unavailable.');
 }
 
@@ -26,12 +28,12 @@ export const CONFIRM_RESET_MS = 5000;
 // Plain http would expose the API key, so it stays limited to this machine.
 export const LOCAL_HTTP_HOSTS = ['localhost', '127.0.0.1'];
 export const EFFORT_LABELS = Object.freeze({
-  none: '关闭（最快）',
-  low: '低',
-  medium: '中',
-  high: '高',
-  xhigh: '超高',
-  max: '最大'
+  none: t('opt_effort_none'),
+  low: t('opt_effort_low'),
+  medium: t('opt_effort_medium'),
+  high: t('opt_effort_high'),
+  xhigh: t('opt_effort_xhigh'),
+  max: t('opt_effort_max')
 });
 export const STORAGE_KEYS_TO_READ = [
   KEYS.API_KEY,

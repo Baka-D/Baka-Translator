@@ -7,14 +7,16 @@
  */
 (function initDetect(globalScope) {
   'use strict';
+  const i18n = globalScope.DSHT?.i18n ||
+    (typeof require === 'function' ? require('./i18n.js') : null);
 
   const LABELS = Object.freeze({
-    zh: '中文',
-    en: '英语',
-    ko: '韩语',
-    ja: '日语',
-    ru: '俄语',
-    unknown: '未知'
+    zh: i18n.languageLabel('zh'),
+    en: i18n.languageLabel('en'),
+    ko: i18n.languageLabel('ko'),
+    ja: i18n.languageLabel('ja'),
+    ru: i18n.languageLabel('ru'),
+    unknown: i18n.languageLabel('unknown')
   });
 
   const MAX_ANALYZED_CHARS = 50000;

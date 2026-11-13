@@ -5,6 +5,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
+const { createLocalizedContext } = require('../helpers/i18n');
 const config = require('../../shared/config.js');
 
 for (const failure of [config.MSG.CAPTURE_SCREENSHOT, config.MSG.TRANSLATE_IMAGE]) {
@@ -23,7 +24,7 @@ for (const failure of [config.MSG.CAPTURE_SCREENSHOT, config.MSG.TRANSLATE_IMAGE
         return { dataUrl: 'data:image/png;base64,AA==' };
       }
     };
-    const context = vm.createContext({
+    const context = createLocalizedContext({
       DSHT: {},
       requestAnimationFrame: callback => callback(), window: { innerWidth: 1000, innerHeight: 1000 },
       Image: class {

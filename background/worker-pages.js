@@ -140,25 +140,25 @@ async function setupContextMenus() {
   await createMenu({
     id: MENU_IDS.SELECTION,
     parentId: MENU_IDS.ROOT,
-    title: '翻译选中文本',
+    title: t('bg_menu_selection'),
     contexts: ['selection']
   });
   await createMenu({
     id: MENU_IDS.PAGE,
     parentId: MENU_IDS.ROOT,
-    title: '翻译整个页面',
+    title: t('bg_menu_page'),
     contexts: ['page']
   });
   await createMenu({
     id: MENU_IDS.RESTORE,
     parentId: MENU_IDS.ROOT,
-    title: '还原原始页面',
+    title: t('bg_menu_restore'),
     contexts: ['page']
   });
   await createMenu({
     id: MENU_IDS.IMAGES,
     parentId: MENU_IDS.ROOT,
-    title: '翻译当前画面中的图片',
+    title: t('bg_menu_images'),
     contexts: ['page', 'image']
   });
   await syncVisionContextMenu();
@@ -166,10 +166,10 @@ async function setupContextMenus() {
 
 function setBadge(tabId, status, targetLabel) {
   const states = {
-    running: { text: '译', color: '#4D6BFE', title: 'Baka Translator：正在翻译…' },
-    done: { text: '译', color: '#0F9D58', title: `Baka Translator：已翻译为${targetLabel || '目标语言'}` },
-    partial: { text: '!', color: '#D97706', title: 'Baka Translator：部分内容未完成' },
-    error: { text: '!', color: '#DC2626', title: 'Baka Translator：翻译失败' },
+    running: { text: t('bg_badge_text'), color: '#4D6BFE', title: t('bg_badge_running') },
+    done: { text: t('bg_badge_text'), color: '#0F9D58', title: t('bg_badge_done', [targetLabel || t('bg_target_language')]) },
+    partial: { text: '!', color: '#D97706', title: t('bg_badge_partial') },
+    error: { text: '!', color: '#DC2626', title: t('bg_badge_error') },
     idle: { text: '', color: '#4D6BFE', title: 'Baka Translator' }
   };
   const state = states[status] || states.idle;
@@ -190,7 +190,7 @@ function setBadge(tabId, status, targetLabel) {
 
 function clearBadgeSoon(tabId, text, reason) {
   try {
-    chrome.action.setTitle({ tabId, title: `Baka Translator：${reason}` }, () => {
+    chrome.action.setTitle({ tabId, title: t('bg_badge_reason', [reason]) }, () => {
       void chrome.runtime.lastError;
     });
     chrome.action.setBadgeBackgroundColor({ tabId, color: '#D97706' }, () => {
@@ -216,7 +216,7 @@ function clearBadgeSoon(tabId, text, reason) {
 
 function errorPayload(error) {
   const code = (error && error.code) || 'UNKNOWN_ERROR';
-  let message = (error && error.message) || '发生未知错误，请重试。';
+  let message = (error && error.message) || t('bg_unknown_error');
   if (error instanceof api.ApiError) {
     return { ...api.getErrorPayload(error), discardedBilling: error.discardedBilling };
   }
@@ -273,11 +273,11 @@ async function captureVisibleTab(windowId) {
 
 async function handlePageCommand(message, sender) {
   if (!sender.url || !sender.url.startsWith(chrome.runtime.getURL(''))) {
-    throw new PageAccessError('INVALID_SENDER', '无效的调用来源。');
+    throw new PageAccessError('INVALID_SENDER', t('bg_invalid_sender'));
   }
   const tabId = Number(message.tabId);
   if (!Number.isInteger(tabId) || tabId < 0) {
-    throw new PageAccessError('INVALID_TAB', '没有可操作的标签页。');
+    throw new PageAccessError('INVALID_TAB', t('bg_invalid_tab'));
   }
   const command = String(message.command || '');
 
@@ -318,7 +318,7 @@ async function handlePageCommand(message, sender) {
       targetCode
     }, { frameId: 0 });
   }
-  throw new PageAccessError('UNKNOWN_COMMAND', '不支持的操作。');
+  throw new PageAccessError('UNKNOWN_COMMAND', t('bg_unknown_command'));
 }
 
 async function handleContextMenuClick(info, tab) {

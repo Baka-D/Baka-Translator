@@ -1,6 +1,7 @@
 /** Image models cross only the extension runtime; the iframe DOM carries no results. */
 (function initImageFrame(globalScope) {
   'use strict';
+  const { t } = globalScope.DSHT.i18n;
   const parts = globalScope.DSHT.overlayParts;
   const MSG = globalScope.DSHT.config.MSG;
 
@@ -42,7 +43,7 @@
       if (frame || !layer || session !== current) return;
       frame = document.createElement('iframe');
       frame.className = 'dsht-image-frame';
-      frame.title = 'Baka Translator 图片翻译';
+      frame.title = t('content_image_panel_label');
       frame.referrerPolicy = 'no-referrer';
       frame.src = chrome.runtime.getURL('content/image-results.html') + '#' + current.id;
       // Geometry comes from .dsht-image-frame in the closed shadow root and depends only on

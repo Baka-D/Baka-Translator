@@ -1,6 +1,7 @@
 /** Background-owned next-chapter jobs and foreground cache reuse. */
 (function registerContentModule(globalScope) {
   'use strict';
+  const { t } = globalScope.DSHT.i18n;
   const modules = globalScope.DSHT.contentModules ||= {};
   modules.pretranslation = function createModule(app) {
     const { novelUtils, MSG, LIMITS, page, overlay } = app;
@@ -34,7 +35,7 @@
       page.pretranslateBusy = true;
       showPretranslation({
         status: 'running', progress: { stage: 'fetching', done: 0, total: 0 },
-        note: '正在读取下一章…'
+        note: t('content_reading_next_chapter')
       }, 'next', nextUrl);
       try {
         app.assertPageRoute();
@@ -46,19 +47,19 @@
         app.assertPageRoute();
         const cached = saved && novelUtils.cacheMatchesSettings(saved, page.translationKey);
         if (snapshot.status !== 'running' && cached) {
-          snapshot = { status: 'ready', note: '下一章已有预翻译缓存。' };
+          snapshot = { status: 'ready', note: t('content_next_chapter_cached') };
         } else if (snapshot.status !== 'running') {
           const doc = await app.fetchChapterDocument(nextUrl);
           if (job.runId !== page.runId) return;
           app.assertPageRoute();
-          if (!doc) throw new Error('无法读取下一页内容。');
+          if (!doc) throw new Error(t('content_next_chapter_unreadable'));
           const roots = app.collectNovelRoots(doc, chapter);
           const collected = app.collectTargets(roots, { bilingual: false, allowDisconnected: true });
           const plan = app.buildPagePlan(collected.targets, false);
-          if (!plan.segments.length) throw new Error('下一页没有可翻译的章节正文。');
+          if (!plan.segments.length) throw new Error(t('content_next_chapter_empty'));
           const chars = plan.segments.reduce((sum, segment) => sum + segment.text.length, 0);
           if (collected.truncated || chars > LIMITS.NOVEL_PRETRANSLATE_MAX_CHARS) {
-            throw new Error('下一章过长，跳过预翻译。');
+            throw new Error(t('content_next_chapter_too_long'));
           }
           await app.ensureChapterContext(job.runId);
           if (job.runId !== page.runId) return;
@@ -94,13 +95,13 @@
         }
         if (job.runId !== page.runId) return;
         if (snapshot.status === 'ready') {
-          overlay.showToast('已预翻译下一章，打开时会自动应用。', 'success');
+          overlay.showToast(t('content_next_chapter_done'), 'success');
         } else if (snapshot.status === 'none') {
-          showPretranslation({ status: 'error', note: '预翻译已停止，打开下一章后可继续翻译。' }, 'next', nextUrl);
+          showPretranslation({ status: 'error', note: t('content_pretranslation_stopped') }, 'next', nextUrl);
         }
       } catch (error) {
         if (job.runId === page.runId) {
-          showPretranslation({ status: 'error', note: error.message || '预翻译失败，请稍后重试。' }, 'next', nextUrl);
+          showPretranslation({ status: 'error', note: error.message || t('content_pretranslation_failed') }, 'next', nextUrl);
         }
       } finally {
         if (job.runId === page.runId) {
@@ -172,7 +173,7 @@
       }
       page.estimatedCostUsd = Number(record.costUsd) || 0;
       page.polishError = page.proofreadEnabled && !record.polished
-        ? '预翻译缓存只包含初译，尚未润色。'
+        ? t('content_cached_draft_only')
         : '';
       page.pretranslationStatus = '';
       page.pretranslationNote = '';

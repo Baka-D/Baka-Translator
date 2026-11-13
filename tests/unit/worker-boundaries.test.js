@@ -5,6 +5,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
+const { createLocalizedContext } = require('../helpers/i18n');
 const config = require('../../shared/config.js');
 
 const sender = { tab: { id: 5, windowId: 7 }, frameId: 0, documentId: 'top-doc' };
@@ -30,7 +31,7 @@ function loadWorker(options = {}) {
   class PageAccessError extends Error {
     constructor(code, message) { super(message); this.code = code; }
   }
-  const context = vm.createContext({
+  const context = createLocalizedContext({
     config, MSG: config.MSG, CONTENT_SCRIPTS: ['content/content.js'],
     MENU_IDS: { SELECTION: 'selection' }, PAGE_ACCESS_ERRORS: {}, PageAccessError, setTimeout,
     hostnameFromSender: () => 'parent.example', hostnameFromUrl: (url) => new URL(url).hostname,

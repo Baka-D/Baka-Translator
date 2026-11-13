@@ -3,7 +3,7 @@ let visionMenuRevision = 0;
 
 function requireVisionSupported(runtime) {
   if (runtime.resolved.model.supportsVision === false) {
-    throw new PageAccessError('VISION_UNSUPPORTED', '当前模型不支持图片输入，图片翻译已禁用，请切换模型。');
+    throw new PageAccessError('VISION_UNSUPPORTED', t('bg_vision_disabled'));
   }
   return runtime;
 }
@@ -47,7 +47,7 @@ async function resetVisionCapability(message) {
   const modelName = typeof message.modelName === 'string' ? message.modelName : '';
   const model = provider && modelUtils.listModels(registry, providerId).find((entry) => entry.model === modelName);
   const key = model && visionUtils.keyFor(model, provider);
-  if (!key) throw new PageAccessError('MISSING_MODEL', '模型不存在，请重新加载设置页面。');
+  if (!key) throw new PageAccessError('MISSING_MODEL', t('bg_model_missing'));
   const operation = visionWriteQueue.then(async () => {
     const values = await chrome.storage.local.get(config.STORAGE_KEYS.VISION_CAPABILITIES);
     const next = visionUtils.normalizeCache(values[config.STORAGE_KEYS.VISION_CAPABILITIES]);

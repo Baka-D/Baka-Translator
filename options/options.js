@@ -1,5 +1,5 @@
 // Settings-page options.
-import { FEEDBACK_CLEAR_MS, KEYS, languages, modelsTools, novelUtils, visionTools, state, ui } from './context.mjs';
+import { t, i18n, FEEDBACK_CLEAR_MS, KEYS, languages, modelsTools, novelUtils, visionTools, state, ui } from './context.mjs';
 import { handleDeleteProviderClick, handleSaveCustomProvider } from './custom-provider.mjs';
 import { handleClearKeyClick, handleSaveKey, handleTestConnection, handleToggleKeyVisibility } from './keys.mjs';
 import { handleAddModel, handleFetchModels } from './provider-models.mjs';
@@ -100,15 +100,15 @@ export function wireEvents() {
         const model = translationModel();
         setFeedback(
           ui.behaviorFeedback,
-          `翻译服务商已切换为 ${providerNameById(providerIdValue)}${
-            model ? `，模型：${model.name}` : ''
-          }。`,
+          model
+            ? t('opt_translation_provider_model_saved', [providerNameById(providerIdValue), i18n.modelName(model.id, model.name)])
+            : t('opt_translation_provider_saved', [providerNameById(providerIdValue)]),
           'success',
           FEEDBACK_CLEAR_MS
         );
       },
       () => {
-        setFeedback(ui.behaviorFeedback, '保存翻译服务商失败，请重试。', 'error');
+        setFeedback(ui.behaviorFeedback, t('opt_translation_provider_save_failed'), 'error');
       }
     );
   });
@@ -120,16 +120,16 @@ export function wireEvents() {
         setFeedback(
           ui.behaviorFeedback,
           providerIdValue
-            ? `润色服务商已切换为 ${providerNameById(providerIdValue)}${
-                model ? `，模型：${model.name}` : ''
-              }。`
-            : '润色模型已改为跟随翻译模型。',
+            ? (model
+              ? t('opt_polish_provider_model_saved', [providerNameById(providerIdValue), i18n.modelName(model.id, model.name)])
+              : t('opt_polish_provider_saved', [providerNameById(providerIdValue)]))
+            : t('opt_polish_model_follow_saved'),
           'success',
           FEEDBACK_CLEAR_MS
         );
       },
       () => {
-        setFeedback(ui.behaviorFeedback, '保存润色服务商失败，请重试。', 'error');
+        setFeedback(ui.behaviorFeedback, t('opt_polish_provider_save_failed'), 'error');
       }
     );
   });
@@ -139,13 +139,13 @@ export function wireEvents() {
         const model = translationModel();
         setFeedback(
           ui.behaviorFeedback,
-          model ? `翻译模型已切换：${model.name}。` : '翻译模型已切换。',
+          model ? t('opt_translation_model_named_saved', [i18n.modelName(model.id, model.name)]) : t('opt_translation_model_saved'),
           'success',
           FEEDBACK_CLEAR_MS
         );
       },
       () => {
-        setFeedback(ui.behaviorFeedback, '保存翻译模型失败，请重试。', 'error');
+        setFeedback(ui.behaviorFeedback, t('opt_translation_model_save_failed'), 'error');
       }
     );
   });
@@ -159,14 +159,14 @@ export function wireEvents() {
         setFeedback(
           ui.behaviorFeedback,
           polishInheritsModel()
-            ? '润色模型已改为跟随翻译模型。'
-            : `润色模型已切换：${model ? model.name : '—'}。`,
+            ? t('opt_polish_model_follow_saved')
+            : t('opt_polish_model_named_saved', [model ? i18n.modelName(model.id, model.name) : '—']),
           'success',
           FEEDBACK_CLEAR_MS
         );
       },
       () => {
-        setFeedback(ui.behaviorFeedback, '保存润色模型失败，请重试。', 'error');
+        setFeedback(ui.behaviorFeedback, t('opt_polish_model_save_failed'), 'error');
       }
     );
   });
@@ -178,13 +178,13 @@ export function wireEvents() {
       () => {
         setFeedback(
           ui.behaviorFeedback,
-          `翻译思考强度已保存：${effortLabel(value)}。`,
+          t('opt_translation_effort_saved', [effortLabel(value)]),
           'success',
           FEEDBACK_CLEAR_MS
         );
       },
       () => {
-        setFeedback(ui.behaviorFeedback, '保存翻译思考强度失败，请重试。', 'error');
+        setFeedback(ui.behaviorFeedback, t('opt_translation_effort_save_failed'), 'error');
       }
     );
   });
@@ -196,13 +196,13 @@ export function wireEvents() {
       () => {
         setFeedback(
           ui.behaviorFeedback,
-          value ? `润色思考强度已保存：${effortLabel(value)}。` : '润色思考强度已改为跟随翻译/使用模型默认值。',
+          value ? t('opt_polish_effort_saved', [effortLabel(value)]) : t('opt_polish_effort_follow_saved'),
           'success',
           FEEDBACK_CLEAR_MS
         );
       },
       () => {
-        setFeedback(ui.behaviorFeedback, '保存润色思考强度失败，请重试。', 'error');
+        setFeedback(ui.behaviorFeedback, t('opt_polish_effort_save_failed'), 'error');
       }
     );
   });
@@ -230,7 +230,7 @@ export function wireEvents() {
         const button = ui.reloadModelsButton;
         button.disabled = true;
         button.setAttribute('aria-busy', 'true');
-        button.textContent = '正在加载…';
+        button.textContent = t('opt_loading');
         try {
           await loadRegistry();
           applyResolvedModel();
@@ -238,15 +238,15 @@ export function wireEvents() {
         } finally {
           button.disabled = false;
           button.removeAttribute('aria-busy');
-          button.textContent = '重新加载';
+          button.textContent = t('opt_reload');
           // A successful reload hides the notice holding the button.
           restoreFocus(button, ui.providerNav.querySelector('[aria-current="true"]'));
         }
         if (state.registryError) {
           // The notice is where the user is looking; an unchanged text would read as no response.
-          ui.modelsLoadErrorText.textContent = `重试仍失败。${state.registryError}`;
+          ui.modelsLoadErrorText.textContent = t('opt_registry_retry_failed', [state.registryError]);
         } else {
-          setFeedback(ui.keyFeedback, '模型清单已重新加载。', 'success', FEEDBACK_CLEAR_MS);
+          setFeedback(ui.keyFeedback, t('opt_models_reloaded'), 'success', FEEDBACK_CLEAR_MS);
         }
       })();
     });
@@ -323,7 +323,7 @@ export function wireEvents() {
 export function showMeta() {
   const version = getVersion();
   if (ui.versionChip) ui.versionChip.textContent = version ? `v${version}` : '—';
-  if (ui.versionText) ui.versionText.textContent = version || '未知';
+  if (ui.versionText) ui.versionText.textContent = version || t('opt_unknown');
   if (ui.modelText) ui.modelText.textContent = '—';
 }
 
@@ -337,8 +337,8 @@ export function renderNovelSupportNote() {
       const host = Array.isArray(adapter.hosts) && adapter.hosts.length > 0 ? adapter.hosts[0] : '';
       return host ? `${host}（${adapter.name}）` : adapter.name;
     })
-    .join('、');
-  ui.novelSupportNote.textContent = `轻小说模式：适配 ${sites}，自动识别章节与下一页链接；同一作品章节数超过 2 后会在本地建立术语库。目前仅支持以上站点。`;
+    .join(t('opt_list_separator'));
+  ui.novelSupportNote.textContent = t('opt_novel_support', [sites]);
 }
 
 export async function init() {

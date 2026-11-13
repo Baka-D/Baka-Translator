@@ -3,7 +3,11 @@ dist/
 *.zip
 .DS_Store
 Thumbs.db
-/tests/
+/tests/*
+!/tests/helpers/
+/tests/helpers/*
+# Required by the existing tracked browser-module tests.
+!/tests/helpers/i18n.js
 __pycache__/
 AGENTS.md
 

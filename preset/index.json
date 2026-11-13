@@ -4,21 +4,21 @@
   "presets": [
     {
       "id": "general",
-      "name": "常规",
-      "description": "适合新闻、博客、论坛和日常网页，兼顾准确与流畅。",
-      "file": "general.json"
+      "file": "general.json",
+      "nameMessage": "preset_general_name",
+      "descriptionMessage": "preset_general_description"
     },
     {
       "id": "academic",
-      "name": "学术",
-      "description": "适合论文、技术文档与教程，强调术语、论证和引用准确。",
-      "file": "academic.json"
+      "file": "academic.json",
+      "nameMessage": "preset_academic_name",
+      "descriptionMessage": "preset_academic_description"
     },
     {
       "id": "light-novel",
-      "name": "轻小说",
-      "description": "适合日轻、网文与小说，保留叙述口吻、对白节奏与角色语气。",
-      "file": "light-novel.json"
+      "file": "light-novel.json",
+      "nameMessage": "preset_light_novel_name",
+      "descriptionMessage": "preset_light_novel_description"
     }
   ]
 }

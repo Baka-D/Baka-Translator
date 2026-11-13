@@ -1,5 +1,5 @@
 // Settings-page user-added OpenAI-compatible providers (add, edit, rename, delete).
-import { CONFIRM_RESET_MS, FEEDBACK_CLEAR_MS, KEYS, LOCAL_HTTP_HOSTS, modelsTools, state, ui } from './context.mjs';
+import { CONFIRM_RESET_MS, FEEDBACK_CLEAR_MS, KEYS, LOCAL_HTTP_HOSTS, modelsTools, state, ui, t } from './context.mjs';
 import { applyCustomProviders, renderModelArea } from './model-selection.mjs';
 import { isCustomProvider, providerKeyFor } from './models.mjs';
 import { focusCurrentProvider, providerUses, renderProviders, selectedProvider } from './providers.mjs';
@@ -28,27 +28,27 @@ export function setCustomBusy(busy) {
 export function validateCustomProviderInput(endpointRaw, modelRaw) {
   const endpointText = typeof endpointRaw === 'string' ? endpointRaw.trim() : '';
   const modelText = typeof modelRaw === 'string' ? modelRaw.trim() : '';
-  if (!endpointText) return { ok: false, message: '请填写自定义接口的 base URL。' };
+  if (!endpointText) return { ok: false, message: t('opt_provider_endpoint_required') };
   const normalized =
     modelsTools && typeof modelsTools.normalizeEndpoint === 'function'
       ? modelsTools.normalizeEndpoint(endpointText)
       : '';
-  if (!normalized) return { ok: false, message: '接口地址必须是有效的 http(s) URL。' };
+  if (!normalized) return { ok: false, message: t('opt_provider_endpoint_invalid') };
   let url;
   try {
     url = new URL(normalized);
   } catch (_error) {
-    return { ok: false, message: '接口地址必须是有效的 http(s) URL。' };
+    return { ok: false, message: t('opt_provider_endpoint_invalid') };
   }
   if (url.protocol === 'http:') {
     if (!LOCAL_HTTP_HOSTS.includes(url.hostname.toLowerCase())) {
-      return { ok: false, message: 'http 接口仅支持 localhost / 127.0.0.1，请改用 https。' };
+      return { ok: false, message: t('opt_provider_https_required') };
     }
   } else if (url.protocol !== 'https:') {
-    return { ok: false, message: '接口地址必须是 http(s) URL。' };
+    return { ok: false, message: t('opt_provider_endpoint_protocol') };
   }
-  if (!modelText) return { ok: false, message: '请填写发送给接口的模型名称。' };
-  if (modelText.length > 200) return { ok: false, message: '模型名称过长，请检查输入。' };
+  if (!modelText) return { ok: false, message: t('opt_provider_model_required') };
+  if (modelText.length > 200) return { ok: false, message: t('opt_provider_model_too_long') };
   return { ok: true, endpoint: normalized, model: modelText };
 }
 
@@ -72,18 +72,19 @@ export function renderCustomFields(provider, switched) {
     state.confirmMoveProvider = '';
   }
   const confirming = !state.providerDraft && state.confirmMoveProvider === (provider && provider.id);
-  ui.saveCustomProviderButton.textContent = confirming ? '确认保存？' : state.providerDraft ? '添加服务商' : '保存服务商';
+  ui.saveCustomProviderButton.textContent = confirming ? t('opt_provider_confirm_save')
+    : state.providerDraft ? t('opt_provider_add') : t('opt_provider_save');
   if (ui.deleteProviderButton) {
     ui.deleteProviderButton.hidden = state.providerDraft;
     if (state.confirmDeleteProvider !== (provider && provider.id)) {
-      ui.deleteProviderButton.textContent = '删除服务商';
+      ui.deleteProviderButton.textContent = t('opt_provider_delete');
       ui.deleteProviderButton.classList.remove('is-confirming');
     }
   }
 }
 
-const MOVE_WARNING = '接口主机已变更，再次点击“确认保存？”将清除已保存的 API Key。';
-const DELETE_WARNING = '再次点击“确认删除？”将删除该服务商及其 API Key。';
+const MOVE_WARNING = t('opt_provider_move_warning');
+const DELETE_WARNING = t('opt_provider_delete_warning');
 
 /** An expired confirm must not erase a message written after its warning. */
 function clearFeedbackIf(warning) {
@@ -95,7 +96,7 @@ function resetMoveConfirm() {
   state.moveConfirmTimer = 0;
   if (!state.confirmMoveProvider) return;
   state.confirmMoveProvider = '';
-  ui.saveCustomProviderButton.textContent = '保存服务商';
+  ui.saveCustomProviderButton.textContent = t('opt_provider_save');
 }
 
 function hostMoved(previous, endpoint) {
@@ -112,7 +113,7 @@ function nextCustomId() {
 
 function defaultName(providerIdValue) {
   const index = providerIdValue === 'custom' ? 1 : Number(providerIdValue.split('-')[1]) || 1;
-  return index === 1 ? '自定义接口' : `自定义接口 ${index}`;
+  return index === 1 ? t('opt_provider_default_name') : t('opt_provider_default_numbered_name', [index]);
 }
 
 /** Another options tab may have changed the list since this one loaded it. */
@@ -135,7 +136,7 @@ export async function handleSaveCustomProvider() {
   const current = selectedProvider();
   if (!adding && !isCustomProvider(current)) return;
   if (adding && state.customProviders.length >= modelsTools.MAX_CUSTOM_PROVIDERS) {
-    setFeedback(ui.customProviderFeedback, `最多添加 ${modelsTools.MAX_CUSTOM_PROVIDERS} 个自定义服务商。`, 'error');
+    setFeedback(ui.customProviderFeedback, t('opt_provider_limit', [modelsTools.MAX_CUSTOM_PROVIDERS]), 'error');
     return;
   }
   const validation = validateCustomProviderInput(ui.customEndpointInput.value, ui.customModelInput.value);
@@ -148,7 +149,7 @@ export async function handleSaveCustomProvider() {
   if (!adding && state.confirmMoveProvider !== current.id && providerKeyFor(current.id) &&
     hostMoved(storedEntry(current.id), validation.endpoint)) {
     state.confirmMoveProvider = current.id;
-    ui.saveCustomProviderButton.textContent = '确认保存？';
+    ui.saveCustomProviderButton.textContent = t('opt_provider_confirm_save');
     setFeedback(ui.customProviderFeedback, MOVE_WARNING, 'warning');
     window.clearTimeout(state.moveConfirmTimer);
     state.moveConfirmTimer = window.setTimeout(() => {
@@ -173,7 +174,7 @@ export async function handleSaveCustomProvider() {
       setCustomBusy(false);
       applyCustomProviders();
       renderModelArea();
-      setFeedback(ui.keyFeedback, `${current.name} 已在其他设置页删除，本次修改未保存。`, 'warning');
+      setFeedback(ui.keyFeedback, t('opt_provider_deleted_elsewhere', [current.name]), 'warning');
       return;
     }
     const id = adding ? nextCustomId() : current.id;
@@ -204,7 +205,7 @@ export async function handleSaveCustomProvider() {
     if (adding || moved) state.providerKeys = nextKeys;
     saved = entry;
   } catch (_error) {
-    setFeedback(ui.customProviderFeedback, '保存服务商失败，请重试。', 'error');
+    setFeedback(ui.customProviderFeedback, t('opt_provider_save_failed'), 'error');
   } finally {
     setCustomBusy(false);
   }
@@ -215,8 +216,8 @@ export async function handleSaveCustomProvider() {
   renderModelArea();
   setFeedback(
     ui.customProviderFeedback,
-    adding ? `已添加 ${saved.name}，可继续填写 API Key。`
-      : droppedKey ? `已保存 ${saved.name}。接口地址换了主机，原 API Key 已清除，请重新填写。` : `已保存 ${saved.name}。`,
+    adding ? t('opt_provider_added', [saved.name])
+      : droppedKey ? t('opt_provider_saved_key_cleared', [saved.name]) : t('opt_provider_saved', [saved.name]),
     'success',
     droppedKey ? undefined : FEEDBACK_CLEAR_MS
   );
@@ -231,7 +232,7 @@ export async function handleDeleteProviderClick() {
   if (uses.length > 0 || stored.some((model) => model && model.provider === provider.id)) {
     setFeedback(
       ui.customProviderFeedback,
-      `${provider.name} 正被${uses.join('、') || '其他设置页'}使用，请先在「高级 → 模型行为」切换到其他服务商。`,
+      t('opt_provider_in_use', [provider.name, uses.join(t('opt_provider_usage_separator')) || t('opt_provider_other_settings')]),
       'warning'
     );
     return;
@@ -239,7 +240,7 @@ export async function handleDeleteProviderClick() {
   if (state.confirmDeleteProvider !== provider.id) {
     resetMoveConfirm();
     state.confirmDeleteProvider = provider.id;
-    ui.deleteProviderButton.textContent = '确认删除？';
+    ui.deleteProviderButton.textContent = t('opt_provider_confirm_delete');
     ui.deleteProviderButton.classList.add('is-confirming');
     setFeedback(ui.customProviderFeedback, DELETE_WARNING, 'warning');
     window.clearTimeout(state.deleteConfirmTimer);
@@ -271,7 +272,7 @@ export async function handleDeleteProviderClick() {
     state.providerKeys = nextKeys;
     deleted = true;
   } catch (_error) {
-    setFeedback(ui.customProviderFeedback, '删除服务商失败，请重试。', 'error');
+    setFeedback(ui.customProviderFeedback, t('opt_provider_delete_failed'), 'error');
   } finally {
     setCustomBusy(false);
   }
@@ -279,5 +280,5 @@ export async function handleDeleteProviderClick() {
   state.selectedProviderId = '';
   renderModelArea();
   focusCurrentProvider();
-  setFeedback(ui.keyFeedback, `已删除 ${provider.name}。`, 'success', FEEDBACK_CLEAR_MS);
+  setFeedback(ui.keyFeedback, t('opt_provider_deleted', [provider.name]), 'success', FEEDBACK_CLEAR_MS);
 }

@@ -10,10 +10,13 @@ import sys
 import zipfile
 from pathlib import Path
 
+from localize import generate as generate_locales
+
 ROOT = Path(__file__).resolve().parent.parent
 DIST = ROOT / "dist"
 
 INCLUDE_DIRS = (
+    "_locales",
     "background",
     "shared",
     "content",
@@ -123,6 +126,7 @@ def iter_runtime_files():
 
 
 def main() -> int:
+    generate_locales()
     errors = validate_manifest()
     if errors:
         for error in errors:

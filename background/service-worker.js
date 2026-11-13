@@ -7,6 +7,7 @@
  * from content scripts, which keep their settings and novel data there.
  */
 importScripts(
+  chrome.runtime.getURL('shared/i18n.js'),
   chrome.runtime.getURL('shared/config.js'),
   chrome.runtime.getURL('shared/languages.js'),
   chrome.runtime.getURL('shared/detect.js'),
@@ -40,6 +41,7 @@ const {
   billing: billingUtils,
   presets: presetUtils
 } = globalThis.DSHT;
+const { t } = globalThis.DSHT.i18n;
 const MSG = config.MSG;
 const LIMITS = config.LIMITS;
 
@@ -69,6 +71,7 @@ let presetIndexPromise = null;
 const presetCache = new Map();
 
 const CONTENT_SCRIPTS = [
+  'shared/i18n.js',
   'shared/config.js',
   'shared/languages.js',
   'shared/detect.js',
@@ -109,15 +112,15 @@ const MENU_IDS = Object.freeze({
 
 const PAGE_ACCESS_ERRORS = Object.freeze({
   UNSUPPORTED_PAGE:
-    '此页面是浏览器内置页面或受保护页面，浏览器不允许扩展修改它。请在普通网页上使用。',
+    t('bg_page_restricted'),
   FILE_ACCESS_DISABLED:
-    '无法访问本地文件。请在浏览器扩展管理页中打开本扩展的详情，并启用“允许访问文件网址”。',
-  NO_PAGE_ACCESS: '无法访问此页面。请刷新页面后重试。',
-  TAB_CLOSED: '页面已关闭。',
-  NO_API_KEY: '尚未配置当前模型的 API Key，请先在扩展设置中填写。',
-  MODEL_CONFIG_ERROR: '无法读取 profile/ 下的模型配置，请重新加载扩展或检查配置。',
-  SCREENSHOT_FAILED: '无法截取页面画面，请保持页面在前台并重试。',
-  PAGE_LOADING: '页面仍在加载，请稍后再试。'
+    t('bg_file_access_disabled'),
+  NO_PAGE_ACCESS: t('bg_page_access_failed'),
+  TAB_CLOSED: t('bg_tab_closed'),
+  NO_API_KEY: t('bg_current_model_missing_key'),
+  MODEL_CONFIG_ERROR: t('bg_model_config_unreadable'),
+  SCREENSHOT_FAILED: t('bg_screenshot_failed'),
+  PAGE_LOADING: t('bg_page_loading')
 });
 
 class PageAccessError extends Error {
@@ -151,7 +154,7 @@ async function handleMessage(message, sender) {
 
     case MSG.TEST_CONNECTION: {
       if (!sender.url || !sender.url.startsWith(chrome.runtime.getURL('options/'))) {
-        throw new PageAccessError('INVALID_SENDER', '无效的调用来源。');
+        throw new PageAccessError('INVALID_SENDER', t('bg_invalid_sender'));
       }
       const purpose = message.purpose === 'polish' ? 'polish' : 'translation';
       const providerId = typeof message.providerId === 'string' ? message.providerId : '';
@@ -173,15 +176,15 @@ async function handleMessage(message, sender) {
 
     case MSG.FETCH_MODELS: {
       if (!sender.url || !sender.url.startsWith(chrome.runtime.getURL('options/'))) {
-        throw new PageAccessError('INVALID_SENDER', '请在扩展设置页面中获取模型。');
+        throw new PageAccessError('INVALID_SENDER', t('bg_models_options_only'));
       }
       const settings = await readSettings();
       const registry = settingsRegistry(await loadRegistry(), settings);
       const providerId = typeof message.providerId === 'string' ? message.providerId : '';
       const provider = Object.hasOwn(registry.providers, providerId) && registry.providers[providerId];
-      if (!provider) throw new PageAccessError('MISSING_PROVIDER', '服务商不存在，请重新加载设置页面。');
+      if (!provider) throw new PageAccessError('MISSING_PROVIDER', t('bg_missing_provider'));
       if (message.apiKey !== undefined && typeof message.apiKey !== 'string') {
-        throw new PageAccessError('INVALID_API_KEY_FORMAT', 'API Key 格式不正确。');
+        throw new PageAccessError('INVALID_API_KEY_FORMAT', t('bg_invalid_key_format'));
       }
       const apiKey = (message.apiKey || '').trim() || getProviderApiKey(provider, settings);
       return { models: await api.fetchModels({ provider, apiKey }) };
@@ -189,13 +192,13 @@ async function handleMessage(message, sender) {
 
     case MSG.RESET_VISION_CAPABILITY:
       if (!sender.url || !sender.url.startsWith(chrome.runtime.getURL('options/'))) {
-        throw new PageAccessError('INVALID_SENDER', '请在扩展设置页面中重新启用图片翻译。');
+        throw new PageAccessError('INVALID_SENDER', t('bg_vision_options_only'));
       }
       return resetVisionCapability(message);
 
     case MSG.RESET_USAGE: {
       if (!sender.url || !sender.url.startsWith(chrome.runtime.getURL('options/'))) {
-        throw new PageAccessError('INVALID_SENDER', '无效的调用来源。');
+        throw new PageAccessError('INVALID_SENDER', t('bg_invalid_sender'));
       }
       await resetUsage();
       const values = await chrome.storage.local.get(config.STORAGE_KEYS.USAGE);
@@ -251,7 +254,7 @@ async function handleMessage(message, sender) {
 
     case MSG.CAPTURE_SCREENSHOT:
       if (!sender.tab || sender.tab.id === undefined) {
-        throw new PageAccessError('INVALID_SENDER', '无效的调用来源。');
+        throw new PageAccessError('INVALID_SENDER', t('bg_invalid_sender'));
       }
       return capturePageScreenshot(sender);
 
@@ -281,7 +284,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   handleMessage(message, sender)
     .then((result) => {
       if (result === null) {
-        sendResponse({ ok: false, error: { code: 'UNKNOWN_MESSAGE', message: '未知消息。' } });
+        sendResponse({ ok: false, error: { code: 'UNKNOWN_MESSAGE', message: t('bg_unknown_message') } });
         return;
       }
       sendResponse({ ok: true, ...result });

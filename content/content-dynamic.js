@@ -1,6 +1,7 @@
 /** Dynamic behavior for the content script. */
 (function registerContentModule(globalScope) {
   'use strict';
+  const { t } = globalScope.DSHT.i18n;
   const modules = globalScope.DSHT.contentModules ||= {};
   modules['dynamic'] = function createModule(app) {
   const { textUtils, MSG, LIMITS, BILINGUAL_ATTR, FATAL_ERROR_CODES, page, overlay } = app;
@@ -67,7 +68,7 @@
   function leftTranslatedRoute() {
     if (currentRoute() === page.translatedRoute) return false;
     stopDynamicTranslation();
-    overlay.showToast('页面已切换，新内容不再自动翻译。需要时请还原后重新翻译。', 'info');
+    overlay.showToast(t('content_route_changed_notice'), 'info');
     return true;
   }
 
@@ -127,7 +128,7 @@
     const refused = allRoots.filter((root) => root && !inScope(root));
     if (!frameNoticeShown && refused.some((root) => app.collectTargets(root, {}).targets.length > 0)) {
       frameNoticeShown = true;
-      overlay.showToast('新载入的内嵌内容不会自动翻译。需要时请还原后重新翻译。', 'info');
+      overlay.showToast(t('content_frame_changed_notice'), 'info');
     }
     composedRoots = roots;
     const options = { childList: true, characterData: true, subtree: true };

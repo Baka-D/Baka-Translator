@@ -1,5 +1,5 @@
 // Settings-page presets.
-import { FEEDBACK_CLEAR_MS, KEYS, config, presetsTools, state, ui } from './context.mjs';
+import { t, i18n, FEEDBACK_CLEAR_MS, KEYS, config, presetsTools, state, ui } from './context.mjs';
 import { renderSiteSettings } from './sites.mjs';
 import { isObject, persist, setFeedback } from './utils.mjs';
 
@@ -29,7 +29,7 @@ export function populatePresetSelect() {
   if (!state.presetIndex || !Array.isArray(state.presetIndex.presets)) {
     const option = document.createElement('option');
     option.value = '';
-    option.textContent = '预设不可用';
+    option.textContent = t('opt_preset_unavailable');
     select.appendChild(option);
     select.disabled = true;
     return;
@@ -38,7 +38,7 @@ export function populatePresetSelect() {
   for (const preset of state.presetIndex.presets) {
     const option = document.createElement('option');
     option.value = preset.id;
-    option.textContent = preset.name;
+    option.textContent = i18n.presetName(preset.id, preset.name);
     select.appendChild(option);
   }
 }
@@ -72,7 +72,7 @@ export function presetMeta(presetId) {
 
 export function presetDisplayName(presetId) {
   const meta = presetMeta(presetId);
-  return meta && meta.name ? meta.name : presetId;
+  return i18n.presetName(presetId, meta?.name || presetId);
 }
 
 export async function ensurePreset(presetId) {
@@ -103,9 +103,7 @@ export function renderPromptPlaceholders() {
     presetsTools && Array.isArray(presetsTools.PLACEHOLDERS)
       ? presetsTools.PLACEHOLDERS
       : ['targetLanguage', 'targetNative', 'sourceHint'];
-  ui.promptPlaceholders.textContent = `可用占位符：${placeholders
-    .map((name) => `{{${name}}}`)
-    .join('、')}。术语表固定附在系统提示词末尾。`;
+  ui.promptPlaceholders.textContent = t('opt_prompt_placeholders', [placeholders.map((name) => `{{${name}}}`).join(t('opt_list_separator'))]);
 }
 
 export async function loadPromptEditor() {
@@ -124,13 +122,13 @@ export async function loadPromptEditor() {
   rememberPrompts();
   disarmReset();
   if (ui.presetDescription) {
-    ui.presetDescription.textContent = preset.description || preset.name || '';
+    ui.presetDescription.textContent = i18n.presetDescription(presetId, preset.description || preset.name || '');
   }
   const hasOverride = Boolean(overrides.translationPrompt || overrides.polishPrompt);
   if (ui.promptStatus) {
     ui.promptStatus.textContent = hasOverride
-      ? '当前预设正在使用保存在本机的自定义提示词。'
-      : '当前预设正在使用预设默认提示词。';
+      ? t('opt_prompt_custom_active')
+      : t('opt_prompt_default_active');
   }
   renderPromptPlaceholders();
 }
@@ -138,7 +136,7 @@ export async function loadPromptEditor() {
 export function handlePresetChange() {
   const value = ui.presetSelect.value;
   if (!value) return;
-  if (promptsEdited() && !window.confirm('提示词有未保存的修改，切换预设会丢失这些修改。确定继续吗？')) {
+  if (promptsEdited() && !window.confirm(t('opt_prompt_discard_confirm'))) {
     ui.presetSelect.value = state.presetId;
     return;
   }
@@ -147,13 +145,13 @@ export function handlePresetChange() {
     () => {
       setFeedback(
         ui.behaviorFeedback,
-        `已切换全局提示词预设：${presetDisplayName(value)}。`,
+        t('opt_preset_saved', [presetDisplayName(value)]),
         'success',
         FEEDBACK_CLEAR_MS
       );
     },
     () => {
-      setFeedback(ui.behaviorFeedback, '保存提示词预设失败，请重试。', 'error');
+      setFeedback(ui.behaviorFeedback, t('opt_preset_save_failed'), 'error');
     }
   );
   void loadPromptEditor();
@@ -166,15 +164,15 @@ export async function handleSavePrompts() {
   const translationPrompt = ui.translationPromptInput.value.trim();
   const polishPrompt = ui.polishPromptInput.value.trim();
   if (!translationPrompt) {
-    setFeedback(ui.promptFeedback, '翻译提示词不能为空。', 'error');
+    setFeedback(ui.promptFeedback, t('opt_translation_prompt_required'), 'error');
     return;
   }
   if (!polishPrompt) {
-    setFeedback(ui.promptFeedback, '润色提示词不能为空。', 'error');
+    setFeedback(ui.promptFeedback, t('opt_polish_prompt_required'), 'error');
     return;
   }
   if (!preset) {
-    setFeedback(ui.promptFeedback, '提示词预设加载失败，请刷新页面后重试。', 'error');
+    setFeedback(ui.promptFeedback, t('opt_prompt_preset_load_failed'), 'error');
     return;
   }
   const overrides = isObject(state.promptOverrides) ? Object.assign({}, state.promptOverrides) : {};
@@ -190,12 +188,12 @@ export async function handleSavePrompts() {
     if (ui.promptStatus) {
       ui.promptStatus.textContent =
         Object.keys(entry).length > 0
-          ? '当前预设正在使用保存在本机的自定义提示词。'
-          : '当前预设正在使用预设默认提示词。';
+          ? t('opt_prompt_custom_active')
+          : t('opt_prompt_default_active');
     }
-    setFeedback(ui.promptFeedback, '提示词已保存，将用于后续翻译与润色。', 'success', FEEDBACK_CLEAR_MS);
+    setFeedback(ui.promptFeedback, t('opt_prompts_saved'), 'success', FEEDBACK_CLEAR_MS);
   } catch (_error) {
-    setFeedback(ui.promptFeedback, '保存提示词失败，请重试。', 'error');
+    setFeedback(ui.promptFeedback, t('opt_prompts_save_failed'), 'error');
   }
 }
 
@@ -204,7 +202,7 @@ function disarmReset() {
   window.clearTimeout(resetTimer);
   resetTimer = 0;
   if (!ui.resetPromptsButton) return;
-  ui.resetPromptsButton.textContent = '恢复默认';
+  ui.resetPromptsButton.textContent = t('opt_restore_defaults');
   ui.resetPromptsButton.classList.remove('is-confirming');
   ui.resetPromptsButton.removeAttribute('aria-label');
 }
@@ -213,9 +211,9 @@ export async function handleResetPrompts() {
   const custom = isObject(state.promptOverrides) && isObject(state.promptOverrides[state.presetId]);
   if ((custom || promptsEdited()) && !resetArmed) {
     resetArmed = true;
-    ui.resetPromptsButton.textContent = '确认恢复默认？';
+    ui.resetPromptsButton.textContent = t('opt_restore_defaults_confirm');
     ui.resetPromptsButton.classList.add('is-confirming');
-    ui.resetPromptsButton.setAttribute('aria-label', '再次点击以确认丢弃自定义提示词并恢复默认');
+    ui.resetPromptsButton.setAttribute('aria-label', t('opt_restore_defaults_aria'));
     resetTimer = window.setTimeout(disarmReset, RESET_CONFIRM_MS);
     return;
   }
@@ -230,9 +228,9 @@ export async function handleResetPrompts() {
     if (ui.translationPromptInput) ui.translationPromptInput.value = preset.translationPrompt || '';
     if (ui.polishPromptInput) ui.polishPromptInput.value = preset.polishPrompt || '';
     if (ui.translationPromptInput) rememberPrompts();
-    if (ui.promptStatus) ui.promptStatus.textContent = '当前预设正在使用预设默认提示词。';
-    setFeedback(ui.promptFeedback, '已恢复该预设的默认提示词。', 'success', FEEDBACK_CLEAR_MS);
+    if (ui.promptStatus) ui.promptStatus.textContent = t('opt_prompt_default_active');
+    setFeedback(ui.promptFeedback, t('opt_prompt_defaults_restored'), 'success', FEEDBACK_CLEAR_MS);
   } catch (_error) {
-    setFeedback(ui.promptFeedback, '恢复默认提示词失败，请重试。', 'error');
+    setFeedback(ui.promptFeedback, t('opt_prompt_defaults_failed'), 'error');
   }
 }

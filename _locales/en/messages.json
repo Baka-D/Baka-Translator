@@ -1,0 +1,3650 @@
+{
+  "bg_access_denied": {
+    "message": "$arg1$ denied access$arg2$. Your API key may be invalid, or access to this region or model may be restricted.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "bg_auth_failed": {
+    "message": "The API key for $arg1$ is invalid or expired. Update it in the extension settings.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_bad_image": {
+    "message": "This image format is not supported."
+  },
+  "bg_bad_request": {
+    "message": "$arg1$ rejected the request$arg2$. Try again or check the model parameters.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "bg_badge_done": {
+    "message": "Baka Translator: Translated into $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_badge_error": {
+    "message": "Baka Translator: Translation failed"
+  },
+  "bg_badge_partial": {
+    "message": "Baka Translator: Some content is incomplete"
+  },
+  "bg_badge_reason": {
+    "message": "Baka Translator: $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_badge_running": {
+    "message": "Baka Translator: Translating…"
+  },
+  "bg_badge_text": {
+    "message": "T"
+  },
+  "bg_balance_empty": {
+    "message": "Your $arg1$ balance is insufficient. Add credit and try again.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_chapter_cache_too_long": {
+    "message": "This chapter is too long. Caching was skipped."
+  },
+  "bg_chapter_cached": {
+    "message": "This chapter already has a pretranslation cache."
+  },
+  "bg_chapter_draft_cached": {
+    "message": "This chapter already has a draft cache."
+  },
+  "bg_chapter_incomplete": {
+    "message": "This chapter’s translation is incomplete."
+  },
+  "bg_content_filtered": {
+    "message": "The model blocked this content under its safety policy. Try different content."
+  },
+  "bg_content_type_detail": {
+    "message": ", Content-Type: $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_current_chapter_only": {
+    "message": "Glossary information can only be updated for the current novel chapter."
+  },
+  "bg_current_model_missing_key": {
+    "message": "No API key is configured for the current model. Add one in the extension settings."
+  },
+  "bg_empty_response": {
+    "message": "$arg1$ returned an empty response. Try again.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_empty_result": {
+    "message": "$arg1$ returned an empty result. Try again.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_endpoint_not_found": {
+    "message": "The $arg1$ endpoint or model was not found$arg2$. Check the endpoint URL and model name.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "bg_extraction_request_empty": {
+    "message": "The term extraction request is empty."
+  },
+  "bg_extraction_request_invalid": {
+    "message": "The term extraction request format is invalid."
+  },
+  "bg_extraction_stopped": {
+    "message": "Term extraction stopped."
+  },
+  "bg_extraction_too_long": {
+    "message": "This chapter contains too much text for term extraction."
+  },
+  "bg_extraction_too_many_segments": {
+    "message": "The term extraction request has too many segments."
+  },
+  "bg_fetch_unavailable": {
+    "message": "Network requests are not supported in this environment."
+  },
+  "bg_file_access_disabled": {
+    "message": "Cannot access this local file. Open this extension’s details in your browser’s extension manager and enable “Allow access to file URLs”."
+  },
+  "bg_file_load_failed": {
+    "message": "Unable to load $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_glossary_draft_stale": {
+    "message": "The glossary was automatically cleaned up after you opened it. These edits cannot be saved directly; closing the editor will discard them."
+  },
+  "bg_glossary_fields_required": {
+    "message": "A term’s source and translation cannot be empty."
+  },
+  "bg_glossary_keep_one": {
+    "message": "Keep at least one term, or use “Clear glossary”."
+  },
+  "bg_glossary_operation_invalid": {
+    "message": "The glossary work or operation is invalid."
+  },
+  "bg_glossary_options_only": {
+    "message": "Edit glossaries in the extension settings."
+  },
+  "bg_glossary_undo_stale": {
+    "message": "The glossary has been cleaned up again. Refresh it before undoing."
+  },
+  "bg_html_response": {
+    "message": "$arg1$ returned a web page instead of JSON. A proxy or gateway may have intercepted the request. Check your proxy and try again.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_http_detail": {
+    "message": " (HTTP $arg1$$arg2$)",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "bg_http_error": {
+    "message": "The request to $arg1$ failed$arg2$. Try again later.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "bg_http_message_detail": {
+    "message": ": $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_image_empty": {
+    "message": "The image is empty."
+  },
+  "bg_image_panel_expired": {
+    "message": "The image results window is no longer available. Try again."
+  },
+  "bg_image_too_large": {
+    "message": "The image is too large. Try again later."
+  },
+  "bg_image_translation_incomplete": {
+    "message": "Image text was recognized, but its translation is incomplete. Try again."
+  },
+  "bg_image_translation_invalid": {
+    "message": "The model returned an invalid image translation. Try again."
+  },
+  "bg_incomplete_translation": {
+    "message": "The model returned an incomplete translation. Try again."
+  },
+  "bg_invalid_key_format": {
+    "message": "The API key format is invalid."
+  },
+  "bg_invalid_models": {
+    "message": "The model list is invalid or incomplete. Try again later."
+  },
+  "bg_invalid_response": {
+    "message": "$arg1$ returned an unreadable response that may be truncated$arg2$. Try again.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "bg_invalid_sender": {
+    "message": "Invalid request source."
+  },
+  "bg_invalid_tab": {
+    "message": "No tab is available for this action."
+  },
+  "bg_menu_images": {
+    "message": "Translate visible images"
+  },
+  "bg_menu_page": {
+    "message": "Translate page"
+  },
+  "bg_menu_restore": {
+    "message": "Restore page"
+  },
+  "bg_menu_selection": {
+    "message": "Translate selection"
+  },
+  "bg_missing_endpoint": {
+    "message": "This provider has no endpoint URL. Save its connection settings first."
+  },
+  "bg_missing_key": {
+    "message": "No API key is configured for $arg1$. Add one in the extension settings.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_missing_provider": {
+    "message": "The provider no longer exists. Reload the settings page."
+  },
+  "bg_model_config_empty": {
+    "message": "No usable models were found in profile/. Check the configuration."
+  },
+  "bg_model_config_error": {
+    "message": "Cannot read the model configuration in profile/: $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_model_config_incomplete": {
+    "message": "The configuration for $arg1$ is incomplete.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_model_config_unreadable": {
+    "message": "Cannot read the model configuration in profile/. Reload the extension or check its configuration."
+  },
+  "bg_model_missing": {
+    "message": "The model no longer exists. Reload the settings page."
+  },
+  "bg_model_vision_unsupported": {
+    "message": "The model $arg1$ does not support image input. Select a vision model.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_models_options_only": {
+    "message": "Fetch models from the extension settings page."
+  },
+  "bg_models_rejected": {
+    "message": "The model list request was rejected. Check your API key and endpoint URL."
+  },
+  "bg_models_timeout": {
+    "message": "Fetching models timed out. Try again later."
+  },
+  "bg_network_error": {
+    "message": "Unable to connect to $arg1$. Check your network, proxy, or custom endpoint permissions.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_next_chapter_cached": {
+    "message": "The next chapter already has a complete pretranslation cache."
+  },
+  "bg_next_chapter_done": {
+    "message": "Pretranslation of the next chapter is complete."
+  },
+  "bg_next_chapter_draft_cached": {
+    "message": "The next chapter already has a complete draft cache."
+  },
+  "bg_next_chapter_duplicate_ids": {
+    "message": "The next chapter contains duplicate segment IDs."
+  },
+  "bg_next_chapter_empty": {
+    "message": "The next chapter has no text or too many segments."
+  },
+  "bg_next_chapter_failed": {
+    "message": "Pretranslation of the next chapter failed: $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_next_chapter_incomplete": {
+    "message": "The next chapter’s translation is incomplete."
+  },
+  "bg_next_chapter_invalid": {
+    "message": "The next chapter has invalid text or an oversized segment."
+  },
+  "bg_next_chapter_polish_done": {
+    "message": "Pretranslation and polishing of the next chapter are complete."
+  },
+  "bg_next_chapter_polish_failed": {
+    "message": "The next chapter’s draft is cached, but polishing is incomplete: $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_next_chapter_polishing": {
+    "message": "The draft is cached. Polishing the next chapter…"
+  },
+  "bg_next_chapter_running": {
+    "message": "Pretranslating the next chapter…"
+  },
+  "bg_next_chapter_saving_draft": {
+    "message": "Saving the next chapter’s draft…"
+  },
+  "bg_next_chapter_saving_polish": {
+    "message": "Saving the next chapter’s polished translation…"
+  },
+  "bg_next_chapter_too_long": {
+    "message": "The next chapter is too long. Pretranslation was skipped."
+  },
+  "bg_no_polish_text": {
+    "message": "There is no text to polish."
+  },
+  "bg_no_result": {
+    "message": "$arg1$ returned no result. Try again.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_no_terms_text": {
+    "message": "There is no text to extract terms from."
+  },
+  "bg_no_translation_text": {
+    "message": "There is no text to translate."
+  },
+  "bg_output_truncated": {
+    "message": "The translation exceeded the output limit. Shorten the text or use a model with a larger output limit."
+  },
+  "bg_page_access_failed": {
+    "message": "Cannot access this page. Refresh it and try again."
+  },
+  "bg_page_loading": {
+    "message": "The page is still loading. Try again shortly."
+  },
+  "bg_page_restricted": {
+    "message": "The browser does not allow extensions to modify this built-in or protected page. Use the extension on a regular web page."
+  },
+  "bg_polish_error": {
+    "message": "Polishing failed: $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_polish_failed": {
+    "message": "Polishing failed"
+  },
+  "bg_polish_model": {
+    "message": "Polishing model"
+  },
+  "bg_polish_partial": {
+    "message": "Polishing is incomplete ($arg1$/$arg2$ chunks failed): $arg3$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      },
+      "arg3": {
+        "content": "$3"
+      }
+    }
+  },
+  "bg_polish_request_empty": {
+    "message": "The polishing request is empty."
+  },
+  "bg_polish_request_invalid": {
+    "message": "The polishing request format is invalid."
+  },
+  "bg_polish_request_too_long": {
+    "message": "The page contains too much text to polish in one request."
+  },
+  "bg_polish_too_many_segments": {
+    "message": "This polishing request has too many segments."
+  },
+  "bg_preset_config_error": {
+    "message": "Cannot read preset/index.json: $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_pretranslation_stopped": {
+    "message": "Pretranslation stopped."
+  },
+  "bg_pretranslation_work_only": {
+    "message": "Only chapters of the current novel can be pretranslated."
+  },
+  "bg_provider_detail": {
+    "message": " ($arg1$)",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_provider_fallback": {
+    "message": "Model provider"
+  },
+  "bg_provider_models_empty": {
+    "message": "This provider has no usable models."
+  },
+  "bg_purpose_missing_key": {
+    "message": "No API key is configured for $arg1$ ($arg2$). Add one in the extension settings.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "bg_quota_exhausted": {
+    "message": "Your $arg1$ credit or quota is exhausted. Check your API account balance and usage limits.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_rate_limited": {
+    "message": "$arg1$ received too many requests. Try again later.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_redirect_blocked": {
+    "message": "The $arg1$ endpoint redirected the request. Enter the final endpoint URL in settings.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_request_failed": {
+    "message": "The translation request failed. Try again."
+  },
+  "bg_request_timeout": {
+    "message": "$arg1$ did not respond in time. Try again later.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_response_too_large": {
+    "message": "$arg1$ returned an oversized response. Check the endpoint URL.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_screenshot_failed": {
+    "message": "Cannot capture the page. Keep it in the foreground and try again."
+  },
+  "bg_service_unavailable": {
+    "message": "$arg1$ is temporarily unavailable. Try again later.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_tab_closed": {
+    "message": "The page has been closed."
+  },
+  "bg_target_language": {
+    "message": "the target language"
+  },
+  "bg_target_unsupported": {
+    "message": "This target language is not supported."
+  },
+  "bg_terms_invalid": {
+    "message": "The model returned an invalid glossary. Try again."
+  },
+  "bg_terms_request_invalid": {
+    "message": "The extracted terms are invalid or contain too many entries."
+  },
+  "bg_translation_model": {
+    "message": "Translation model"
+  },
+  "bg_translation_request_empty": {
+    "message": "The translation request is empty."
+  },
+  "bg_translation_request_invalid": {
+    "message": "The translation request format is invalid."
+  },
+  "bg_translation_request_too_long": {
+    "message": "This translation request contains too much text."
+  },
+  "bg_translation_segment_too_long": {
+    "message": "A text segment is too long."
+  },
+  "bg_translation_settings_changed": {
+    "message": "Translation settings changed. Restart this chapter’s translation."
+  },
+  "bg_translation_stopped": {
+    "message": "Translation stopped."
+  },
+  "bg_translation_too_many_segments": {
+    "message": "This translation request has too many segments."
+  },
+  "bg_unknown_command": {
+    "message": "This action is not supported."
+  },
+  "bg_unknown_detail": {
+    "message": "Unknown error"
+  },
+  "bg_unknown_error": {
+    "message": "An unknown error occurred. Try again."
+  },
+  "bg_unknown_message": {
+    "message": "Unknown message."
+  },
+  "bg_vision_disabled": {
+    "message": "This model does not support image input. Image translation is disabled; select another model."
+  },
+  "bg_vision_learned_disabled": {
+    "message": "This model does not support image input, so image translation has been disabled for it. Select another model."
+  },
+  "bg_vision_options_only": {
+    "message": "Re-enable image translation from the extension settings page."
+  },
+  "bg_vision_unsupported": {
+    "message": "This model does not support image input. Select a vision model."
+  },
+  "command_translate_images": {
+    "message": "Translate visible images"
+  },
+  "command_translate_page": {
+    "message": "Translate page / Restore page"
+  },
+  "command_translate_selection": {
+    "message": "Translate selection"
+  },
+  "content_auto_detect": {
+    "message": "Auto-detect"
+  },
+  "content_background_no_response": {
+    "message": "The extension background is not responding. Refresh the page and try again."
+  },
+  "content_background_polish": {
+    "message": "Polishing in the background…"
+  },
+  "content_background_restarted": {
+    "message": "The extension background restarted. Please try again."
+  },
+  "content_cached_cost": {
+    "message": " (cached cost $arg1$)",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "content_cached_draft_only": {
+    "message": "The pretranslation cache contains only the first draft, without polishing."
+  },
+  "content_capturing": {
+    "message": "Capturing the current view…"
+  },
+  "content_chapter_cache_applied": {
+    "message": "Applied this chapter’s cached translation."
+  },
+  "content_chapter_restored": {
+    "message": "This chapter was restored from the translation cache$arg1$.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "content_close_images": {
+    "message": "Close image translation results"
+  },
+  "content_close_panel": {
+    "message": "Close translation panel"
+  },
+  "content_close_panel_keep_running": {
+    "message": "Close panel (translation continues)"
+  },
+  "content_close_selection": {
+    "message": "Close selection translation"
+  },
+  "content_copied": {
+    "message": "Copied"
+  },
+  "content_copy": {
+    "message": "Copy"
+  },
+  "content_copy_failed": {
+    "message": "Copy failed"
+  },
+  "content_detected_language": {
+    "message": "Detected language: $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "content_draft_kept_detail": {
+    "message": "Polishing was incomplete; the first draft was kept: $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "content_draft_readable": {
+    "message": "The first draft is ready to read. Each chunk is replaced when polishing finishes. The first response may take tens of seconds to several minutes, depending on the model and reasoning effort."
+  },
+  "content_extension_updated": {
+    "message": "The extension was updated or reloaded. Refresh the page and try again."
+  },
+  "content_failed": {
+    "message": "Failed"
+  },
+  "content_failed_chunks": {
+    "message": " · $arg1$ chunks failed",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "content_frame_changed_notice": {
+    "message": "New embedded content will not be translated automatically. Restore the page and translate again if needed."
+  },
+  "content_image_alt": {
+    "message": "Image screenshot: $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "content_image_capture_error": {
+    "message": "Could not capture the image. Please try again."
+  },
+  "content_image_crop_error": {
+    "message": "Could not crop the image."
+  },
+  "content_image_disabled": {
+    "message": "Image translation disabled"
+  },
+  "content_image_error_details": {
+    "message": "Image translation failed. See the image results panel for details."
+  },
+  "content_image_failed": {
+    "message": "Image translation failed"
+  },
+  "content_image_logo": {
+    "message": "I"
+  },
+  "content_image_no_text": {
+    "message": "No translatable text was detected in this image."
+  },
+  "content_image_number": {
+    "message": "Image $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "content_image_number_alt": {
+    "message": "Screenshot of image $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "content_image_original": {
+    "message": "Recognized original text"
+  },
+  "content_image_panel_blocked": {
+    "message": "This page’s security policy blocks the results window. No images were sent."
+  },
+  "content_image_panel_label": {
+    "message": "Baka Translator image translation"
+  },
+  "content_image_privacy": {
+    "message": "Only visible image regions are sent to your selected model provider for recognition and translation. The full-page screenshot is not uploaded."
+  },
+  "content_image_provider_error": {
+    "message": "Image translation failed. Check your selected provider’s settings."
+  },
+  "content_image_screenshot": {
+    "message": "Image screenshot"
+  },
+  "content_image_translation": {
+    "message": "Image translation"
+  },
+  "content_image_translation_error": {
+    "message": "Image translation failed. Please try again."
+  },
+  "content_images_busy": {
+    "message": "Translating images. Please wait."
+  },
+  "content_images_done_count": {
+    "message": "Images: $arg1$ · Translation complete$arg2$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "content_images_failed_count": {
+    "message": "Images: $arg1$ · Failed: $arg2$$arg3$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      },
+      "arg3": {
+        "content": "$3"
+      }
+    }
+  },
+  "content_images_progress": {
+    "message": "Translating images · $arg1$/$arg2$$arg3$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      },
+      "arg3": {
+        "content": "$3"
+      }
+    }
+  },
+  "content_images_skipped": {
+    "message": " · Additional images skipped: $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "content_keep_page_foreground": {
+    "message": "Keep this page in the foreground and try again."
+  },
+  "content_next_chapter_cached": {
+    "message": "The next chapter already has a cached pretranslation."
+  },
+  "content_next_chapter_done": {
+    "message": "The next chapter is pretranslated. Its translation will be applied when you open it."
+  },
+  "content_next_chapter_empty": {
+    "message": "No translatable chapter text was found in the next chapter."
+  },
+  "content_next_chapter_pretranslating": {
+    "message": "Pretranslating the next chapter"
+  },
+  "content_next_chapter_too_long": {
+    "message": "The next chapter is too long. Pretranslation was skipped."
+  },
+  "content_next_chapter_unreadable": {
+    "message": "Could not read the next chapter."
+  },
+  "content_no_images": {
+    "message": "No translatable images were found in the current view."
+  },
+  "content_no_images_hint": {
+    "message": "No translatable images were found in the current view. Scroll to an image and try again."
+  },
+  "content_no_large_images": {
+    "message": "No images large enough to translate were found in the current view. Scroll to an image and try again."
+  },
+  "content_no_text": {
+    "message": "No text"
+  },
+  "content_no_text_iframe": {
+    "message": "No translatable text was found. It may be inside a protected cross-origin iframe. Try opening the message in a new window, or select its text to translate it."
+  },
+  "content_no_translatable_text": {
+    "message": "No translatable text was found."
+  },
+  "content_nothing_translated": {
+    "message": "No content was translated successfully. Please try again later."
+  },
+  "content_open_settings": {
+    "message": "Open settings"
+  },
+  "content_open_settings_error": {
+    "message": "Could not open extension settings. Click the toolbar icon."
+  },
+  "content_original_caption": {
+    "message": "Original: $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "content_page_bilingual_done": {
+    "message": "Bilingual translation into $arg1$ complete",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "content_page_done_summary": {
+    "message": "$arg1$ → $arg2$$arg3$ · $arg4$ segments$arg5$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      },
+      "arg3": {
+        "content": "$3"
+      },
+      "arg4": {
+        "content": "$4"
+      },
+      "arg5": {
+        "content": "$5"
+      }
+    }
+  },
+  "content_page_failed": {
+    "message": "Page translation failed"
+  },
+  "content_page_failed_retry": {
+    "message": "Page translation failed. Please try again later."
+  },
+  "content_page_failed_short": {
+    "message": "Page translation failed."
+  },
+  "content_page_not_ready": {
+    "message": "The page has no translatable content yet."
+  },
+  "content_page_panel_label": {
+    "message": "Baka Translator page translation"
+  },
+  "content_page_partial": {
+    "message": "Page translation finished with some failures"
+  },
+  "content_page_polish_progress": {
+    "message": "$arg1$ → $arg2$ · Polishing $arg3$/$arg4$ chunks$arg5$ · $arg6$s elapsed",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      },
+      "arg3": {
+        "content": "$3"
+      },
+      "arg4": {
+        "content": "$4"
+      },
+      "arg5": {
+        "content": "$5"
+      },
+      "arg6": {
+        "content": "$6"
+      }
+    }
+  },
+  "content_page_restored": {
+    "message": "Page restored."
+  },
+  "content_page_translate_progress": {
+    "message": "$arg1$ → $arg2$ · $arg3$/$arg4$ segments processed",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      },
+      "arg3": {
+        "content": "$3"
+      },
+      "arg4": {
+        "content": "$4"
+      }
+    }
+  },
+  "content_page_translated_done": {
+    "message": "Translated into $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "content_page_truncated_done": {
+    "message": "This page is long. Only the first part of the visible text was translated."
+  },
+  "content_page_truncated_processing": {
+    "message": "This page is large. Processing the first part within the supported limit."
+  },
+  "content_page_truncated_translating": {
+    "message": "This page is large. Translating the first part within the supported limit."
+  },
+  "content_polish_failed_draft_kept": {
+    "message": "Polishing failed. The first draft was kept."
+  },
+  "content_polish_failure_detail": {
+    "message": "Polishing failed: $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "content_polish_partial_detail": {
+    "message": "Polishing incomplete ($arg1$/$arg2$ chunks): $arg3$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      },
+      "arg3": {
+        "content": "$3"
+      }
+    }
+  },
+  "content_preparing": {
+    "message": "Preparing"
+  },
+  "content_pretranslation_failed": {
+    "message": "Pretranslation failed. Please try again later."
+  },
+  "content_pretranslation_stopped": {
+    "message": "Pretranslation stopped. You can continue translating after opening the next chapter."
+  },
+  "content_proofread_suffix": {
+    "message": " · Polished"
+  },
+  "content_queued": {
+    "message": "Queued"
+  },
+  "content_reading_next_chapter": {
+    "message": "Reading the next chapter…"
+  },
+  "content_request_failed": {
+    "message": "The translation request failed. Please try again."
+  },
+  "content_restore_page": {
+    "message": "Restore page"
+  },
+  "content_resume_chapter": {
+    "message": "Resuming this chapter’s pretranslation"
+  },
+  "content_resuming_pretranslation": {
+    "message": "Resuming this chapter’s pretranslation…"
+  },
+  "content_retranslate": {
+    "message": "Translate again"
+  },
+  "content_retry": {
+    "message": "Retry"
+  },
+  "content_retry_failed": {
+    "message": "The retry failed. Please try again later."
+  },
+  "content_route_changed_error": {
+    "message": "The page has changed. Restore it and translate again."
+  },
+  "content_route_changed_notice": {
+    "message": "The page has changed, so new content will not be translated automatically. Restore the page and translate again if needed."
+  },
+  "content_screenshot_decode_error": {
+    "message": "Could not decode the screenshot. Please try again."
+  },
+  "content_screenshot_encode_error": {
+    "message": "Could not encode the screenshot. Please try again."
+  },
+  "content_screenshot_process_error": {
+    "message": "Could not process the screenshot. Please try again."
+  },
+  "content_screenshot_read_error": {
+    "message": "Could not read the image because the browser denied access to the screenshot data."
+  },
+  "content_screenshot_size_error": {
+    "message": "The screenshot dimensions are invalid. Please try again."
+  },
+  "content_segment_progress": {
+    "message": " $arg1$/$arg2$ segments",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "content_segments_incomplete": {
+    "message": "$arg1$ segments incomplete",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "content_select_text": {
+    "message": "First select the text you want to translate."
+  },
+  "content_select_text_notice": {
+    "message": "First select the text you want to translate on the page."
+  },
+  "content_selection_empty_result": {
+    "message": "No translation was returned for this selection. Please try again."
+  },
+  "content_selection_panel_label": {
+    "message": "Baka Translator selection translation"
+  },
+  "content_selection_too_long": {
+    "message": "The selection is too long. Select up to $arg1$ characters at a time.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "content_settings": {
+    "message": "Settings"
+  },
+  "content_some_translation_failed": {
+    "message": "Some content could not be translated."
+  },
+  "content_stage_fetch": {
+    "message": "Reading chapter"
+  },
+  "content_stage_polish": {
+    "message": "Polishing"
+  },
+  "content_stage_progress": {
+    "message": "$arg1$$arg2$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "content_stage_save": {
+    "message": "Saving translation"
+  },
+  "content_stage_translate": {
+    "message": "Translating"
+  },
+  "content_stop_restore": {
+    "message": "Stop and restore page"
+  },
+  "content_target_language": {
+    "message": "Target language"
+  },
+  "content_tidy_done": {
+    "message": "Automatic glossary cleanup complete: $arg1$ entries removed, $arg2$ groups merged. You can undo this in Settings.$arg3$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      },
+      "arg3": {
+        "content": "$3"
+      }
+    }
+  },
+  "content_tidy_error": {
+    "message": "Automatic glossary cleanup failed: $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "content_tidy_partial_retry": {
+    "message": " Some cleanup is incomplete. It will retry when you finish a chapter after 5 minutes."
+  },
+  "content_tidy_retry": {
+    "message": "Automatic glossary cleanup is incomplete. It will retry when you finish a chapter after 5 minutes."
+  },
+  "content_translated": {
+    "message": "Translated"
+  },
+  "content_translating": {
+    "message": "Translating"
+  },
+  "content_translating_page": {
+    "message": "Translating page…"
+  },
+  "content_translation_failed": {
+    "message": "Translation failed. Please try again."
+  },
+  "content_translation_loading": {
+    "message": "Translating…"
+  },
+  "content_translation_logo": {
+    "message": "T"
+  },
+  "content_translation_progress": {
+    "message": "Translation progress"
+  },
+  "content_translation_target": {
+    "message": "Translation target language"
+  },
+  "content_try_later": {
+    "message": "Please try again later."
+  },
+  "content_unknown": {
+    "message": "Unknown"
+  },
+  "content_unknown_error": {
+    "message": "An unknown error occurred. Please try again."
+  },
+  "content_view_original": {
+    "message": "View original"
+  },
+  "content_vision_unsupported": {
+    "message": "Image translation is disabled because the current model does not support images. Switch to a model that accepts image input."
+  },
+  "extension_description": {
+    "message": "Baka Translator: translate and polish web pages, selected text, and text in images."
+  },
+  "html_about_title": {
+    "message": "About"
+  },
+  "html_add": {
+    "message": "Add"
+  },
+  "html_add_model_name": {
+    "message": "Add a model name"
+  },
+  "html_add_provider": {
+    "message": "+ Add provider"
+  },
+  "html_add_site": {
+    "message": "Add site"
+  },
+  "html_add_term": {
+    "message": "Add term"
+  },
+  "html_advanced_tab": {
+    "message": "Advanced"
+  },
+  "html_api_key": {
+    "message": "API key"
+  },
+  "html_api_key_missing": {
+    "message": "No API key configured"
+  },
+  "html_api_key_placeholder": {
+    "message": "sk-..."
+  },
+  "html_available_models": {
+    "message": "Available models"
+  },
+  "html_bilingual_hint": {
+    "message": "Show the original below the translation for comparison."
+  },
+  "html_cached_tokens": {
+    "message": "Cached input tokens"
+  },
+  "html_cancel": {
+    "message": "Cancel"
+  },
+  "html_cancel_title_label": {
+    "message": "Discard work title changes"
+  },
+  "html_category": {
+    "message": "Category"
+  },
+  "html_chinese_language": {
+    "message": "Chinese"
+  },
+  "html_clear_api_key": {
+    "message": "Clear API key"
+  },
+  "html_clear_glossary": {
+    "message": "Clear glossary"
+  },
+  "html_close": {
+    "message": "Close"
+  },
+  "html_configured_sites": {
+    "message": "Configured sites"
+  },
+  "html_connection_test_hint": {
+    "message": "Connection tests use this provider's currently selected translation or polishing model, or its first model if neither is selected."
+  },
+  "html_current_model": {
+    "message": "Current model"
+  },
+  "html_current_page_status": {
+    "message": "Current page status"
+  },
+  "html_custom_provider_hint": {
+    "message": "For an OpenAI-compatible API, enter its base URL and exact model name."
+  },
+  "html_default_target": {
+    "message": "Default target language"
+  },
+  "html_defaults_description": {
+    "message": "The extension popup starts with these defaults. Changes made in the popup also update these defaults."
+  },
+  "html_defaults_title": {
+    "message": "Default translation settings"
+  },
+  "html_delete_provider": {
+    "message": "Delete provider"
+  },
+  "html_detected_language": {
+    "message": "Detected language"
+  },
+  "html_edit_glossary": {
+    "message": "Edit glossary"
+  },
+  "html_endpoint_label": {
+    "message": "API base URL"
+  },
+  "html_endpoint_placeholder": {
+    "message": "https://api.example.com/v1"
+  },
+  "html_estimated_cost": {
+    "message": "Estimated cost"
+  },
+  "html_experimental": {
+    "message": "Experimental"
+  },
+  "html_fetch_models": {
+    "message": "Fetch models"
+  },
+  "html_fetch_models_hint": {
+    "message": "Use the API key entered above, or the saved key, to fetch and add the provider's models while keeping the existing list. This does not run model tests. Save an entered API key separately."
+  },
+  "html_gender": {
+    "message": "Gender"
+  },
+  "html_general_tab": {
+    "message": "General"
+  },
+  "html_global_preset": {
+    "message": "Global prompt preset"
+  },
+  "html_glossary_cleanup_chapters": {
+    "message": "chapters"
+  },
+  "html_glossary_cleanup_every": {
+    "message": "Clean up every"
+  },
+  "html_glossary_cleanup_hint": {
+    "message": "The interval counts distinct chapters with successful term extraction. When enabled, the selected model runs in the background to remove ordinary words and merge alternate spellings of the same person or place. This incurs additional API charges. Less capable models may remove terms incorrectly; a more capable model is recommended. The previous glossary is retained so you can undo the most recent cleanup."
+  },
+  "html_glossary_cleanup_interval_label": {
+    "message": "Chapters between glossary cleanups"
+  },
+  "html_glossary_cleanup_model_label": {
+    "message": "Model used for glossary cleanup"
+  },
+  "html_glossary_cleanup_toggle": {
+    "message": "Automatic glossary cleanup"
+  },
+  "html_glossary_cleanup_use": {
+    "message": "Use"
+  },
+  "html_glossary_description": {
+    "message": "View and edit a light novel's glossary here once it has been created. Changes are saved locally and apply to subsequent translation, polishing, and pretranslation requests. Displayed translations and existing caches are not updated automatically."
+  },
+  "html_glossary_edit_hint": {
+    "message": "Source terms are usually character, place, or skill names. Translations are their consistent equivalents in the selected target language. Category and notes are optional."
+  },
+  "html_glossary_empty": {
+    "message": "No glossaries yet. Once three distinct chapters of a work have been recorded, term extraction is attempted after chapter translation. A successfully created glossary appears here."
+  },
+  "html_glossary_list_label": {
+    "message": "Saved glossaries"
+  },
+  "html_glossary_pagination": {
+    "message": "Glossary pagination"
+  },
+  "html_glossary_title": {
+    "message": "Glossary"
+  },
+  "html_input_tokens": {
+    "message": "Input tokens"
+  },
+  "html_keep_original": {
+    "message": "Keep original text"
+  },
+  "html_key_alt": {
+    "message": "Alt"
+  },
+  "html_key_s": {
+    "message": "S"
+  },
+  "html_key_shift": {
+    "message": "Shift"
+  },
+  "html_key_u": {
+    "message": "U"
+  },
+  "html_key_y": {
+    "message": "Y"
+  },
+  "html_last_updated": {
+    "message": "Last updated"
+  },
+  "html_loading_page_status": {
+    "message": "Reading page status…"
+  },
+  "html_model": {
+    "message": "Model"
+  },
+  "html_model_access_description": {
+    "message": "Translation and polishing can use different models, selected under Advanced. Each provider has its own saved API key, shared when translation and polishing use that provider. API keys stay in this device's extension storage and are used only by the extension's background process to contact the corresponding service."
+  },
+  "html_model_access_title": {
+    "message": "Model connections"
+  },
+  "html_model_behavior_description": {
+    "message": "Choose a provider, then one of its models. Translation and polishing can have separate models and reasoning effort levels. Changes apply to subsequent requests. Leave polishing unselected to use the translation model."
+  },
+  "html_model_behavior_title": {
+    "message": "Model behavior"
+  },
+  "html_model_id_placeholder": {
+    "message": "Model name sent to the API"
+  },
+  "html_model_list_fallback": {
+    "message": "The model list could not be loaded. Using the background service's fallback configuration."
+  },
+  "html_model_name_label": {
+    "message": "Model name (the API's model field)"
+  },
+  "html_model_name_placeholder": {
+    "message": "e.g. deepseek-chat"
+  },
+  "html_next_page": {
+    "message": "Next"
+  },
+  "html_notes": {
+    "message": "Notes"
+  },
+  "html_novel_support_note": {
+    "message": "Light novel mode supports ncode.syosetu.com (Shosetsuka ni Naro) and kakuyomu.jp (Kakuyomu), automatically detecting chapters and next-chapter links. Once three distinct chapters of a work have been recorded, the extension attempts term extraction after chapter translation. Successful extraction creates a local glossary. Only these sites are currently supported."
+  },
+  "html_open_extension_settings": {
+    "message": "Open extension settings"
+  },
+  "html_open_settings": {
+    "message": "Open settings"
+  },
+  "html_options_subtitle": {
+    "message": "Multi-model page translation · Polishing · Images"
+  },
+  "html_options_title": {
+    "message": "Baka Translator · Settings"
+  },
+  "html_output_tokens": {
+    "message": "Output tokens"
+  },
+  "html_page_actions": {
+    "message": "Page actions"
+  },
+  "html_page_jump_label": {
+    "message": "Go to page number"
+  },
+  "html_page_number": {
+    "message": "Page"
+  },
+  "html_page_size_100": {
+    "message": "100 entries"
+  },
+  "html_page_size_30": {
+    "message": "30 entries"
+  },
+  "html_page_size_50": {
+    "message": "50 entries"
+  },
+  "html_per_page": {
+    "message": "Per page"
+  },
+  "html_polish_effort": {
+    "message": "Polishing reasoning effort"
+  },
+  "html_polish_model": {
+    "message": "Polishing model"
+  },
+  "html_polish_prompt": {
+    "message": "Polishing prompt"
+  },
+  "html_polish_provider": {
+    "message": "Polishing provider"
+  },
+  "html_polish_summary_initial": {
+    "message": "Polishing model: —"
+  },
+  "html_polish_this_site": {
+    "message": "Polish on this site"
+  },
+  "html_popup_bilingual_hint": {
+    "message": "Bilingual display keeps the original below the translation for comparison."
+  },
+  "html_popup_missing_key": {
+    "message": "No API key is configured for the selected model. Add one in extension settings, or choose a model with a configured API key."
+  },
+  "html_popup_privacy": {
+    "message": "Translation content is sent only to your chosen model provider. API keys stay on this device."
+  },
+  "html_popup_subtitle": {
+    "message": "Pages · Selections · Images · Polishing"
+  },
+  "html_pretranslate_next": {
+    "message": "Pretranslate next chapter"
+  },
+  "html_previous_page": {
+    "message": "Previous"
+  },
+  "html_privacy_images": {
+    "message": "Image translation is experimental. It processes only images visible in the current viewport and shows recognized text and translations in the page's image translation panel."
+  },
+  "html_privacy_keys": {
+    "message": "API keys are stored only in this device's extension storage (chrome.storage.local). Only the extension's background process uses them to contact the corresponding service."
+  },
+  "html_privacy_network": {
+    "message": "The extension contains no analytics or ads and makes no unrelated third-party requests. Network requests go only to your configured model services and the original novel sites accessed by the light novel features."
+  },
+  "html_privacy_permissions": {
+    "message": "The browser may request website access during installation for page translation and direct model API access. Translations are always inserted as plain text and are never executed as HTML."
+  },
+  "html_privacy_pretranslation": {
+    "message": "With pretranslation enabled, the extension reads the next chapter on supported novel sites and sends it to the chosen model service in the background."
+  },
+  "html_privacy_requests": {
+    "message": "You start translation explicitly. Selected text, page text, or screenshots are then sent to the chosen model service. After page translation, new content on the same page is also sent automatically until you restore the page, navigate to another address, or reach the limit."
+  },
+  "html_privacy_title": {
+    "message": "Image translation and privacy"
+  },
+  "html_prompt_defaults_status": {
+    "message": "Using this preset's default prompts."
+  },
+  "html_prompt_placeholders": {
+    "message": "Available placeholders: {{targetLanguage}}, {{targetNative}}, {{sourceHint}}. If a glossary exists, it is always appended to the system prompt."
+  },
+  "html_prompts_description": {
+    "message": "Edit translation and polishing prompts for the current preset. Saving overrides only this preset; restoring defaults removes the local overrides."
+  },
+  "html_prompts_title": {
+    "message": "Prompt templates"
+  },
+  "html_provider": {
+    "message": "Provider"
+  },
+  "html_provider_draft_hint": {
+    "message": "Save the provider before entering an API key or testing the connection."
+  },
+  "html_provider_list": {
+    "message": "Providers"
+  },
+  "html_provider_models_label": {
+    "message": "Models for this provider"
+  },
+  "html_provider_name": {
+    "message": "Provider name"
+  },
+  "html_provider_name_placeholder": {
+    "message": "e.g. Local Ollama"
+  },
+  "html_reasoning_effort": {
+    "message": "Reasoning effort"
+  },
+  "html_recorded_requests": {
+    "message": "Recorded requests"
+  },
+  "html_refresh_list": {
+    "message": "Refresh list"
+  },
+  "html_reload": {
+    "message": "Reload"
+  },
+  "html_reset_usage": {
+    "message": "Reset usage"
+  },
+  "html_reset_usage_label": {
+    "message": "Reset accumulated token usage"
+  },
+  "html_restore_defaults": {
+    "message": "Restore defaults"
+  },
+  "html_restore_page": {
+    "message": "Restore page"
+  },
+  "html_save": {
+    "message": "Save"
+  },
+  "html_save_api_key": {
+    "message": "Save API key"
+  },
+  "html_save_glossary": {
+    "message": "Save glossary"
+  },
+  "html_save_glossary_title_label": {
+    "message": "Save glossary, including work title changes"
+  },
+  "html_save_prompts": {
+    "message": "Save prompts"
+  },
+  "html_save_provider": {
+    "message": "Save provider"
+  },
+  "html_saved_key_hint": {
+    "message": "Saved API keys are never displayed in full."
+  },
+  "html_settings": {
+    "message": "Settings"
+  },
+  "html_settings_categories": {
+    "message": "Settings categories"
+  },
+  "html_shortcut_page": {
+    "message": "Translate page / Restore page"
+  },
+  "html_shortcuts_hint": {
+    "message": "If a shortcut conflicts with another extension or the system, change it in Keyboard shortcuts on your browser's extension management page."
+  },
+  "html_shortcuts_title": {
+    "message": "Keyboard shortcuts"
+  },
+  "html_show": {
+    "message": "Show"
+  },
+  "html_show_api_key": {
+    "message": "Show API key"
+  },
+  "html_site_features_hint": {
+    "message": "Polishing and pretranslation apply only to this site."
+  },
+  "html_site_placeholder": {
+    "message": "example.com"
+  },
+  "html_site_preset": {
+    "message": "Site preset"
+  },
+  "html_site_preset_label": {
+    "message": "Prompt preset for this site"
+  },
+  "html_sites_description": {
+    "message": "When enabled, the next chapter is pretranslated in the background after the current chapter finishes, subject to usage and cache limits, then applied when you open it. Each site can override the prompt preset: for example, General for ordinary websites and Light Novel for novel sites. Leave it unselected to use the global preset. Sites match by hostname, without the port."
+  },
+  "html_sites_empty": {
+    "message": "No site settings yet. The popup's Polish on this site and Pretranslate next chapter switches add the current site automatically. You can also add a site below."
+  },
+  "html_sites_title": {
+    "message": "Site settings"
+  },
+  "html_source_name": {
+    "message": "Source / Name"
+  },
+  "html_target_language": {
+    "message": "Target language"
+  },
+  "html_target_short": {
+    "message": "Target"
+  },
+  "html_test_connection": {
+    "message": "Test connection"
+  },
+  "html_this_page": {
+    "message": "This page"
+  },
+  "html_token_unit": {
+    "message": "tokens"
+  },
+  "html_total_short": {
+    "message": "Total"
+  },
+  "html_total_tokens": {
+    "message": "Total tokens"
+  },
+  "html_translate_images": {
+    "message": "Translate visible images"
+  },
+  "html_translate_page": {
+    "message": "Translate page"
+  },
+  "html_translate_selection": {
+    "message": "Translate selection"
+  },
+  "html_translation": {
+    "message": "Translation"
+  },
+  "html_translation_effort": {
+    "message": "Translation reasoning effort"
+  },
+  "html_translation_model": {
+    "message": "Translation model"
+  },
+  "html_translation_progress": {
+    "message": "Translation progress"
+  },
+  "html_translation_prompt": {
+    "message": "Translation prompt"
+  },
+  "html_translation_provider": {
+    "message": "Translation provider"
+  },
+  "html_translation_settings": {
+    "message": "Translation settings"
+  },
+  "html_translation_summary_initial": {
+    "message": "Translation model: —"
+  },
+  "html_undo_cleanup": {
+    "message": "Undo this cleanup"
+  },
+  "html_usage_description": {
+    "message": "Usage comes from the provider's responses. Costs are estimated from model pricing for reference only; the provider's bill is authoritative."
+  },
+  "html_usage_empty": {
+    "message": "No usage recorded yet. Usage totals update automatically when a model reports them, and can be reset at any time."
+  },
+  "html_usage_title": {
+    "message": "Usage statistics"
+  },
+  "html_usage_tooltip": {
+    "message": "Total token usage, as reported by providers, for reference only"
+  },
+  "html_user_model_hint": {
+    "message": "Select added models under Advanced → Model behavior. They use default reasoning behavior, a 4,096-token output limit, and no cost estimate. Image translation can be tried when image input support is unknown. If the model explicitly rejects image input, that result is remembered and image translation is disabled."
+  },
+  "html_version_label": {
+    "message": "Version"
+  },
+  "html_work_title": {
+    "message": "Work title"
+  },
+  "html_work_title_hint": {
+    "message": "Used in the list and subsequent translations. This does not affect site or term matching."
+  },
+  "language_en": {
+    "message": "English"
+  },
+  "language_ja": {
+    "message": "Japanese"
+  },
+  "language_ko": {
+    "message": "Korean"
+  },
+  "language_ru": {
+    "message": "Russian"
+  },
+  "language_short_en": {
+    "message": "EN"
+  },
+  "language_short_ja": {
+    "message": "JA"
+  },
+  "language_short_ko": {
+    "message": "KO"
+  },
+  "language_short_ru": {
+    "message": "RU"
+  },
+  "language_short_zh": {
+    "message": "ZH"
+  },
+  "language_unknown": {
+    "message": "Unknown"
+  },
+  "language_zh": {
+    "message": "Chinese"
+  },
+  "model_custom_name": {
+    "message": "Custom model"
+  },
+  "opt_background_unavailable": {
+    "message": "The extension background service is temporarily unavailable. Try again later."
+  },
+  "opt_custom_selection_missing": {
+    "message": "The selected custom provider or model no longer exists. Translation is disabled until you add it again under General → Providers or choose another model here. Your selection takes effect immediately."
+  },
+  "opt_default_target_saved": {
+    "message": "Default target language saved: $arg1$.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_discovery_fetch": {
+    "message": "Fetch models"
+  },
+  "opt_discovery_fetch_failed": {
+    "message": "Could not fetch models. Please try again."
+  },
+  "opt_discovery_fetch_named": {
+    "message": "Fetch available models from $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_discovery_fetched": {
+    "message": "Fetched $arg1$ models and added $arg2$. Select them under Advanced → Model behavior. $arg3$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      },
+      "arg3": {
+        "content": "$3"
+      }
+    }
+  },
+  "opt_discovery_fetching": {
+    "message": "Fetching…"
+  },
+  "opt_discovery_fetching_list": {
+    "message": "Fetching the model list…"
+  },
+  "opt_discovery_key_required": {
+    "message": "Enter or save this provider’s API key first."
+  },
+  "opt_discovery_limit_hint": {
+    "message": "The import or list limit of $arg1$ models was reached. Some models were not added.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_discovery_model_add_failed": {
+    "message": "Could not add the model. Please try again."
+  },
+  "opt_discovery_model_added": {
+    "message": "Added $arg1$. Select it under Advanced → Model behavior.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_discovery_model_exists": {
+    "message": "This provider already has that model."
+  },
+  "opt_discovery_model_in_use": {
+    "message": "$arg1$ is in use. Switch to another model under Advanced → Model behavior first.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_discovery_model_limit": {
+    "message": "You can add up to $arg1$ models per provider.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_discovery_model_no_whitespace": {
+    "message": "The model name cannot contain whitespace."
+  },
+  "opt_discovery_model_remove_failed": {
+    "message": "Could not remove the model. Please try again."
+  },
+  "opt_discovery_model_removed": {
+    "message": "Removed $arg1$.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_discovery_no_models": {
+    "message": "No models suitable for text translation were found. Your existing list has been kept."
+  },
+  "opt_discovery_remove": {
+    "message": "Remove"
+  },
+  "opt_discovery_remove_named": {
+    "message": "Remove model $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_discovery_retry_allowed": {
+    "message": "$arg1$ can retry image translation. Image support will be checked again the next time you use it.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_discovery_retry_failed": {
+    "message": "Could not re-enable image translation. Please try again."
+  },
+  "opt_discovery_retry_images": {
+    "message": "Retry images"
+  },
+  "opt_discovery_retry_images_named": {
+    "message": "Allow $arg1$ to retry image translation",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_discovery_save_failed": {
+    "message": "Could not save the model list. Please try again. Your existing list has been kept."
+  },
+  "opt_effort_fixed": {
+    "message": "This model does not support adjusting reasoning effort (fixed at “$arg1$”).",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_effort_follow": {
+    "message": "Follow translation (default)"
+  },
+  "opt_effort_high": {
+    "message": "High"
+  },
+  "opt_effort_latency_hint": {
+    "message": "Higher reasoning effort is slower and usually costs more. Off or low is recommended for web translation."
+  },
+  "opt_effort_low": {
+    "message": "Low"
+  },
+  "opt_effort_max": {
+    "message": "Maximum"
+  },
+  "opt_effort_medium": {
+    "message": "Medium"
+  },
+  "opt_effort_none": {
+    "message": "Off (fastest)"
+  },
+  "opt_effort_xhigh": {
+    "message": "Extra high"
+  },
+  "opt_glossary_add_alias": {
+    "message": "Add alias"
+  },
+  "opt_glossary_add_alias_label": {
+    "message": "Add an alias for term $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_add_alias_short": {
+    "message": "+ Alias"
+  },
+  "opt_glossary_alias_placeholder": {
+    "message": "Alias"
+  },
+  "opt_glossary_alias_source_label": {
+    "message": "Alias of $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_alias_target_label": {
+    "message": "Translation of this alias of $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_alias_target_placeholder": {
+    "message": "Translation (leave blank to use the term’s translation when saved)"
+  },
+  "opt_glossary_cancel": {
+    "message": "Cancel"
+  },
+  "opt_glossary_category_character": {
+    "message": "Character"
+  },
+  "opt_glossary_category_item": {
+    "message": "Item"
+  },
+  "opt_glossary_category_organization": {
+    "message": "Organization"
+  },
+  "opt_glossary_category_place": {
+    "message": "Place"
+  },
+  "opt_glossary_category_skill": {
+    "message": "Skill"
+  },
+  "opt_glossary_category_term": {
+    "message": "Term"
+  },
+  "opt_glossary_clear": {
+    "message": "Clear glossary"
+  },
+  "opt_glossary_clear_confirm": {
+    "message": "Confirm clear?"
+  },
+  "opt_glossary_clear_confirm_label": {
+    "message": "Click again to clear this work’s glossary"
+  },
+  "opt_glossary_clear_failed": {
+    "message": "Could not clear the glossary. Try again."
+  },
+  "opt_glossary_cleared": {
+    "message": "Glossary cleared."
+  },
+  "opt_glossary_clearing": {
+    "message": "Clearing glossary…"
+  },
+  "opt_glossary_delete": {
+    "message": "Delete"
+  },
+  "opt_glossary_delete_row_label": {
+    "message": "Delete term $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_discard_confirm": {
+    "message": "The glossary has unsaved changes. Continuing will discard them. Continue?"
+  },
+  "opt_glossary_edit": {
+    "message": "Edit"
+  },
+  "opt_glossary_edit_work": {
+    "message": "Edit the glossary for $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_gender": {
+    "message": "Gender"
+  },
+  "opt_glossary_gender_female": {
+    "message": "Female"
+  },
+  "opt_glossary_gender_male": {
+    "message": "Male"
+  },
+  "opt_glossary_gender_none": {
+    "message": "None"
+  },
+  "opt_glossary_jump_row": {
+    "message": "Go to row $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_keep_term": {
+    "message": "Keep at least one term, or use “Clear glossary”."
+  },
+  "opt_glossary_last_tidy": {
+    "message": "Last automatic cleanup ($arg1$): terms removed: $arg2$; groups merged: $arg3$.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      },
+      "arg3": {
+        "content": "$3"
+      }
+    }
+  },
+  "opt_glossary_list_meta": {
+    "message": "$arg1$ · $arg2$ · Terms: $arg3$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      },
+      "arg3": {
+        "content": "$3"
+      }
+    }
+  },
+  "opt_glossary_load_failed": {
+    "message": "Could not load the glossaries. Try again."
+  },
+  "opt_glossary_model_polish": {
+    "message": "polishing"
+  },
+  "opt_glossary_model_translation": {
+    "message": "translation"
+  },
+  "opt_glossary_note_placeholder": {
+    "message": "Notes (optional)"
+  },
+  "opt_glossary_operation_failed": {
+    "message": "The glossary operation failed. Try again."
+  },
+  "opt_glossary_page_total": {
+    "message": "of $arg1$ · Total terms: $arg2$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "opt_glossary_refreshed": {
+    "message": "Glossary list refreshed."
+  },
+  "opt_glossary_remove_alias": {
+    "message": "Remove"
+  },
+  "opt_glossary_remove_alias_label": {
+    "message": "Remove this alias of $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_revert_row_label": {
+    "message": "Discard unsaved changes to term $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_row_category_label": {
+    "message": "Category of term $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_row_duplicate": {
+    "message": "“$arg2$” in row $arg1$ duplicates a term in row $arg3$.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      },
+      "arg3": {
+        "content": "$3"
+      }
+    }
+  },
+  "opt_glossary_row_gender_label": {
+    "message": "Character gender for term $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_row_incomplete": {
+    "message": "Enter both the source text and translation in row $arg1$.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_row_invalid": {
+    "message": "The term in row $arg1$ is invalid. Check its source text and translation.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_row_note_label": {
+    "message": "Notes for term $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_row_source_label": {
+    "message": "Source text of term $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_row_target_label": {
+    "message": "Translation of term $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_save": {
+    "message": "Save"
+  },
+  "opt_glossary_save_failed": {
+    "message": "Could not save the glossary. Try again or check the extension’s storage space."
+  },
+  "opt_glossary_save_row_label": {
+    "message": "Save the glossary, including changes to term $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_saved": {
+    "message": "Saved the glossary and work title (terms: $arg1$). They will apply to future translations.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_saving": {
+    "message": "Saving glossary…"
+  },
+  "opt_glossary_source_placeholder": {
+    "message": "Source text / name"
+  },
+  "opt_glossary_term_label": {
+    "message": "term $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_tidy_already_undone": {
+    "message": "This cleanup has already been undone."
+  },
+  "opt_glossary_tidy_disabled": {
+    "message": "Automatic cleanup disabled."
+  },
+  "opt_glossary_tidy_enabled": {
+    "message": "Automatic cleanup enabled."
+  },
+  "opt_glossary_tidy_interval_invalid": {
+    "message": "Enter a whole number from 1 to $arg1$. The setting has not changed.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_tidy_interval_saved": {
+    "message": "Chapters per cleanup: $arg1$.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_tidy_model_saved": {
+    "message": "Cleanup now uses the $arg1$ model.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_glossary_tidy_settings_load_failed": {
+    "message": "Could not load the settings. Refresh the page and try again."
+  },
+  "opt_glossary_tidy_settings_save_failed": {
+    "message": "Could not save the settings. Try again."
+  },
+  "opt_glossary_tidy_undone": {
+    "message": "Cleanup undone."
+  },
+  "opt_glossary_translation": {
+    "message": "Translation"
+  },
+  "opt_glossary_undo_confirm": {
+    "message": "Confirm undo? Unsaved changes will be lost"
+  },
+  "opt_glossary_undo_failed": {
+    "message": "Could not undo the cleanup. Try again."
+  },
+  "opt_glossary_undo_tidy": {
+    "message": "Undo this cleanup"
+  },
+  "opt_glossary_undoing_tidy": {
+    "message": "Undoing this cleanup…"
+  },
+  "opt_keep_original_off": {
+    "message": "Keep original text is disabled by default."
+  },
+  "opt_keep_original_on": {
+    "message": "Keep original text is enabled by default."
+  },
+  "opt_keep_original_save_failed": {
+    "message": "Could not save the “Keep original text” setting. Try again."
+  },
+  "opt_key_clear": {
+    "message": "Clear API key"
+  },
+  "opt_key_clear_failed": {
+    "message": "Could not clear the API key. Please try again."
+  },
+  "opt_key_clear_named": {
+    "message": "Clear the locally saved $arg1$ API key",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_key_clear_warning": {
+    "message": "Click “Confirm clear?” again to delete the locally saved API key."
+  },
+  "opt_key_cleared_named": {
+    "message": "The $arg1$ API key has been cleared.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_key_confirm_clear": {
+    "message": "Confirm clear?"
+  },
+  "opt_key_confirm_clear_named": {
+    "message": "Click again to clear the locally saved $arg1$ API key",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_key_enter_first": {
+    "message": "Enter an API key first."
+  },
+  "opt_key_hide": {
+    "message": "Hide"
+  },
+  "opt_key_hide_named": {
+    "message": "Hide the $arg1$ API key",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_key_invalid_characters": {
+    "message": "The API key can only contain letters, numbers, periods, hyphens, and underscores."
+  },
+  "opt_key_label": {
+    "message": "$arg1$ API key",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_key_missing": {
+    "message": "No API key configured"
+  },
+  "opt_key_model_available": {
+    "message": "Model available"
+  },
+  "opt_key_model_missing": {
+    "message": "The current model was not found in the model list; check your account permissions"
+  },
+  "opt_key_no_whitespace": {
+    "message": "The API key cannot contain whitespace."
+  },
+  "opt_key_not_required": {
+    "message": "No API key required"
+  },
+  "opt_key_optional": {
+    "message": "Optional, if required by the service"
+  },
+  "opt_key_optional_clear_hint": {
+    "message": "An API key is optional for this provider. To remove a saved key, use “Clear API key”."
+  },
+  "opt_key_optional_hint": {
+    "message": "An API key is optional for this provider. Enter and save one if your service requires it."
+  },
+  "opt_key_prefix_required": {
+    "message": "The API key must start with $arg1$.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_key_registry_unavailable": {
+    "message": "Model catalog unavailable"
+  },
+  "opt_key_replace": {
+    "message": "Replace API key"
+  },
+  "opt_key_replace_named": {
+    "message": "Replace the $arg1$ API key",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_key_save": {
+    "message": "Save API key"
+  },
+  "opt_key_save_failed": {
+    "message": "Could not save the API key. Please try again."
+  },
+  "opt_key_save_named": {
+    "message": "Save the $arg1$ API key",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_key_saved": {
+    "message": "API key saved"
+  },
+  "opt_key_saved_hidden": {
+    "message": "Saved API keys are never displayed in full."
+  },
+  "opt_key_saved_masked": {
+    "message": "Saved · $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_key_saved_named": {
+    "message": "The $arg1$ API key has been saved.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_key_saving": {
+    "message": "Saving…"
+  },
+  "opt_key_show": {
+    "message": "Show"
+  },
+  "opt_key_show_named": {
+    "message": "Show the $arg1$ API key",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_key_test_auth_hint": {
+    "message": "$arg1$ Check that the API key is correct and has not been revoked.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_key_test_failed": {
+    "message": "The connection test failed. Please try again."
+  },
+  "opt_key_test_latency": {
+    "message": "$arg1$ ms elapsed",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_key_test_missing_key": {
+    "message": "$arg1$ requires an API key. Save one before testing the connection.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_key_test_named": {
+    "message": "Test the $arg1$ connection",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_key_test_result": {
+    "message": "$arg1$.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_key_test_save_first": {
+    "message": "Save the $arg1$ API key before testing the connection.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_key_test_settings_only": {
+    "message": "Run the connection test from the extension settings page."
+  },
+  "opt_key_test_success": {
+    "message": "Connected to $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_key_test_unsaved": {
+    "message": "The API key in the input field has not been saved. Connection tests use the saved key, so save your changes first."
+  },
+  "opt_key_testing_named": {
+    "message": "Testing the $arg1$ connection…",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_key_too_long": {
+    "message": "The API key is too long. Check your input."
+  },
+  "opt_key_too_short": {
+    "message": "The API key is too short. Check that you copied the entire key."
+  },
+  "opt_key_unsaved": {
+    "message": "Not saved yet"
+  },
+  "opt_list_separator": {
+    "message": ", "
+  },
+  "opt_loading": {
+    "message": "Loading…"
+  },
+  "opt_model_capabilities": {
+    "message": "Capabilities: $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_model_choose_another": {
+    "message": "Model unavailable: $arg1$. Choose another model.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_model_context": {
+    "message": "Context: $arg1$ tokens",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_model_endpoint": {
+    "message": "Endpoint: $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_model_follow": {
+    "message": "Follow translation model"
+  },
+  "opt_model_follow_description": {
+    "message": "Following translation model: $arg1$.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_model_follow_named": {
+    "message": "Follow translation model ($arg1$)",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_model_image_disabled": {
+    "message": "Image translation: disabled (model confirmed unsupported)"
+  },
+  "opt_model_image_unsupported": {
+    "message": "Image translation: unsupported"
+  },
+  "opt_model_image_unverified": {
+    "message": "Images (unverified)"
+  },
+  "opt_model_images": {
+    "message": "Images"
+  },
+  "opt_model_list_unavailable": {
+    "message": "Model list unavailable"
+  },
+  "opt_model_output": {
+    "message": "Maximum output: $arg1$ tokens",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_model_provider": {
+    "message": "Provider: $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_model_same_translation": {
+    "message": "Same as translation model"
+  },
+  "opt_model_unavailable": {
+    "message": "Unavailable"
+  },
+  "opt_model_unavailable_name": {
+    "message": "(Unavailable) $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_models_about": {
+    "message": "Translation: $arg1$ / Polishing: $arg2$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "opt_models_reloaded": {
+    "message": "Model list reloaded."
+  },
+  "opt_novel_support": {
+    "message": "Novel mode supports $arg1$ and automatically detects chapters and next-chapter links. Once three different chapters of a work have been recorded, the extension attempts to extract terms after translating a chapter. Successful extraction creates a glossary on this device. Only these sites are currently supported.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_polish_effort_default": {
+    "message": "When unspecified, use the model default ($arg1$).",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_polish_effort_default_same": {
+    "message": "When unspecified, use the model default ($arg1$); when sharing the translation model, follow its reasoning effort.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_polish_effort_follow_saved": {
+    "message": "Polishing reasoning effort now follows translation or uses the model default."
+  },
+  "opt_polish_effort_inherited": {
+    "message": "Polishing reasoning effort: $arg1$ (model follows translation).",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_polish_effort_latency": {
+    "message": " Higher polishing effort takes longer. Turning reasoning off is fastest; medium or high effort may take tens of seconds to several minutes."
+  },
+  "opt_polish_effort_save_failed": {
+    "message": "Could not save polishing reasoning effort. Try again."
+  },
+  "opt_polish_effort_saved": {
+    "message": "Polishing reasoning effort saved: $arg1$.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_polish_effort_value": {
+    "message": "Polishing reasoning effort: $arg1$.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_polish_follow_both": {
+    "message": "Following the translation model ($arg1$) and reasoning effort.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_polish_label": {
+    "message": "Polish"
+  },
+  "opt_polish_model_follow_saved": {
+    "message": "The polishing model now follows the translation model."
+  },
+  "opt_polish_model_named_saved": {
+    "message": "Polishing model changed to $arg1$.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_polish_model_save_failed": {
+    "message": "Could not save the polishing model. Try again."
+  },
+  "opt_polish_prompt_required": {
+    "message": "The polishing prompt cannot be empty."
+  },
+  "opt_polish_provider_model_saved": {
+    "message": "Polishing provider changed to $arg1$; model: $arg2$.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "opt_polish_provider_save_failed": {
+    "message": "Could not save the polishing provider. Try again."
+  },
+  "opt_polish_provider_saved": {
+    "message": "Polishing provider changed to $arg1$.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_polish_summary": {
+    "message": "Polishing model: $arg1$ · Reasoning effort: $arg2$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "opt_polish_summary_empty": {
+    "message": "Polishing model: —"
+  },
+  "opt_polish_summary_follow": {
+    "message": "Polishing model: follow translation ($arg1$) · Reasoning effort: $arg2$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "opt_preset_save_failed": {
+    "message": "Could not save the prompt preset. Try again."
+  },
+  "opt_preset_saved": {
+    "message": "Global prompt preset changed to $arg1$.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_preset_unavailable": {
+    "message": "Preset unavailable"
+  },
+  "opt_pretranslate_label": {
+    "message": "Pretranslate"
+  },
+  "opt_prompt_custom_active": {
+    "message": "This preset is using custom prompts saved on this device."
+  },
+  "opt_prompt_default_active": {
+    "message": "This preset is using its default prompts."
+  },
+  "opt_prompt_defaults_failed": {
+    "message": "Could not restore default prompts. Try again."
+  },
+  "opt_prompt_defaults_restored": {
+    "message": "Default prompts restored for this preset."
+  },
+  "opt_prompt_discard_confirm": {
+    "message": "You have unsaved prompt changes. Switching presets will discard them. Continue?"
+  },
+  "opt_prompt_placeholders": {
+    "message": "Available placeholders: $arg1$. The glossary is always appended to the system prompt.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_prompt_preset_load_failed": {
+    "message": "Could not load the prompt preset. Reload this page and try again."
+  },
+  "opt_prompts_save_failed": {
+    "message": "Could not save the prompts. Try again."
+  },
+  "opt_prompts_saved": {
+    "message": "Prompts saved. They will be used for future translation and polishing requests."
+  },
+  "opt_provider_add": {
+    "message": "Add provider"
+  },
+  "opt_provider_added": {
+    "message": "Added $arg1$. You can now enter its API key.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_provider_confirm_delete": {
+    "message": "Confirm delete?"
+  },
+  "opt_provider_confirm_save": {
+    "message": "Confirm save?"
+  },
+  "opt_provider_default_name": {
+    "message": "Custom endpoint"
+  },
+  "opt_provider_default_numbered_name": {
+    "message": "Custom endpoint $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_provider_delete": {
+    "message": "Delete provider"
+  },
+  "opt_provider_delete_failed": {
+    "message": "Could not delete the provider. Please try again."
+  },
+  "opt_provider_delete_warning": {
+    "message": "Click “Confirm delete?” again to delete this provider and its API key."
+  },
+  "opt_provider_deleted": {
+    "message": "Deleted $arg1$.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_provider_deleted_elsewhere": {
+    "message": "$arg1$ was deleted in another settings tab. Your changes were not saved.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_provider_endpoint_invalid": {
+    "message": "The endpoint must be a valid HTTP or HTTPS URL."
+  },
+  "opt_provider_endpoint_protocol": {
+    "message": "The endpoint must use HTTP or HTTPS."
+  },
+  "opt_provider_endpoint_required": {
+    "message": "Enter the base URL for the custom endpoint."
+  },
+  "opt_provider_https_required": {
+    "message": "HTTP is only supported for localhost and 127.0.0.1. Use HTTPS for other hosts."
+  },
+  "opt_provider_in_use": {
+    "message": "$arg1$ is in use by $arg2$. Switch to another provider under Advanced → Model behavior first.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "opt_provider_label_separator": {
+    "message": ", "
+  },
+  "opt_provider_limit": {
+    "message": "You can add up to $arg1$ custom providers.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_provider_model_required": {
+    "message": "Enter the model name to send to the API."
+  },
+  "opt_provider_model_too_long": {
+    "message": "The model name is too long. Check your input."
+  },
+  "opt_provider_move_warning": {
+    "message": "The endpoint host has changed. Click “Confirm save?” again to clear the saved API key."
+  },
+  "opt_provider_new": {
+    "message": "New provider"
+  },
+  "opt_provider_other_settings": {
+    "message": "another settings tab"
+  },
+  "opt_provider_registry_unavailable": {
+    "message": "The model catalog is unavailable. Providers cannot be configured."
+  },
+  "opt_provider_save": {
+    "message": "Save provider"
+  },
+  "opt_provider_save_failed": {
+    "message": "Could not save the provider. Please try again."
+  },
+  "opt_provider_saved": {
+    "message": "Saved $arg1$.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_provider_saved_key_cleared": {
+    "message": "Saved $arg1$. The endpoint host changed, so the previous API key was cleared. Enter a new key.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_provider_unsaved": {
+    "message": "Not saved"
+  },
+  "opt_provider_usage_label": {
+    "message": "Used for $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_provider_usage_separator": {
+    "message": ", "
+  },
+  "opt_provider_use_polishing": {
+    "message": "Polishing"
+  },
+  "opt_provider_use_translation": {
+    "message": "Translation"
+  },
+  "opt_registry_failed": {
+    "message": "The model list could not be loaded. Check the configuration under profile/ and reload the extension."
+  },
+  "opt_registry_fallback": {
+    "message": "The model list could not be loaded. Using the background configuration; some features may be unavailable."
+  },
+  "opt_registry_repair": {
+    "message": "Fix the configuration under profile/ and reload the extension."
+  },
+  "opt_registry_retry_failed": {
+    "message": "Retry failed. $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_reload": {
+    "message": "Reload"
+  },
+  "opt_remove": {
+    "message": "Remove"
+  },
+  "opt_resources_unavailable": {
+    "message": "Extension resources could not be loaded. Reload the extension and try again."
+  },
+  "opt_restore_defaults": {
+    "message": "Restore defaults"
+  },
+  "opt_restore_defaults_aria": {
+    "message": "Click again to discard custom prompts and restore defaults"
+  },
+  "opt_restore_defaults_confirm": {
+    "message": "Restore defaults?"
+  },
+  "opt_selection_missing": {
+    "message": "The selected model no longer exists. Translation is disabled until you choose another model here. Your selection takes effect immediately."
+  },
+  "opt_site_added": {
+    "message": "Site added: $arg1$.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_site_domain_invalid": {
+    "message": "Enter a valid domain, such as example.com or sub.example.com."
+  },
+  "opt_site_domain_required": {
+    "message": "Enter a site domain, such as example.com."
+  },
+  "opt_site_exists": {
+    "message": "Site $arg1$ is already in the list.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_site_follow_global": {
+    "message": "Follow global (currently $arg1$)",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_site_polish_aria": {
+    "message": "Enable page polishing for $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_site_polish_off": {
+    "message": "Polishing disabled for $arg1$.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_site_polish_on": {
+    "message": "Polishing enabled for $arg1$.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_site_preset_aria": {
+    "message": "Choose a prompt preset for $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_site_preset_follow_saved": {
+    "message": "Prompt preset for $arg1$ now follows the global setting.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_site_preset_saved": {
+    "message": "Prompt preset for $arg1$ set to $arg2$.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "opt_site_pretranslate_aria": {
+    "message": "Enable next-chapter pretranslation for $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_site_pretranslate_off": {
+    "message": "Pretranslation disabled for $arg1$.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_site_pretranslate_on": {
+    "message": "Pretranslation enabled for $arg1$.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_site_remove_aria": {
+    "message": "Remove site settings for $arg1$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_site_removed": {
+    "message": "Site settings removed: $arg1$.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_site_save_failed": {
+    "message": "Could not save the site settings. Try again."
+  },
+  "opt_site_url_invalid": {
+    "message": "The site URL is invalid."
+  },
+  "opt_storage_read_failed": {
+    "message": "Could not read settings on this device. Reload this page and try again."
+  },
+  "opt_target_save_failed": {
+    "message": "Could not save the default target language. Try again."
+  },
+  "opt_translation_effort_save_failed": {
+    "message": "Could not save translation reasoning effort. Try again."
+  },
+  "opt_translation_effort_saved": {
+    "message": "Translation reasoning effort saved: $arg1$.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_translation_model_named_saved": {
+    "message": "Translation model changed to $arg1$.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_translation_model_save_failed": {
+    "message": "Could not save the translation model. Try again."
+  },
+  "opt_translation_model_saved": {
+    "message": "Translation model changed."
+  },
+  "opt_translation_prompt_required": {
+    "message": "The translation prompt cannot be empty."
+  },
+  "opt_translation_provider_model_saved": {
+    "message": "Translation provider changed to $arg1$; model: $arg2$.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "opt_translation_provider_save_failed": {
+    "message": "Could not save the translation provider. Try again."
+  },
+  "opt_translation_provider_saved": {
+    "message": "Translation provider changed to $arg1$.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_translation_select_first": {
+    "message": "The translation model is unavailable. Choose another model first."
+  },
+  "opt_translation_summary": {
+    "message": "Translation model: $arg1$ · Reasoning effort: $arg2$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "opt_translation_summary_empty": {
+    "message": "Translation model: —"
+  },
+  "opt_translation_summary_unavailable": {
+    "message": "Translation model: unavailable"
+  },
+  "opt_unknown": {
+    "message": "Unknown"
+  },
+  "opt_usage_reset": {
+    "message": "Reset usage"
+  },
+  "opt_usage_reset_aria": {
+    "message": "Reset accumulated token usage"
+  },
+  "opt_usage_reset_confirm": {
+    "message": "Reset usage?"
+  },
+  "opt_usage_reset_confirm_aria": {
+    "message": "Click again to confirm resetting accumulated token usage"
+  },
+  "opt_usage_reset_done": {
+    "message": "Accumulated usage reset."
+  },
+  "opt_usage_reset_failed": {
+    "message": "Could not reset usage. Try again."
+  },
+  "opt_usage_reset_options_only": {
+    "message": "Reset usage from the extension settings page."
+  },
+  "opt_usage_reset_unsupported": {
+    "message": "This version does not support resetting usage yet. Reload the extension and try again."
+  },
+  "opt_usage_reset_warning": {
+    "message": "Click “Reset usage?” again to reset the accumulated usage on this device. This cannot be undone."
+  },
+  "opt_usage_resetting": {
+    "message": "Resetting…"
+  },
+  "pop_background_unavailable": {
+    "message": "The extension background is temporarily unavailable. Close the popup and open it again."
+  },
+  "pop_bilingual": {
+    "message": " (bilingual)"
+  },
+  "pop_busy": {
+    "message": "Working…"
+  },
+  "pop_cached": {
+    "message": "The cached translation for this chapter has been applied."
+  },
+  "pop_cancelled": {
+    "message": "Translation cancelled."
+  },
+  "pop_chapter_only": {
+    "message": "Pretranslation is available only on supported novel chapter pages"
+  },
+  "pop_chapter_site_only": {
+    "message": "Pretranslation is available only on supported novel chapter pages (current site: $arg1$).",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "pop_done": {
+    "message": "Translated into $arg1$$arg2$$arg3$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      },
+      "arg3": {
+        "content": "$3"
+      }
+    }
+  },
+  "pop_extension_page": {
+    "message": "This tab is an extension page and cannot be translated. Open a regular web page."
+  },
+  "pop_failed": {
+    "message": "Translation failed"
+  },
+  "pop_failed_count": {
+    "message": ", $arg1$ failed",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "pop_file_access": {
+    "message": "Cannot access local files. Enable “Allow access to file URLs” in the extension’s details."
+  },
+  "pop_follow_global": {
+    "message": "Use global preset (currently $arg1$)",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "pop_idle": {
+    "message": "Page not yet translated"
+  },
+  "pop_image_open": {
+    "message": "Image translation panel is open"
+  },
+  "pop_images": {
+    "message": "Translate visible images"
+  },
+  "pop_images_empty": {
+    "message": "No translatable images were found in the visible area."
+  },
+  "pop_images_running": {
+    "message": "Image translation is already in progress. Please wait."
+  },
+  "pop_init_failed": {
+    "message": "The extension could not start. Close the popup and open it again."
+  },
+  "pop_invalid_sender": {
+    "message": "Open this popup from the extension icon in the browser toolbar to control the page."
+  },
+  "pop_invalid_tab": {
+    "message": "No tab is available."
+  },
+  "pop_loading": {
+    "message": "Reading page status…"
+  },
+  "pop_missing_key": {
+    "message": "No API Key is configured for the selected model. Add one in extension settings or choose a configured model."
+  },
+  "pop_model_changed": {
+    "message": "The model changed. Start image translation again."
+  },
+  "pop_no_text": {
+    "message": "No translatable text was found on this page."
+  },
+  "pop_not_detected": {
+    "message": "Not detected"
+  },
+  "pop_nothing_restore": {
+    "message": "There is no translated content to restore on this page."
+  },
+  "pop_operation_failed": {
+    "message": "The operation failed. Try again."
+  },
+  "pop_page_access": {
+    "message": "Cannot access this page. Refresh it and try again."
+  },
+  "pop_page_running": {
+    "message": "Page translation is already in progress."
+  },
+  "pop_page_unavailable": {
+    "message": "Unavailable on this page"
+  },
+  "pop_page_unknown": {
+    "message": "Page status unknown"
+  },
+  "pop_partial": {
+    "message": "Partially complete: $arg1$/$arg2$$arg3$",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      },
+      "arg3": {
+        "content": "$3"
+      }
+    }
+  },
+  "pop_polish_missing_key": {
+    "message": "Polishing is on for this site. Configure the polishing model’s API Key in extension settings first."
+  },
+  "pop_polish_off": {
+    "message": "Polishing is off for this site. Translate the page again to apply it."
+  },
+  "pop_polish_on": {
+    "message": "Polishing is on for this site. Translate the page again to apply it."
+  },
+  "pop_polish_warning": {
+    "message": "Polishing did not finish: $arg1$ (the initial translation is still shown)",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "pop_polished": {
+    "message": " · Polished"
+  },
+  "pop_polishing": {
+    "message": "Polishing…"
+  },
+  "pop_popup_failed": {
+    "message": "The extension popup could not start. Close it and open it again."
+  },
+  "pop_preparing": {
+    "message": "Preparing"
+  },
+  "pop_preset_global": {
+    "message": "This site now follows the global prompt preset. Translate the page again to apply it."
+  },
+  "pop_preset_save_failed": {
+    "message": "Could not save this site’s prompt preset. Try again."
+  },
+  "pop_preset_saved": {
+    "message": "This site’s prompt preset is now $arg1$. Translate the page again to apply it.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "pop_pretranslate_next": {
+    "message": "Pretranslate next chapter"
+  },
+  "pop_pretranslate_off": {
+    "message": "Next-chapter pretranslation is off."
+  },
+  "pop_pretranslate_on": {
+    "message": "Next-chapter pretranslation is on. Translate or retranslate this chapter to apply it."
+  },
+  "pop_pretranslating": {
+    "message": "Pretranslating the next chapter"
+  },
+  "pop_pretranslation": {
+    "message": "Pretranslation"
+  },
+  "pop_progress": {
+    "message": "$arg1$ $arg2$/$arg3$ segments",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      },
+      "arg3": {
+        "content": "$3"
+      }
+    }
+  },
+  "pop_protected_page": {
+    "message": "The browser does not allow extensions to modify this internal or protected page. Open a regular web page."
+  },
+  "pop_resources_failed": {
+    "message": "Extension resources could not load. Reload the extension and try again."
+  },
+  "pop_restore_page": {
+    "message": "Restore page"
+  },
+  "pop_resume": {
+    "message": "Resuming this chapter’s pretranslation"
+  },
+  "pop_retranslate_page": {
+    "message": "Retranslate entire page"
+  },
+  "pop_retranslate_settings": {
+    "message": "Retranslate with new settings"
+  },
+  "pop_retry": {
+    "message": "Retry"
+  },
+  "pop_retry_failed": {
+    "message": "Retry failed parts"
+  },
+  "pop_segments": {
+    "message": "$arg1$/$arg2$ segments",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
+  "pop_selection_empty": {
+    "message": "No selected text was found. Select text on the page first."
+  },
+  "pop_selection_running": {
+    "message": "Selection translation is already in progress. Please wait."
+  },
+  "pop_site_hint": {
+    "message": "Polishing and pretranslation apply only to $arg1$. The next chapter is cached and applied when you open it.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "pop_site_regular": {
+    "message": "Open a regular web page to change site settings."
+  },
+  "pop_site_save_failed": {
+    "message": "Could not save site settings. Try again."
+  },
+  "pop_site_unavailable": {
+    "message": "Site settings are unavailable on this page."
+  },
+  "pop_stage_fetch": {
+    "message": "Reading chapter"
+  },
+  "pop_stage_polish": {
+    "message": "Polishing"
+  },
+  "pop_stage_save": {
+    "message": "Saving translation"
+  },
+  "pop_stage_translate": {
+    "message": "Translating"
+  },
+  "pop_state_failed": {
+    "message": "Could not read the page status. Refresh the page and try again."
+  },
+  "pop_stop_restore": {
+    "message": "Stop and restore page"
+  },
+  "pop_tab_closed": {
+    "message": "The page has been closed."
+  },
+  "pop_translate_failed": {
+    "message": "Translation failed. Try again."
+  },
+  "pop_translate_page": {
+    "message": "Translate page"
+  },
+  "pop_translated": {
+    "message": "Translated"
+  },
+  "pop_translating": {
+    "message": "Translating…"
+  },
+  "pop_truncated": {
+    "message": "This page exceeds the translation limit. Only the first part was translated."
+  },
+  "pop_usage_title": {
+    "message": "Total usage: $arg1$ tokens (reported by providers; for reference only)",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "pop_vision_unsupported": {
+    "message": "This model does not support image input. Image translation is disabled; choose a model that supports images."
+  },
+  "preset_academic_description": {
+    "message": "For papers, technical documents, and tutorials, with precise terminology, arguments, and citations."
+  },
+  "preset_academic_name": {
+    "message": "Academic"
+  },
+  "preset_general_description": {
+    "message": "For news, blogs, forums, and everyday web pages, balancing accuracy and fluency."
+  },
+  "preset_general_name": {
+    "message": "General"
+  },
+  "preset_light_novel_description": {
+    "message": "For light novels, web novels, and fiction, preserving narrative voice, dialogue rhythm, and character tone."
+  },
+  "preset_light_novel_name": {
+    "message": "Light novel"
+  },
+  "provider_custom_key_label": {
+    "message": "Custom API Key"
+  },
+  "provider_custom_key_placeholder": {
+    "message": "Optional; fill in if your provider requires it"
+  },
+  "provider_custom_name": {
+    "message": "Custom OpenAI-compatible API"
+  },
+  "shared_custom_endpoint": {
+    "message": "Enter the custom API URL in advanced settings first."
+  },
+  "shared_custom_missing": {
+    "message": "The selected custom provider or model no longer exists. Add it again in settings or select another model."
+  },
+  "shared_custom_model": {
+    "message": "Enter the custom model name in advanced settings first."
+  },
+  "shared_endpoint_missing": {
+    "message": "Model $arg1$ has no API URL.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "shared_model_missing": {
+    "message": "The selected model no longer exists. Select another model in settings."
+  },
+  "shared_models_empty": {
+    "message": "No models are available. Check the model configuration in profile/."
+  },
+  "shared_provider_missing": {
+    "message": "The provider for model $arg1$ does not exist.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "ui_language": {
+    "message": "en"
+  }
+}

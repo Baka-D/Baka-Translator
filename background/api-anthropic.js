@@ -6,6 +6,8 @@
  */
 (function initAnthropicApi(globalScope) {
   'use strict';
+  const i18n = globalScope.DSHT?.i18n || (typeof require === 'function' ? require('../shared/i18n.js') : null);
+  const { t } = i18n;
 
   const transport =
     (globalScope.DSHT && globalScope.DSHT.apiTransport) ||
@@ -37,7 +39,7 @@
     if (part && part.type === 'image_url') {
       const url = (part.image_url && part.image_url.url) || '';
       const match = /^data:(image\/[a-z]+);base64,(.+)$/i.exec(url);
-      if (!match) throw new ApiError('图片格式不受支持。', { code: 'BAD_IMAGE', retryable: false });
+      if (!match) throw new ApiError(t('bg_bad_image'), { code: 'BAD_IMAGE', retryable: false });
       return { type: 'image', source: { type: 'base64', media_type: match[1].toLowerCase(), data: match[2] } };
     }
     return { type: 'text', text: String((part && part.text) || '') };
@@ -92,23 +94,23 @@
   }
 
   function extractContent(data, providerName) {
-    const label = providerName || '模型服务';
+    const label = providerName || t('bg_provider_fallback');
     const fail = (message, code, retryable) => new ApiError(message, { code, retryable });
     if (!data || !Array.isArray(data.content)) {
-      throw fail(`${label} 未返回结果，请重试。`, 'EMPTY_RESPONSE', true);
+      throw fail(t('bg_no_result', [label]), 'EMPTY_RESPONSE', true);
     }
     if (data.stop_reason === 'max_tokens') {
-      throw fail('翻译结果超出长度限制，请缩短文本或使用更大输出上限的模型。', 'OUTPUT_TRUNCATED', false);
+      throw fail(t('bg_output_truncated'), 'OUTPUT_TRUNCATED', false);
     }
     if (data.stop_reason === 'refusal') {
-      throw fail('内容被模型安全策略拦截，请尝试其他内容。', 'CONTENT_FILTERED', false);
+      throw fail(t('bg_content_filtered'), 'CONTENT_FILTERED', false);
     }
     // Thinking and fallback blocks carry no answer text.
     const content = data.content
       .filter((block) => block && block.type === 'text' && typeof block.text === 'string')
       .map((block) => block.text)
       .join('');
-    if (!content.trim()) throw fail(`${label} 返回了空结果，请重试。`, 'EMPTY_RESPONSE', true);
+    if (!content.trim()) throw fail(t('bg_empty_result', [label]), 'EMPTY_RESPONSE', true);
     return { content, usage: normalizeUsage(data.usage), finishReason: data.stop_reason };
   }
 

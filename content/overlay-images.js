@@ -1,23 +1,24 @@
 (function initOverlayPart(globalScope) {
   'use strict';
+  const { t } = globalScope.DSHT.i18n;
   globalScope.DSHT = globalScope.DSHT || {};
   const parts = globalScope.DSHT.overlayParts = globalScope.DSHT.overlayParts || {};
 
   parts.createImages = function createImages(callbacks) {
     const { el, onTrusted } = parts;
-    const EMPTY_MESSAGE = '当前画面中没有找到可翻译的图片。滚动到图片位置后再试。';
+    const EMPTY_MESSAGE = t('content_no_images_hint');
     let imagePanel, imageTitle, imageSubtitle, imageList, imageEmpty, imageFoot;
     let renderedItems = [];
 
     function buildImagePanel(layer) {
       imagePanel = el('section', 'dsht-image-panel dsht-hidden');
       imagePanel.setAttribute('role', 'dialog');
-      imagePanel.setAttribute('aria-label', 'Baka Translator 图片翻译');
+      imagePanel.setAttribute('aria-label', t('content_image_panel_label'));
 
       const head = el('div', 'dsht-image-head');
-      const logo = el('div', 'dsht-logo', '图');
+      const logo = el('div', 'dsht-logo', t('content_image_logo'));
       const copy = el('div', 'dsht-panel-copy');
-      imageTitle = el('h2', 'dsht-image-title', '图片翻译');
+      imageTitle = el('h2', 'dsht-image-title', t('content_image_translation'));
       imageSubtitle = el('div', 'dsht-image-subtitle', '');
       imageSubtitle.setAttribute('aria-live', 'polite');
       copy.appendChild(imageTitle);
@@ -25,7 +26,7 @@
 
       const close = el('button', 'dsht-icon-button', '×');
       close.type = 'button';
-      close.setAttribute('aria-label', '关闭图片翻译结果');
+      close.setAttribute('aria-label', t('content_close_images'));
       onTrusted(close, 'click', () => callbacks.onImageClose && callbacks.onImageClose());
       head.appendChild(logo);
       head.appendChild(copy);
@@ -34,7 +35,7 @@
       imageList = el('div', 'dsht-image-list');
       renderedItems = [];
       imageEmpty = el('div', 'dsht-image-empty dsht-hidden', EMPTY_MESSAGE);
-      imageFoot = el('div', 'dsht-image-foot', '仅截取当前画面中可见的图片区域并发送给所选模型服务商识别，不会上传整页截图。');
+      imageFoot = el('div', 'dsht-image-foot', t('content_image_privacy'));
 
       imagePanel.appendChild(head);
       imagePanel.appendChild(imageList);
@@ -50,10 +51,10 @@
       }
       if (!imagePanel) return;
       imagePanel.classList.remove('dsht-hidden');
-      imageTitle.textContent = model.title || '图片翻译';
+      imageTitle.textContent = model.title || t('content_image_translation');
       imageSubtitle.textContent = model.subtitle || '';
       imageFoot.textContent =
-        model.footer || '仅截取当前画面中可见的图片区域并发送给所选模型服务商识别，不会上传整页截图。';
+        model.footer || t('content_image_privacy');
 
       const items = Array.isArray(model.items) ? model.items : [];
       imageEmpty.classList.toggle('dsht-hidden', items.length > 0);
@@ -81,7 +82,7 @@
       if (/^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(item.thumbnail || '')) {
         const img = document.createElement('img');
         img.className = 'dsht-thumb';
-        img.alt = item.thumbnailAlt || `图片 ${index + 1} 截图`;
+        img.alt = item.thumbnailAlt || t('content_image_number_alt', [index + 1]);
         img.src = item.thumbnail;
         thumbWrap.appendChild(img);
       }
@@ -89,7 +90,7 @@
 
       const copy = el('div', 'dsht-image-copy');
       const head = el('div', 'dsht-image-item-head');
-      head.appendChild(el('span', 'dsht-image-index', `图片 ${index + 1}`));
+      head.appendChild(el('span', 'dsht-image-index', t('content_image_number', [index + 1])));
       const state = el('span', 'dsht-image-state', item.stateLabel || '');
       head.appendChild(state);
       copy.appendChild(head);
@@ -99,15 +100,15 @@
         copy.appendChild(el('div', 'dsht-skeleton'));
         copy.appendChild(el('div', 'dsht-skeleton'));
       } else if (item.status === 'error') {
-        copy.appendChild(el('p', 'dsht-image-error', item.error || '识别失败，请重试。'));
+        copy.appendChild(el('p', 'dsht-image-error', item.error || t('content_image_translation_error')));
       } else if (!item.hasText) {
-        copy.appendChild(el('p', 'dsht-image-muted', '图中未检测到可翻译的文字。'));
+        copy.appendChild(el('p', 'dsht-image-muted', t('content_image_no_text')));
       } else {
         const translation = el('p', 'dsht-image-translation', item.translation || '');
         copy.appendChild(translation);
         if (item.original) {
           const details = el('details', 'dsht-image-original');
-          details.appendChild(el('summary', '', '识别到的原文'));
+          details.appendChild(el('summary', '', t('content_image_original')));
           const quote = el('blockquote', '', item.original);
           details.appendChild(quote);
           copy.appendChild(details);

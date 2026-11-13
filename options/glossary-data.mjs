@@ -1,12 +1,11 @@
 // Glossary data helpers for the editor: storage keys, paging and validating rows.
-import { languages, novelUtils } from './context.mjs';
+import { i18n, languages, novelUtils, t } from './context.mjs';
 
 export const GLOSSARY_PREFIX = 'novelGlossary:';
 const META_PREFIX = 'novelMeta:';
 
 function targetLabel(code) {
-  const target = languages.getTargetLanguage(code);
-  return target ? target.label : String(code || '中文');
+  return i18n.languageLabel(code);
 }
 
 function siteLabel(siteId) {
@@ -63,7 +62,7 @@ export function normalizeGlossaryRows(rows) {
     const target = String((row && row.target) || '').trim();
     if (!source && !target) continue;
     if (!source || !target) {
-      return { error: `第 ${index + 1} 行需要同时填写原文和译文。`, row: index };
+      return { error: t('opt_glossary_row_incomplete', [index + 1]), row: index };
     }
     const normalized = novelUtils.normalizeTerm({
       source,
@@ -74,14 +73,14 @@ export function normalizeGlossaryRows(rows) {
       aliases: row.aliases
     });
     if (!normalized) {
-      return { error: `第 ${index + 1} 行术语格式不正确，请检查原文和译文。`, row: index };
+      return { error: t('opt_glossary_row_invalid', [index + 1]), row: index };
     }
     // An alias is matched like a source, so it must be unique among them too.
     for (const { source: spelling } of [normalized, ...(normalized.aliases || [])]) {
       const key = novelUtils.termKey(spelling);
       if (seen.has(key)) {
         return {
-          error: `第 ${index + 1} 行“${spelling}”与第 ${seen.get(key)} 行重复。`,
+          error: t('opt_glossary_row_duplicate', [index + 1, spelling, seen.get(key)]),
           row: index,
           other: seen.get(key) - 1
         };
@@ -90,7 +89,7 @@ export function normalizeGlossaryRows(rows) {
     }
     terms.push(normalized);
   }
-  if (terms.length === 0) return { error: '请至少保留一条术语，或使用“清空术语库”。' };
+  if (terms.length === 0) return { error: t('opt_glossary_keep_term') };
   return { terms };
 }
 

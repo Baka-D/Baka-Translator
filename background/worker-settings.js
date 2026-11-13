@@ -3,7 +3,7 @@
 function fetchExtensionJson(path) {
   return fetch(chrome.runtime.getURL(path), { cache: 'no-store' }).then(async (response) => {
     if (!response || !response.ok) {
-      throw new PageAccessError('MODEL_CONFIG_ERROR', `无法加载 ${path}`);
+      throw new PageAccessError('MODEL_CONFIG_ERROR', t('bg_file_load_failed', [path]));
     }
     return response.json();
   });
@@ -16,7 +16,7 @@ async function loadRegistry() {
         if (!registry || registry.models.length === 0) {
           throw new PageAccessError(
             'MODEL_CONFIG_ERROR',
-            'profile/ 中没有可用模型，请检查配置。'
+            t('bg_model_config_empty')
           );
         }
         return registry;
@@ -26,7 +26,7 @@ async function loadRegistry() {
         if (error instanceof PageAccessError) throw error;
         throw new PageAccessError(
           'MODEL_CONFIG_ERROR',
-          `无法读取 profile/ 下的模型配置：${error.message || '未知错误'}`
+          t('bg_model_config_error', [error.message || t('bg_unknown_detail')])
         );
       });
   }
@@ -41,7 +41,7 @@ async function loadPresetIndex() {
         presetIndexPromise = null;
         throw new PageAccessError(
           'PRESET_CONFIG_ERROR',
-          `无法读取 preset/index.json：${error.message || '未知错误'}`
+          t('bg_preset_config_error', [error.message || t('bg_unknown_detail')])
         );
       });
   }
@@ -219,7 +219,7 @@ function runtimeSettingsForPurpose(settings, purpose, registry) {
     (inheritsModel && !settings.polishEffortLevel));
   return {
     purpose: polish ? 'polish' : 'translation',
-    label: polish ? '润色模型' : '翻译模型',
+    label: polish ? t('bg_polish_model') : t('bg_translation_model'),
     modelId: polish && !inheritsModel ? settings.polishModelId : settings.translationModelId,
     effortLevel: polish && !inheritsEffort ? settings.polishEffortLevel : settings.translationEffortLevel,
     inheritsModel,
@@ -254,7 +254,7 @@ function providerTestSelection(settings, registry, providerId) {
     if (model && model.provider === providerId) return selection;
   }
   const model = modelUtils.listModels(registry, providerId)[0];
-  if (!model) throw new PageAccessError('MODEL_CONFIG_ERROR', '该服务商没有可用的模型。');
+  if (!model) throw new PageAccessError('MODEL_CONFIG_ERROR', t('bg_provider_models_empty'));
   return { purpose: 'translation', label: model.name, modelId: model.id, effortLevel: model.defaultEffort };
 }
 
@@ -273,14 +273,14 @@ async function resolveRuntime(purpose, hostname, providerId, settings) {
   } catch (error) {
     throw new PageAccessError(
       error.code || 'MODEL_CONFIG_ERROR',
-      error.message || `${selection.label}配置不完整。`
+      error.message || t('bg_model_config_incomplete', [selection.label])
     );
   }
   const apiKey = getProviderApiKey(resolved.provider, settings);
   if (resolved.provider.apiKeyRequired !== false && !apiKey) {
     throw new PageAccessError(
       'MISSING_API_KEY',
-      `尚未配置 ${resolved.provider.name} 的 API Key（${selection.label}），请先在扩展设置中填写。`
+      t('bg_purpose_missing_key', [resolved.provider.name, selection.label])
     );
   }
   const activePresetId = sitePresetId(settings, hostname);

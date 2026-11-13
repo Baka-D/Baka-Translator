@@ -1,5 +1,5 @@
 // Settings-page utils.
-import { EFFORT_LABELS, KEYS, billingTools, feedbackTimers, usageTools } from './context.mjs';
+import { t, i18n, EFFORT_LABELS, KEYS, billingTools, feedbackTimers, usageTools } from './context.mjs';
 
 /* ---------- 通用工具 ---------- */
 
@@ -59,14 +59,14 @@ export async function sendMessage(payload) {
     if (!response || typeof response !== 'object') {
       return {
         ok: false,
-        error: { code: 'BACKGROUND_UNAVAILABLE', message: '扩展后台暂时不可用，请稍后重试。' }
+        error: { code: 'BACKGROUND_UNAVAILABLE', message: t('opt_background_unavailable') }
       };
     }
     return response;
   } catch (_error) {
     return {
       ok: false,
-      error: { code: 'BACKGROUND_UNAVAILABLE', message: '扩展后台暂时不可用，请稍后重试。' }
+      error: { code: 'BACKGROUND_UNAVAILABLE', message: t('opt_background_unavailable') }
     };
   }
 }
@@ -83,7 +83,7 @@ export function formatNumber(value) {
   const number = Number(value);
   const safe = Number.isFinite(number) && number > 0 ? Math.floor(number) : 0;
   try {
-    return safe.toLocaleString('zh-CN');
+    return safe.toLocaleString(i18n.locale);
   } catch (_error) {
     return String(safe).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   }
@@ -115,7 +115,7 @@ export function formatUpdatedAt(value) {
   const date = new Date(timestamp);
   if (Number.isNaN(date.getTime())) return '—';
   try {
-    return date.toLocaleString('zh-CN', {
+    return date.toLocaleString(i18n.locale, {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',

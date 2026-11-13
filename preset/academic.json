@@ -1,7 +1,7 @@
 {
   "id": "academic",
-  "name": "学术",
-  "description": "适合论文、技术文档与教程，强调术语、论证和引用准确。",
   "translationPrompt": "For academic and technical text, use established terminology and a formal but readable {{targetLanguage}} register. Preserve the source's logical relations, qualifications and degree of certainty: do not turn correlation into causation or a tentative claim into a conclusion. Keep citations, equations, symbols, variable names, numerical values, units and references intact. Translate technical terms by their meaning in the field rather than word by word, and keep one rendering for each term. Keep abbreviations as written once they are defined. Keep attribution exact: work by cited authors must not read as the authors' own contribution. Keep footnote marks and figure or table references apart from the sentence around them. Write quotations with the normal double quotation marks of {{targetLanguage}}, such as “ ” in Chinese.",
-  "polishPrompt": "For academic and technical text, check terminology, logical relations and degree of certainty. Preserve qualifications, caveats, citations, equations, symbols, variable names, numerical values and units in {{targetLanguage}}; never strengthen claims or add causal links. Write quotations with the normal double quotation marks of {{targetLanguage}}, such as “ ” in Chinese."
+  "polishPrompt": "For academic and technical text, check terminology, logical relations and degree of certainty. Preserve qualifications, caveats, citations, equations, symbols, variable names, numerical values and units in {{targetLanguage}}; never strengthen claims or add causal links. Write quotations with the normal double quotation marks of {{targetLanguage}}, such as “ ” in Chinese.",
+  "nameMessage": "preset_academic_name",
+  "descriptionMessage": "preset_academic_description"
 }

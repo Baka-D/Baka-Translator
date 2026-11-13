@@ -1,19 +1,19 @@
 // One editable glossary term row; it shows save/cancel beside itself once edited.
-import { novelUtils } from './context.mjs';
+import { novelUtils, t } from './context.mjs';
 import { addAlias, readAliases, renderAliases } from './glossary-aliases.mjs';
 import { makeButton } from './utils.mjs';
 
-const GENDER_OPTIONS = [['none', '无'], ['male', '男'], ['female', '女']];
+const GENDER_OPTIONS = [['none', t('opt_glossary_gender_none')], ['male', t('opt_glossary_gender_male')], ['female', t('opt_glossary_gender_female')]];
 const CATEGORY_OPTIONS = [
-  ['character', '人物'], ['place', '地点'], ['organization', '组织'],
-  ['skill', '技能'], ['item', '物品'], ['term', '术语']
+  ['character', t('opt_glossary_category_character')], ['place', t('opt_glossary_category_place')], ['organization', t('opt_glossary_category_organization')],
+  ['skill', t('opt_glossary_category_skill')], ['item', t('opt_glossary_category_item')], ['term', t('opt_glossary_category_term')]
 ];
 
 function makeCategorySelect(value, index) {
   const select = document.createElement('select');
   select.className = 'select glossary-input';
   select.dataset.role = 'category';
-  select.setAttribute('aria-label', `第 ${index + 1} 条术语分类`);
+  select.setAttribute('aria-label', t('opt_glossary_row_category_label', [index + 1]));
   for (const [category, label] of CATEGORY_OPTIONS) select.add(new Option(label, category));
   const current = String(value || '').trim() || 'term';
   // A category the model wrote outside this list stays selectable as it is.
@@ -26,9 +26,9 @@ function makeGenderSelect(term, index) {
   const select = document.createElement('select');
   select.className = 'select glossary-input';
   select.dataset.role = 'gender';
-  select.setAttribute('aria-label', `第 ${index + 1} 条术语的角色性别`);
+  select.setAttribute('aria-label', t('opt_glossary_row_gender_label', [index + 1]));
   // Unset differs from a chosen 无, which stops later chapters filling in a gender.
-  const unset = new Option('性别', '');
+  const unset = new Option(t('opt_glossary_gender'), '');
   unset.hidden = true;
   select.add(unset);
   for (const [value, label] of GENDER_OPTIONS) select.add(new Option(label, value));
@@ -98,25 +98,25 @@ export function renderTermRow(term, index, saved, handlers) {
   category.addEventListener('input', syncGender);
   syncGender();
   row.append(
-    makeInput('source', values.source, `第 ${index + 1} 条术语原文`, '原文/名称'),
-    makeInput('target', values.target, `第 ${index + 1} 条术语译文`, '译文'),
+    makeInput('source', values.source, t('opt_glossary_row_source_label', [index + 1]), t('opt_glossary_source_placeholder')),
+    makeInput('target', values.target, t('opt_glossary_row_target_label', [index + 1]), t('opt_glossary_translation')),
     category,
     gender,
-    makeInput('note', values.note, `第 ${index + 1} 条术语备注`, '备注（可选）')
+    makeInput('note', values.note, t('opt_glossary_row_note_label', [index + 1]), t('opt_glossary_note_placeholder'))
   );
 
   const aliases = renderAliases(values.aliases, index);
   const actions = document.createElement('div');
   actions.className = 'glossary-row-actions';
-  const addAliasButton = makeButton('+ 写法', 'button button-secondary glossary-row-button', () => addAlias(aliases, index),
-    `为第 ${index + 1} 条术语添加其他写法`);
-  addAliasButton.title = '添加其他写法';
-  const save = makeButton('保存', 'button button-primary glossary-row-button', () => handlers.onSave(index),
-    `保存术语库（含第 ${index + 1} 条的修改）`);
-  const cancel = makeButton('取消', 'button button-secondary glossary-row-button', () => handlers.onCancel(index),
-    `撤销第 ${index + 1} 条术语未保存的修改`);
-  const remove = makeButton('删除', 'button button-ghost-danger glossary-delete', () => handlers.onDelete(index),
-    `删除第 ${index + 1} 条术语`);
+  const addAliasButton = makeButton(t('opt_glossary_add_alias_short'), 'button button-secondary glossary-row-button', () => addAlias(aliases, index),
+    t('opt_glossary_add_alias_label', [index + 1]));
+  addAliasButton.title = t('opt_glossary_add_alias');
+  const save = makeButton(t('opt_glossary_save'), 'button button-primary glossary-row-button', () => handlers.onSave(index),
+    t('opt_glossary_save_row_label', [index + 1]));
+  const cancel = makeButton(t('opt_glossary_cancel'), 'button button-secondary glossary-row-button', () => handlers.onCancel(index),
+    t('opt_glossary_revert_row_label', [index + 1]));
+  const remove = makeButton(t('opt_glossary_delete'), 'button button-ghost-danger glossary-delete', () => handlers.onDelete(index),
+    t('opt_glossary_delete_row_label', [index + 1]));
   remove.dataset.role = 'delete';
   actions.append(addAliasButton, save, cancel, remove);
   row.append(actions, aliases);

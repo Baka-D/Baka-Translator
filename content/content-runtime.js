@@ -1,6 +1,9 @@
 /** Runtime behavior for the content script. */
 (function registerContentModule(globalScope) {
   'use strict';
+  const { t } = globalScope.DSHT.i18n;
+  // Prepare this before extension reload invalidates even chrome.i18n.getMessage.
+  const extensionUpdatedMessage = t('content_extension_updated');
   const modules = globalScope.DSHT.contentModules ||= {};
   modules['runtime'] = function createModule(app) {
   const { config, languages, MSG, page, overlay } = app;
@@ -132,16 +135,16 @@
         chrome.runtime.sendMessage(message, (response) => {
           const lastError = chrome.runtime.lastError;
           if (lastError) {
-            reject(new Error(lastError.message || '扩展后台没有响应，请刷新页面后重试。'));
+            reject(new Error(lastError.message || t('content_background_no_response')));
             return;
           }
           if (!response) {
-            reject(new Error('扩展后台没有响应，请刷新页面后重试。'));
+            reject(new Error(t('content_background_no_response')));
             return;
           }
           if (response.ok === false) {
             const error = new Error(
-              (response.error && response.error.message) || '翻译请求失败，请重试。'
+              (response.error && response.error.message) || t('content_request_failed')
             );
             error.code = (response.error && response.error.code) || 'REQUEST_FAILED';
             error.retryable = Boolean(response.error && response.error.retryable);
@@ -161,11 +164,11 @@
     return extensionMessage(message).catch((error) => {
       if (/Extension context invalidated/i.test(String(error && error.message))) {
         error.code = 'EXTENSION_RELOADED';
-        error.message = '扩展已更新或重新加载，请刷新页面后重试。';
+        error.message = extensionUpdatedMessage;
       } else if (/message (channel|port) closed|Receiving end does not exist/i.test(String(error && error.message))) {
         error.code = 'WORKER_RESTARTED';
         error.retryable = true;
-        error.message = '扩展后台已重启，请重试。';
+        error.message = t('content_background_restarted');
       }
       throw error;
     });
@@ -188,7 +191,7 @@
       page.abortFatal = true;
       void app.sendRuntime({ type: MSG.STOP_PAGE_REQUESTS }).catch(() => {});
     }
-    throw Object.assign(new Error('页面已切换，请还原后重新翻译。'), { code: 'PAGE_CHANGED' });
+    throw Object.assign(new Error(t('content_route_changed_error')), { code: 'PAGE_CHANGED' });
   }
 
   function notifyBadge(status) {
@@ -214,7 +217,7 @@
         void chrome.runtime.lastError;
       });
     } catch (_error) {
-      overlay.showToast('无法打开扩展设置，请点击工具栏图标。', 'error');
+      overlay.showToast(t('content_open_settings_error'), 'error');
     }
   }
 

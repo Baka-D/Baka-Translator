@@ -1,6 +1,8 @@
 /** Provider model discovery; plain scripts keep keys inside the service worker. */
 (function initApiModels(globalScope) {
   'use strict';
+  const i18n = globalScope.DSHT?.i18n || (typeof require === 'function' ? require('../shared/i18n.js') : null);
+  const { t } = i18n;
   const root = globalScope.DSHT || {};
   const config = root.config || (typeof require === 'function' ? require('../shared/config.js') : null);
   const modelsUtils = root.models || (typeof require === 'function' ? require('../shared/models.js') : null);
@@ -10,7 +12,7 @@
   const MAX_PAGES = 10;
 
   function invalidResponse() {
-    return new ApiError('模型列表格式异常或分页不完整，请稍后重试。', { code: 'INVALID_MODELS_RESPONSE' });
+    return new ApiError(t('bg_invalid_models'), { code: 'INVALID_MODELS_RESPONSE' });
   }
 
   function discoveryRequest(provider, apiKey) {
@@ -69,7 +71,7 @@
     const opts = options || {};
     const provider = opts.provider;
     if (!provider || !provider.endpoint) {
-      throw new ApiError('服务商缺少接口地址，请先保存接口配置。', { code: 'MISSING_ENDPOINT' });
+      throw new ApiError(t('bg_missing_endpoint'), { code: 'MISSING_ENDPOINT' });
     }
     const apiKey = validateApiKey(opts.apiKey, provider);
     const { url, headers, shape } = discoveryRequest(provider, apiKey);
@@ -78,13 +80,13 @@
     const tokens = new Set();
     for (let page = 0; page < MAX_PAGES; page += 1) {
       const remainingMs = deadline - Date.now();
-      if (remainingMs <= 0) throw new ApiError('获取模型超时，请稍后重试。', { code: 'TIMEOUT' });
+      if (remainingMs <= 0) throw new ApiError(t('bg_models_timeout'), { code: 'TIMEOUT' });
       const data = await requestJson(url.toString(), {
         method: 'GET', headers, apiKey, fetchImpl: opts.fetchImpl,
         timeoutMs: remainingMs, providerName: provider.name || provider.id
       }).catch((error) => {
         // Providers may echo even arbitrary gateway keys in their error details; apiKey above masks them in the message.
-        if (error.code === 'BAD_REQUEST') error.message = '获取模型请求被拒绝，请检查 API Key 和接口地址。';
+        if (error.code === 'BAD_REQUEST') error.message = t('bg_models_rejected');
         error.providerMessage = '';
         throw error;
       });

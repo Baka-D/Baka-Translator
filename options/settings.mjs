@@ -1,5 +1,5 @@
 // Settings-page settings.
-import { CONFIRM_RESET_MS, FEEDBACK_CLEAR_MS, KEYS, MSG, TARGETS, languages, state, ui } from './context.mjs';
+import { t, i18n, CONFIRM_RESET_MS, FEEDBACK_CLEAR_MS, KEYS, MSG, TARGETS, languages, state, ui } from './context.mjs';
 import { formatCost, formatTokens, formatUpdatedAt, normalizeUsage, persist, sendMessage, setFeedback } from './utils.mjs';
 
 /* ---------- 使用量统计 ---------- */
@@ -37,17 +37,17 @@ export function resetResetUsageConfirm() {
   }
   if (!ui.resetUsageButton) return;
   ui.resetUsageButton.classList.remove('is-confirming');
-  ui.resetUsageButton.textContent = '清零使用量';
-  ui.resetUsageButton.setAttribute('aria-label', '清零累计 Token 使用量');
+  ui.resetUsageButton.textContent = t('opt_usage_reset');
+  ui.resetUsageButton.setAttribute('aria-label', t('opt_usage_reset_aria'));
 }
 
 export function resetUsageErrorMessage(error) {
   const code = error && typeof error.code === 'string' ? error.code : 'UNKNOWN_ERROR';
-  if (code === 'UNKNOWN_MESSAGE') return '当前版本尚不支持清零，请重新加载扩展后重试。';
-  if (code === 'INVALID_SENDER') return '请在扩展设置页面中执行清零操作。';
-  if (code === 'BACKGROUND_UNAVAILABLE') return '扩展后台暂时不可用，请稍后重试。';
+  if (code === 'UNKNOWN_MESSAGE') return t('opt_usage_reset_unsupported');
+  if (code === 'INVALID_SENDER') return t('opt_usage_reset_options_only');
+  if (code === 'BACKGROUND_UNAVAILABLE') return t('opt_background_unavailable');
   const message = error && typeof error.message === 'string' ? error.message.trim() : '';
-  return message || '清零失败，请重试。';
+  return message || t('opt_usage_reset_failed');
 }
 
 export async function handleResetUsage() {
@@ -57,7 +57,7 @@ export async function handleResetUsage() {
     ui.resetUsageButton.disabled = true;
     ui.resetUsageButton.setAttribute('aria-busy', 'true');
   }
-  setFeedback(ui.usageFeedback, '正在清零…', 'muted');
+  setFeedback(ui.usageFeedback, t('opt_usage_resetting'), 'muted');
   const response = await sendMessage({ type: MSG.RESET_USAGE });
   state.usageBusy = false;
   if (ui.resetUsageButton) {
@@ -81,7 +81,7 @@ export async function handleResetUsage() {
       // 保留当前显示。
     }
   }
-  setFeedback(ui.usageFeedback, '累计使用量已清零。', 'success', FEEDBACK_CLEAR_MS);
+  setFeedback(ui.usageFeedback, t('opt_usage_reset_done'), 'success', FEEDBACK_CLEAR_MS);
 }
 
 export function handleResetUsageClick() {
@@ -92,11 +92,11 @@ export function handleResetUsageClick() {
   }
   state.confirmResetUsage = true;
   if (ui.resetUsageButton) {
-    ui.resetUsageButton.textContent = '确认清零？';
+    ui.resetUsageButton.textContent = t('opt_usage_reset_confirm');
     ui.resetUsageButton.classList.add('is-confirming');
-    ui.resetUsageButton.setAttribute('aria-label', '再次点击以确认清零累计 Token 使用量');
+    ui.resetUsageButton.setAttribute('aria-label', t('opt_usage_reset_confirm_aria'));
   }
-  setFeedback(ui.usageFeedback, '再次点击“确认清零？”会将本机累计的使用量归零，此操作不可恢复。', 'warning');
+  setFeedback(ui.usageFeedback, t('opt_usage_reset_warning'), 'warning');
   state.resetUsageTimer = window.setTimeout(() => {
     resetResetUsageConfirm();
     setFeedback(ui.usageFeedback, '');
@@ -110,7 +110,7 @@ export function populateTargetSelect() {
   for (const language of TARGETS) {
     const option = document.createElement('option');
     option.value = language.code;
-    option.textContent = language.label;
+    option.textContent = i18n.languageLabel(language.code, language.label);
     fragment.appendChild(option);
   }
   ui.defaultTargetSelect.textContent = '';
@@ -130,13 +130,13 @@ export function handleTargetChange() {
       state.targetLang = code;
       setFeedback(
         ui.settingsFeedback,
-        `默认目标语言已保存：${languages.getLanguageLabel(code)}。`,
+        t('opt_default_target_saved', [i18n.languageLabel(code)]),
         'success',
         FEEDBACK_CLEAR_MS
       );
     },
     () => {
-      setFeedback(ui.settingsFeedback, '保存默认目标语言失败，请重试。', 'error');
+      setFeedback(ui.settingsFeedback, t('opt_target_save_failed'), 'error');
     }
   );
 }
@@ -148,13 +148,13 @@ export function handleBilingualChange() {
       state.bilingual = bilingual;
       setFeedback(
         ui.settingsFeedback,
-        bilingual ? '默认双语显示已开启。' : '默认双语显示已关闭。',
+        bilingual ? t('opt_keep_original_on') : t('opt_keep_original_off'),
         'success',
         FEEDBACK_CLEAR_MS
       );
     },
     () => {
-      setFeedback(ui.settingsFeedback, '保存双语设置失败，请重试。', 'error');
+      setFeedback(ui.settingsFeedback, t('opt_keep_original_save_failed'), 'error');
     }
   );
 }

@@ -1,5 +1,5 @@
 // A storage operation must finish before its editor can change to another draft.
-import { MSG, ui } from './context.mjs';
+import { MSG, t, ui } from './context.mjs';
 import { restoreFocus, sendMessage } from './utils.mjs';
 
 let busy = false;
@@ -19,7 +19,7 @@ export async function editGlossary(entry, action, values = {}) {
     ...values
   });
   if (!reply || reply.ok !== true) {
-    throw Object.assign(new Error(reply?.error?.message || '术语库操作失败，请重试。'), {
+    throw Object.assign(new Error(reply?.error?.message || t('opt_glossary_operation_failed')), {
       code: reply?.error?.code
     });
   }

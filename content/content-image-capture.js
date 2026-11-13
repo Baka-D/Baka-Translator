@@ -1,6 +1,7 @@
 /** Screenshot decoding, cropping and paint synchronization. */
 (function registerContentModule(globalScope) {
   'use strict';
+  const { t } = globalScope.DSHT.i18n;
   const modules = globalScope.DSHT.contentModules ||= {};
   modules['image-capture'] = function createModule(app) {
   const { LIMITS } = app;
@@ -10,7 +11,7 @@
       const image = new Image();
       image.decoding = 'async';
       image.onload = () => resolve(image);
-      image.onerror = () => reject(new Error('截图解码失败，请重试。'));
+      image.onerror = () => reject(new Error(t('content_screenshot_decode_error')));
       image.src = dataUrl;
     });
   }
@@ -22,7 +23,7 @@
   function cropImageFromScreenshot(screenshot, candidate) {
     const naturalWidth = screenshot.naturalWidth || screenshot.width;
     const naturalHeight = screenshot.naturalHeight || screenshot.height;
-    if (!naturalWidth || !naturalHeight) throw new Error('截图尺寸异常，请重试。');
+    if (!naturalWidth || !naturalHeight) throw new Error(t('content_screenshot_size_error'));
 
     const scaleX = naturalWidth / Math.max(1, window.innerWidth);
     const scaleY = naturalHeight / Math.max(1, window.innerHeight);
@@ -55,7 +56,7 @@
       canvas.width = attemptWidth;
       canvas.height = attemptHeight;
       const context = canvas.getContext('2d', { alpha: false });
-      if (!context) throw new Error('无法处理页面截图，请重试。');
+      if (!context) throw new Error(t('content_screenshot_process_error'));
       context.fillStyle = '#ffffff';
       context.fillRect(0, 0, attemptWidth, attemptHeight);
       context.imageSmoothingEnabled = true;
@@ -74,7 +75,7 @@
       try {
         dataUrl = canvas.toDataURL('image/jpeg', quality);
       } catch (_error) {
-        throw new Error('无法读取页面图片，浏览器拒绝了截图数据。');
+        throw new Error(t('content_screenshot_read_error'));
       }
       if (dataUrl.length <= LIMITS.IMAGE_MAX_DATA_URL_CHARS - 200000) break;
       attemptWidth = Math.max(1, Math.round(attemptWidth * 0.72));
@@ -82,7 +83,7 @@
       quality = Math.max(0.55, quality - 0.1);
     }
 
-    if (!dataUrl) throw new Error('无法编码页面截图，请重试。');
+    if (!dataUrl) throw new Error(t('content_screenshot_encode_error'));
     return dataUrl;
   }
 

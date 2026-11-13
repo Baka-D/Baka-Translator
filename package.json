@@ -4,6 +4,8 @@
   "private": true,
   "description": "Baka Translator: Chromium extension for Google Chrome, Brave and Microsoft Edge, with translation, proofreading and image OCR.",
   "scripts": {
+    "localize": "python scripts/localize.py",
+    "localize:check": "python scripts/localize.py --check",
     "test": "node --test \"tests/unit/*.test.js\"",
     "package": "python scripts/package.py"
   },

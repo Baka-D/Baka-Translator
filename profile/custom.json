@@ -1,6 +1,6 @@
 {
   "id": "custom",
-  "name": "自定义 OpenAI 兼容接口",
+  "nameMessage": "provider_custom_name",
   "endpoint": "",
   "completionsPath": "/chat/completions",
   "modelsPath": "/models",
@@ -8,13 +8,13 @@
   "requestShape": "openai",
   "requiresEndpoint": true,
   "apiKeyRequired": false,
-  "apiKeyLabel": "自定义接口 API Key",
-  "apiKeyPlaceholder": "可选，按服务要求填写",
+  "apiKeyLabelMessage": "provider_custom_key_label",
+  "apiKeyPlaceholderMessage": "provider_custom_key_placeholder",
   "docsUrl": "",
   "models": [
     {
       "id": "custom-model",
-      "name": "自定义模型",
+      "nameMessage": "model_custom_name",
       "model": "",
       "endpoint": "",
       "contextWindow": 128000,

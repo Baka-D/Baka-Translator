@@ -12,9 +12,9 @@
       <img class="brand-icon" src="../assets/icons/icon48.png" alt="" width="24" height="24">
       <div class="brand-copy">
         <h1 class="brand-title">Baka Translator</h1>
-        <p class="brand-sub">整页 · 选词 · 图片 · 润色</p>
+        <p class="brand-sub" data-i18n="html_popup_subtitle"></p>
       </div>
-      <button id="openOptionsTop" class="icon-button" type="button" aria-label="打开扩展设置" title="设置">
+      <button id="openOptionsTop" class="icon-button" type="button" data-i18n-aria-label="html_open_extension_settings" data-i18n-title="html_settings">
         <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
           <path d="M2.5 4.5h6.1M11.4 4.5h2.1M2.5 11.5h2.1M7.4 11.5h6.1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none"></path>
           <circle cx="10.1" cy="4.5" r="1.6" stroke="currentColor" stroke-width="1.4" fill="none"></circle>
@@ -23,98 +23,100 @@
       </button>
     </header>
 
-    <section class="status-card" aria-label="当前页面状态">
+    <section class="status-card" data-i18n-aria-label="html_current_page_status">
       <div class="status-line">
         <span id="statusDot" class="status-dot" data-tone="idle" aria-hidden="true"></span>
-        <p id="statusText" class="status-text" role="status" aria-live="polite" aria-atomic="true">正在读取页面状态…</p>
+        <p id="statusText" class="status-text" role="status" aria-live="polite" aria-atomic="true" data-i18n="html_loading_page_status"></p>
         <span id="statusCount" class="status-count" aria-hidden="true"></span>
       </div>
       <p class="status-meta">
-        <span>检测语言 <strong id="sourceLabel" class="meta-strong">—</strong></span>
+        <span><span data-i18n="html_detected_language"></span> <strong id="sourceLabel" class="meta-strong">—</strong></span>
         <span class="meta-sep" aria-hidden="true">·</span>
-        <span>目标 <strong id="targetLabel" class="meta-strong">中文</strong></span>
-        <span id="costItem" class="cost-item" hidden><span class="meta-sep" aria-hidden="true">·</span> 本页 <strong id="costLabel" class="meta-strong">—</strong></span>
+        <span><span data-i18n="html_target_short"></span> <strong id="targetLabel" class="meta-strong" data-i18n="html_chinese_language"></strong></span>
+        <span id="costItem" class="cost-item" hidden><span class="meta-sep" aria-hidden="true">·</span> <span data-i18n="html_this_page"></span> <strong id="costLabel" class="meta-strong">—</strong></span>
       </p>
-      <div id="progressTrack" class="progress-track" role="progressbar" aria-label="翻译进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-hidden="true">
+      <div id="progressTrack" class="progress-track" role="progressbar" data-i18n-aria-label="html_translation_progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-hidden="true">
         <div id="progressFill" class="progress-fill"></div>
       </div>
     </section>
 
     <div id="keyNotice" class="notice notice-warning" role="status" aria-live="polite" hidden>
-      <p id="keyNoticeText" class="notice-text">尚未填写所选模型的 API Key，请在设置中填写，或改用已配置 Key 的模型。</p>
-      <button id="keyNoticeAction" class="notice-action" type="button">打开设置</button>
+      <p id="keyNoticeText" class="notice-text" data-i18n="html_popup_missing_key"></p>
+      <button id="keyNoticeAction" class="notice-action" type="button" data-i18n="html_open_settings"></button>
     </div>
 
     <div id="pageNotice" class="notice notice-info" role="status" aria-live="polite" hidden>
       <p id="pageNoticeText" class="notice-text"></p>
     </div>
 
-    <section class="settings" aria-label="翻译设置">
+    <section class="settings" data-i18n-aria-label="html_translation_settings">
       <div class="settings-row">
         <div class="field field-target">
-          <label class="field-label" for="targetSelect">目标语言</label>
+          <label class="field-label" for="targetSelect" data-i18n="html_target_language"></label>
           <span class="select-wrap">
-            <select id="targetSelect" class="select" aria-label="目标语言"></select>
+            <select id="targetSelect" class="select" data-i18n-aria-label="html_target_language"></select>
           </span>
         </div>
         <div class="field field-bilingual">
-          <label class="field-label" id="bilingualLabel" for="bilingualToggle">保留原文</label>
+          <label class="field-label" id="bilingualLabel" for="bilingualToggle" data-i18n="html_keep_original"></label>
           <label class="switch">
             <input id="bilingualToggle" type="checkbox" role="switch" aria-labelledby="bilingualLabel" aria-describedby="bilingualHint">
             <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
           </label>
         </div>
       </div>
-      <p id="bilingualHint" class="hint">双语显示：译文下方保留原文，便于对照。</p>
+      <p id="bilingualHint" class="hint" data-i18n="html_popup_bilingual_hint"></p>
 
       <div class="settings-row settings-row-switches">
         <div class="field field-switch">
-          <label class="field-label" id="polishLabel" for="polishToggle">本站润色</label>
+          <label class="field-label" id="polishLabel" for="polishToggle" data-i18n="html_polish_this_site"></label>
           <label class="switch">
             <input id="polishToggle" type="checkbox" role="switch" aria-labelledby="polishLabel" aria-describedby="polishHint">
             <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
           </label>
         </div>
         <div class="field field-switch">
-          <label class="field-label" id="pretranslateLabel" for="pretranslateToggle">预翻译下一章</label>
+          <label class="field-label" id="pretranslateLabel" for="pretranslateToggle" data-i18n="html_pretranslate_next"></label>
           <label class="switch">
             <input id="pretranslateToggle" type="checkbox" role="switch" aria-labelledby="pretranslateLabel" aria-describedby="polishHint">
             <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
           </label>
         </div>
       </div>
-      <p id="polishHint" class="hint">润色与预翻译仅对当前站点生效。</p>
+      <p id="polishHint" class="hint" data-i18n="html_site_features_hint"></p>
 
       <div class="compact-field">
-        <label class="field-label" for="sitePresetSelect">本站预设</label>
+        <label class="field-label" for="sitePresetSelect" data-i18n="html_site_preset"></label>
         <span class="select-wrap compact-select">
-          <select id="sitePresetSelect" class="select" aria-label="本站提示词预设"></select>
+          <select id="sitePresetSelect" class="select" data-i18n-aria-label="html_site_preset_label"></select>
         </span>
       </div>
     </section>
 
-    <section class="actions" aria-label="页面操作">
-      <button id="mainButton" class="button button-primary" type="button">翻译此页面</button>
-      <button id="restoreButton" class="button button-secondary" type="button" hidden>还原原始页面</button>
+    <section class="actions" data-i18n-aria-label="html_page_actions">
+      <button id="mainButton" class="button button-primary" type="button" data-i18n="html_translate_page"></button>
+      <button id="restoreButton" class="button button-secondary" type="button" hidden data-i18n="html_restore_page"></button>
       <div class="action-row">
-        <button id="selectionButton" class="button button-secondary" type="button">翻译选中文本</button>
-        <button id="imagesButton" class="button button-secondary" type="button">翻译画面图片<span class="tag">实验性</span></button>
+        <button id="selectionButton" class="button button-secondary" type="button" data-i18n="html_translate_selection"></button>
+        <button id="imagesButton" class="button button-secondary" type="button"><span data-i18n="html_translate_images"></span><span class="tag" data-i18n="html_experimental"></span></button>
       </div>
     </section>
 
     <footer class="footer">
-      <p class="privacy">页面文字仅发送至所选模型服务；API Key 只保存在本机。</p>
+      <p class="privacy" data-i18n="html_popup_privacy"></p>
       <div class="footer-meta">
-        <span id="usageSummary" class="usage-summary" title="累计 Token 使用量（按服务商返回的 usage 统计，仅供参考）">
-          <span class="usage-label">累计</span>
+        <span id="usageSummary" class="usage-summary" data-i18n-title="html_usage_tooltip">
+          <span class="usage-label" data-i18n="html_total_short"></span>
           <strong id="usageTokens" class="usage-value">—</strong>
-          <span class="usage-unit">tokens</span>
+          <span class="usage-unit" data-i18n="html_token_unit"></span>
         </span>
-        <button id="openOptionsFooter" class="link-button" type="button">设置</button>
+        <button id="openOptionsFooter" class="link-button" type="button" data-i18n="html_settings"></button>
       </div>
     </footer>
   </div>
 
+  <script src="../shared/i18n.js"></script>
+  <script src="../shared/localize-page.js"></script>
   <script src="../shared/config.js"></script>
   <script src="../shared/languages.js"></script>
   <script src="../shared/usage.js"></script>

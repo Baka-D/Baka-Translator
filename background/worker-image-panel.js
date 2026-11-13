@@ -5,7 +5,7 @@ const imagePanelIdPattern = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f
 const imagePanelConfig = globalThis.DSHT.config;
 
 function imagePanelInvalid() {
-  return Object.assign(new Error('图片结果窗口已失效，请重试。'), { code: 'INVALID_IMAGE_PANEL' });
+  return Object.assign(new Error(t('bg_image_panel_expired')), { code: 'INVALID_IMAGE_PANEL' });
 }
 
 function imagePanelOwner(sender) {
