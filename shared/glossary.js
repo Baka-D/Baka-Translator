@@ -231,9 +231,9 @@
    * the first of the group, holding the others as aliases.
    */
   function applyGlossaryTidy(stored, changes) {
-    const entry = (term) => [
-      termKey(term.source), term.target, term.category, term.gender || '', (term.aliases || []).length
-    ].join('\u0000');
+    // Compare the complete normalized entry, ignoring only the model's batch id.
+    // Notes and same-length alias edits can change whether a merge or drop is valid.
+    const entry = (term) => JSON.stringify(normalizeTerm(term));
     const terms = mergeGlossary(stored, []);
     const byEntry = new Map(terms.map((term) => [entry(term), term]));
     const gone = new Set();
