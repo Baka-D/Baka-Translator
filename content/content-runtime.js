@@ -181,6 +181,16 @@
     }
   }
 
+  /** A page run only covers the route on which the reader started it. */
+  function assertPageRoute() {
+    if (!page.translatedRoute || app.currentRoute() === page.translatedRoute) return;
+    if (!page.abortFatal) {
+      page.abortFatal = true;
+      void app.sendRuntime({ type: MSG.STOP_PAGE_REQUESTS }).catch(() => {});
+    }
+    throw Object.assign(new Error('页面已切换，请还原后重新翻译。'), { code: 'PAGE_CHANGED' });
+  }
+
   function notifyBadge(status) {
     try {
       chrome.runtime.sendMessage(
@@ -219,6 +229,7 @@
     saveTargetLanguage,
     extensionMessage,
     sendRuntime,
+    assertPageRoute,
     sendHeartbeat,
     notifyBadge,
     openOptionsPage

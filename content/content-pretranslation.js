@@ -14,11 +14,12 @@
       app.renderPagePanel();
     }
 
-    function getPretranslation(chapter, targetCode) {
+    function getPretranslation(chapter, targetCode, translationKey = page.translationKey) {
       return app.sendRuntime({
         type: MSG.GET_PRETRANSLATION,
         chapterUrl: chapter.canonicalUrl,
-        targetCode
+        targetCode,
+        translationKey
       });
     }
 
@@ -36,16 +37,20 @@
         note: '正在读取下一章…'
       }, 'next', nextUrl);
       try {
+        app.assertPageRoute();
         let snapshot = await getPretranslation(chapter, job.targetCode);
         if (job.runId !== page.runId) return;
+        app.assertPageRoute();
         const saved = await app.readNovelCache(chapter, job.targetCode);
         if (job.runId !== page.runId) return;
+        app.assertPageRoute();
         const cached = saved && novelUtils.cacheMatchesSettings(saved, page.translationKey);
         if (snapshot.status !== 'running' && cached) {
           snapshot = { status: 'ready', note: '下一章已有预翻译缓存。' };
         } else if (snapshot.status !== 'running') {
           const doc = await app.fetchChapterDocument(nextUrl);
           if (job.runId !== page.runId) return;
+          app.assertPageRoute();
           if (!doc) throw new Error('无法读取下一页内容。');
           const roots = app.collectNovelRoots(doc, chapter);
           const collected = app.collectTargets(roots, { bilingual: false, allowDisconnected: true });
@@ -57,6 +62,7 @@
           }
           await app.ensureChapterContext(job.runId);
           if (job.runId !== page.runId) return;
+          app.assertPageRoute();
           const context = page.requestContext
             ? { ...page.requestContext, previousChapter: app.chapterTail(job.plan) }
             : undefined;
@@ -78,10 +84,12 @@
           });
         }
         while (job.runId === page.runId) {
+          app.assertPageRoute();
           showPretranslation(snapshot, 'next', nextUrl);
           if (snapshot.status !== 'running') break;
           await app.delay(1000);
           if (job.runId !== page.runId) return;
+          app.assertPageRoute();
           snapshot = await getPretranslation(chapter, job.targetCode);
         }
         if (job.runId !== page.runId) return;
@@ -117,11 +125,14 @@
       const chapter = page.novel;
       let candidate = job.cacheRecord;
       while (job.runId === page.runId) {
+        app.assertPageRoute();
         const snapshot = await getPretranslation(chapter, job.targetCode);
         if (job.runId !== page.runId) return null;
+        app.assertPageRoute();
         const record = await matchingCache(chapter, job.targetCode, job.plan, candidate);
         candidate = null;
         if (job.runId !== page.runId) return null;
+        app.assertPageRoute();
         if (record) return { record, snapshot, chapter };
         if (snapshot.status !== 'running') return null;
         page.phase = 'pretranslating';
@@ -134,21 +145,26 @@
     async function applyCachedChapter(job, cached) {
       let { record, snapshot } = cached;
       const { chapter } = cached;
+      app.assertPageRoute();
       const mapped = novelUtils.mapCachedTranslations(job.plan.segments, record.entries);
       app.applyTranslationsForBatch(job.plan.segments, mapped.translations, job.plan, { updateProgress: true });
       page.cachedPretranslation = true;
       // Make the complete first draft readable while the same background job polishes it.
       if (page.bilingual) app.applyBilingualCaptions(job.plan.anchors);
       while (snapshot.status === 'running' && job.runId === page.runId) {
+        app.assertPageRoute();
         page.phase = 'pretranslating';
         showPretranslation(snapshot, 'current', chapter.canonicalUrl);
         await app.delay(500);
         if (job.runId !== page.runId) return;
+        app.assertPageRoute();
         snapshot = await getPretranslation(chapter, job.targetCode);
       }
       if (job.runId !== page.runId) return;
+      app.assertPageRoute();
       const finalRecord = await matchingCache(chapter, job.targetCode, job.plan);
       if (job.runId !== page.runId) return;
+      app.assertPageRoute();
       if (finalRecord) {
         record = finalRecord;
         const final = novelUtils.mapCachedTranslations(job.plan.segments, record.entries);
@@ -169,7 +185,8 @@
       const chapterUrl = page.pretranslationChapterUrl;
       if (!chapterUrl || page.pretranslationStatus !== 'running') return;
       void app.sendRuntime({
-        type: MSG.CANCEL_PRETRANSLATION, chapterUrl, targetCode: page.targetCode
+        type: MSG.CANCEL_PRETRANSLATION, chapterUrl, targetCode: page.targetCode,
+        translationKey: page.translationKey
       }).catch(() => {});
     }
 

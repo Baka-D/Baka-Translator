@@ -398,9 +398,12 @@ async function saveChapterCache(message, sender) {
 async function getPretranslation(message, sender) {
   const request = pretranslationRequest(message, sender);
   const job = pretranslationJobs.get(request.key);
-  if (job) return pretranslationSnapshot(job);
+  const translationKey = typeof message.translationKey === 'string' ? message.translationKey : null;
+  if (job && (translationKey === null || job.translationKey === translationKey)) return pretranslationSnapshot(job);
   const cached = await readPretranslationCache(request);
-  if (!cached) return pretranslationSnapshot(null);
+  if (!cached || (translationKey !== null && !pretranslationNovel.cacheMatchesSettings(cached, translationKey))) {
+    return pretranslationSnapshot(null);
+  }
   return {
     status: 'ready',
     progress: { stage: 'saving', done: cached.entries.length, total: cached.entries.length },
@@ -411,6 +414,10 @@ async function getPretranslation(message, sender) {
 async function cancelPretranslation(message, sender) {
   const request = pretranslationRequest(message, sender);
   const job = pretranslationJobs.get(request.key);
+  // A previous tab/run can restore after another settings snapshot replaced its job.
+  if (job && typeof message.translationKey === 'string' && job.translationKey !== message.translationKey) {
+    return pretranslationSnapshot(null);
+  }
   stopPretranslation(job);
   return pretranslationSnapshot(job);
 }

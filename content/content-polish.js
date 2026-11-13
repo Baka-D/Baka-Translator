@@ -52,6 +52,7 @@
 
     await app.ensureChapterContext(runId);
     if (runId !== page.runId) return;
+    app.assertPageRoute();
     const chunks = textUtils.chunkPolishPairs(segments, {
       maxChars: LIMITS.POLISH_CHUNK_CHARS || 16000
     });
@@ -92,6 +93,7 @@
     const worker = async () => {
       while (true) {
         if (runId !== page.runId) return;
+        app.assertPageRoute();
         const index = cursor;
         cursor += 1;
         if (index >= chunks.length) return;
@@ -111,6 +113,7 @@
           });
           if (runId !== page.runId) return;
           app.addPageCost(response.billing);
+          app.assertPageRoute();
           // Apply each finished chunk immediately so a slow model does not
           // leave the whole page unchanged until the very end.
           applyPolishResults(response.translations, plan);
@@ -120,6 +123,7 @@
           }
         } catch (error) {
           if (runId !== page.runId) return;
+          if (error.code === 'PAGE_CHANGED') throw error;
           failures.push((error && error.message) || '润色失败，已保留初译。');
           page.polishProgress.failed += 1;
         }

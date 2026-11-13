@@ -53,11 +53,12 @@
     return true;
   }
 
-  async function readNovelCache(chapter, targetCode) {
+  async function readNovelCache(chapter, targetCode, isCurrent = () => true) {
     if (!novelUtils || !chapter || !chapter.isChapter) return null;
     const key = novelUtils.cacheKeyForChapter(chapter);
     if (!key) return null;
     const values = await app.storageGet(key);
+    if (!isCurrent()) return null;
     const record = novelUtils.normalizeCacheRecord(values[key]);
     if (!record) return null;
     const expected = languages.normalizeTarget(targetCode);
@@ -258,19 +259,24 @@
     if (page.autoApplyAttempted || !novelUtils) return;
     page.autoApplyAttempted = true;
     if (page.status !== 'idle') return;
+    const runId = page.runId;
+    const route = app.currentRoute();
+    const isCurrent = () => page.runId === runId && page.status === 'idle' && app.currentRoute() === route;
     const chapter = currentNovelChapter();
     if (!chapter || !chapter.isChapter) return;
     try {
       const settings = await app.readSettings();
+      if (!isCurrent()) return;
       if (!app.siteFeatures(settings).pretranslate) return;
       const root = await waitForNovelRoot(chapter, 4000);
-      if (!root || page.status !== 'idle') return;
+      if (!root || !isCurrent()) return;
       const targetCode = languages.normalizeTarget(settings.targetLang);
-      const saved = await readNovelCache(chapter, targetCode);
+      const saved = await readNovelCache(chapter, targetCode, isCurrent);
+      if (!isCurrent()) return;
       const key = app.translationKey(settings, targetCode);
       const record = saved && novelUtils.cacheMatchesSettings(saved, key) ? saved : null;
-      const pending = await app.getPretranslation(chapter, targetCode);
-      if (page.status !== 'idle' || (!record && pending.status !== 'running')) return;
+      const pending = await app.getPretranslation(chapter, targetCode, key);
+      if (!isCurrent() || (!record && pending.status !== 'running')) return;
 
       if (record) {
         const roots = collectNovelRoots(document, chapter);
@@ -280,16 +286,17 @@
         const plan = app.buildPagePlan(collected.targets, Boolean(settings.bilingual));
         if (!novelUtils.mapCachedTranslations(plan.segments, record.entries).complete) {
           await app.storageRemove(novelUtils.cacheKeyForChapter(chapter));
-          if (pending.status !== 'running') return;
+          if (!isCurrent() || pending.status !== 'running') return;
         }
       }
 
-      await app.startPageTranslation({
+      const started = await app.startPageTranslation({
         targetCode,
         bilingual: Boolean(settings.bilingual),
         autoCacheRecord: record,
         autoApplied: true
       });
+      if (!started?.started || app.currentRoute() !== route) return;
       overlay.showToast(record ? '已应用本章预翻译缓存。' : '正在接续本章预翻译…', record ? 'success' : 'info');
     } catch (_error) {
       // Auto-apply is best-effort; manual translation remains available.

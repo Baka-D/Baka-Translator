@@ -121,6 +121,7 @@
     const worker = async () => {
       while (true) {
         if (runId !== page.runId || page.abortFatal) return;
+        app.assertPageRoute();
         const index = cursor;
         cursor += 1;
         if (index >= batches.length) return;
@@ -141,6 +142,7 @@
           if (runId !== page.runId) return;
           app.addPageCost(response.billing);
           addDiscardedCost(response);
+          app.assertPageRoute();
           const list = Array.isArray(response.translations) ? response.translations : [];
           const answered = new Set(list
             .filter((item) => item && typeof item.text === 'string' && item.text.trim())
@@ -151,6 +153,7 @@
           applyTranslationsForBatch(settled, response.translations, plan, { updateProgress: true });
         } catch (error) {
           if (runId !== page.runId) return;
+          if (error.code === 'PAGE_CHANGED') throw error;
           addDiscardedCost(error);
           const fatal = FATAL_ERROR_CODES.has(String(error.code || ''));
           const truncated = error.code === 'OUTPUT_TRUNCATED' && batch.length > 1;
@@ -178,6 +181,7 @@
     const { plan, targetCode, sourceHint, runId } = job;
     const cached = await app.resolveChapterPretranslation(job);
     if (runId !== page.runId) return;
+    app.assertPageRoute();
     let saveCache = !cached;
     if (cached) {
       const cachedResult = await app.applyCachedChapter(job, cached);
@@ -200,6 +204,7 @@
       app.renderPagePanel();
       await app.ensureChapterContext(runId);
       if (runId !== page.runId) return;
+      app.assertPageRoute();
       const recalled = textUtils.recallTranslations(plan.segments, page.translationMemory);
       if (recalled.known.length > 0) {
         applyTranslationsForBatch(recalled.known, recalled.translations, plan, { updateProgress: true });
@@ -297,6 +302,7 @@
     try {
       const settings = await app.readSettings();
       if (runId !== page.runId) return { started: false, reason: 'cancelled' };
+      app.assertPageRoute();
       const features = app.siteFeatures(settings);
       page.proofreadEnabled = features.polish;
       page.pretranslateEnabled = features.pretranslate;
@@ -314,6 +320,7 @@
       if (page.novelMode) {
         const novelContext = await app.loadNovelContext(novelChapter, targetCode);
         if (runId !== page.runId) return { started: false, reason: 'cancelled' };
+        app.assertPageRoute();
         page.novelMeta = novelContext.meta;
         page.glossary = novelContext.glossary || [];
         page.novelMeta = novelUtils.addChapterToMeta(page.novelMeta, novelChapter);
