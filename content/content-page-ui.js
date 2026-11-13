@@ -254,10 +254,13 @@
       return;
     }
     if (action === 'retry' || action === 'retranslate') {
+      // Only novel chapters need force to skip their chapter cache; a page retry reuses
+      // the tab memory so it resends just the segments that failed.
+      const force = action === 'retranslate' || page.novelMode;
       // A run that failed before resolving its target falls back to the saved settings.
       const request = page.targetCode
-        ? { targetCode: page.targetCode, bilingual: page.bilingual, force: true }
-        : { force: true };
+        ? { targetCode: page.targetCode, bilingual: page.bilingual, force }
+        : { force };
       app.startPageTranslation(request).catch((error) => {
         overlay.showToast(error.message || t('content_retry_failed'), 'error');
       });
