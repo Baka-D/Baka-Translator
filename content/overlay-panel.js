@@ -64,6 +64,8 @@
       panel.classList.remove('dsht-hidden');
       panel.dataset.status = model.status || 'running';
       panelTitle.textContent = model.title || t('content_translation_loading');
+      // Running subtitles tick every second; announce only the final status.
+      panelSubtitle.setAttribute('aria-live', model.status === 'running' ? 'off' : 'polite');
       panelSubtitle.textContent = model.subtitle || '';
 
       const showProgress = Boolean(model.showProgress);
