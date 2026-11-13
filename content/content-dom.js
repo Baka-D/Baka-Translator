@@ -334,6 +334,8 @@
   function collectTargets(rootOrRoots, options) {
     const opts = options || {};
     const ctx = newFilterContext();
+    // The anchor depends only on the parent chain, which is fixed during one collection.
+    const anchorByParent = new Map();
     const targets = [];
     let chars = 0;
     let truncated = false;
@@ -431,7 +433,11 @@
         anchorRecord: null,
         applied: false
       };
-      if (opts.bilingual) target.anchor = app.findCaptionAnchor(target.node);
+      if (opts.bilingual) {
+        const parent = target.node.parentElement;
+        if (!anchorByParent.has(parent)) anchorByParent.set(parent, app.findCaptionAnchor(target.node));
+        target.anchor = anchorByParent.get(parent);
+      }
       targets.push(target);
       chars += target.core.length;
       for (const node of target.nodes) consumed.add(node);
