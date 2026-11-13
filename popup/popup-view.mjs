@@ -226,8 +226,10 @@ function renderMainButton() {
 }
 
 function renderControls() {
-  ui.targetSelect.disabled = state.busy;
-  ui.bilingualToggle.disabled = state.busy;
+  // Initial config and page state both set these values before edits are safe.
+  const locked = state.busy || state.loading || state.initialFetch;
+  ui.targetSelect.disabled = locked;
+  ui.bilingualToggle.disabled = locked;
 }
 
 function render() {
