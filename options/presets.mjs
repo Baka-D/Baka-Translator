@@ -14,7 +14,7 @@ function rememberPrompts() {
   loadedPrompts = { translation: ui.translationPromptInput.value, polish: ui.polishPromptInput.value };
 }
 
-function promptsEdited() {
+export function promptsEdited() {
   return Boolean(loadedPrompts && ui.translationPromptInput) &&
     (ui.translationPromptInput.value !== loadedPrompts.translation ||
       ui.polishPromptInput.value !== loadedPrompts.polish);

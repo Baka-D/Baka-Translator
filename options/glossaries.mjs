@@ -7,6 +7,7 @@ import { readTermRow, renderTermRow, termRowKey } from './glossary-row.mjs';
 import { renderTidyUndo, wireGlossaryTidy } from './glossary-tidy.mjs';
 import { beginGlossaryOperation, editGlossary, glossaryBusy } from './glossary-operation.mjs';
 import { makeButton, setFeedback } from './utils.mjs';
+import { promptsEdited } from './presets.mjs';
 
 const GLOSSARY_MIN_PAGE_SIZE = 30;
 const CLEAR_CONFIRM_MS = 5000;
@@ -380,7 +381,9 @@ export function wireGlossaryEvents() {
   wireGlossaryTidy(activeGlossary, reloadGlossaryEditor);
   wireTitleField();
   window.addEventListener('beforeunload', (event) => {
-    if (hasUnsavedGlossaryEdits()) event.preventDefault();
+    if (!hasUnsavedGlossaryEdits() && !promptsEdited()) return;
+    event.preventDefault();
+    event.returnValue = true; // Chromium before 119 ignores preventDefault alone.
   });
   ui.glossaryList.addEventListener('click', (event) => {
     if (glossaryBusy()) return;
