@@ -247,9 +247,9 @@ async function polishPretranslation(job) {
   job.progress = { stage: 'polishing', done: 0, total: pairs.length };
   job.note = t('bg_next_chapter_polishing');
   // Keep the outer chunk loop so the pretranslation panel advances its
-  // progress between chunks. handlePolishSegments parallelizes the inner
-  // chunks of each slice.
-  for (const chunk of chunkPolishSegments(pairs, 24000)) {
+  // progress between chunks. Each slice fills the polish pool, which
+  // handlePolishSegments runs as parallel inner chunks.
+  for (const chunk of chunkPolishSegments(pairs, LIMITS.POLISH_CHUNK_CHARS * LIMITS.POLISH_MAX_CONCURRENCY)) {
     if (!pretranslationActive(job)) return;
     const context = textUtils.contextBefore(
       job.context, pairs, chunk[0], textUtils.pairText, LIMITS.CONTEXT_PRECEDING_CHARS
