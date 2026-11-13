@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Baka Translator",
   "short_name": "BakaTslt",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "description": "Baka Translator：一个网页翻译与润色扩展，支持整页、划词、图片翻译。",
   "minimum_chrome_version": "116",
   "permissions": [

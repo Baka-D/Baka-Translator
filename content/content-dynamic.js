@@ -258,17 +258,16 @@
     page.dynamicBusy = true;
     const runId = page.runId;
     try {
-      const uniqueTargets = [];
-      const seenNodes = new Set();
-      for (const root of roots) {
-        if (!root || !root.isConnected) continue;
-        const collected = app.collectTargets(root, { bilingual: page.bilingual });
-        for (const target of collected.targets) {
-          if (seenNodes.has(target.node)) continue;
-          seenNodes.add(target.node);
-          uniqueTargets.push(target);
+      const queued = new Set(roots.filter((root) => root && root.isConnected));
+      // A parent scan covers its light-DOM descendants. Shadow roots and frame
+      // documents keep their own scans because text walkers never enter them.
+      const uncovered = Array.from(queued).filter((root) => {
+        for (let parent = root.parentNode; parent; parent = parent.parentNode) {
+          if (queued.has(parent)) return false;
         }
-      }
+        return true;
+      });
+      const { targets: uniqueTargets } = app.collectTargets(uncovered, { bilingual: page.bilingual });
       if (uniqueTargets.length === 0) return;
 
       const remainingNodes = LIMITS.DYNAMIC_MAX_NODES - page.dynamicNodeCount;
