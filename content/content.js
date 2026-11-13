@@ -137,7 +137,7 @@
   });
 
   app.overlay = overlay;
-  const moduleNames = ['runtime', 'ruby', 'dom', 'captions', 'page-ui', 'page', 'polish', 'novel', 'pretranslation', 'dynamic', 'selection', 'images'];
+  const moduleNames = ['runtime', 'ruby', 'dom', 'captions', 'page-ui', 'page', 'polish', 'novel', 'pretranslation', 'dynamic', 'selection', 'image-capture', 'images'];
   for (const name of moduleNames) Object.assign(app, globalThis.DSHT.contentModules[name](app));
   globalThis.__DSHT_CONTENT_LOADED__ = true;
 

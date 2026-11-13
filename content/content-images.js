@@ -4,9 +4,17 @@
   const modules = globalScope.DSHT.contentModules ||= {};
   modules['images'] = function createModule(app) {
   const { languages, MSG, LIMITS, page, imageJob, overlay } = app;
+  const { loadScreenshotImage, clamp, cropImageFromScreenshot, nextPaint } = app;
   const UNSUPPORTED_NOTICE = '当前模型不支持图像识别，已停用图片翻译。请切换到支持图像识别的模型。';
   imageJob.unsupported = false;
   let capabilityRevision = 0;
+  let captureRunId = null;
+
+  function finishCapture(runId) {
+    if (captureRunId !== runId) return;
+    captureRunId = null;
+    overlay.setCaptureMode(false);
+  }
 
   async function imageTranslationEnabled() {
     const snapshot = await app.sendRuntime({ type: MSG.GET_CONFIG });
@@ -15,6 +23,7 @@
 
   function showImageUnsupported() {
     const notify = !imageJob.unsupported;
+    finishCapture(imageJob.runId);
     imageJob.runId += 1;
     Object.assign(imageJob, { unsupported: true, open: true, running: false,
       items: [], error: UNSUPPORTED_NOTICE, subtitle: '' });
@@ -179,6 +188,7 @@
   }
 
   function closeImagePanel() {
+    finishCapture(imageJob.runId);
     imageJob.runId += 1;
     imageJob.open = false;
     imageJob.running = false;
@@ -188,104 +198,17 @@
     overlay.renderImagePanel({ visible: false });
   }
 
-  function loadScreenshotImage(dataUrl) {
-    return new Promise((resolve, reject) => {
-      const image = new Image();
-      image.decoding = 'async';
-      image.onload = () => resolve(image);
-      image.onerror = () => reject(new Error('截图解码失败，请重试。'));
-      image.src = dataUrl;
-    });
-  }
-
-  function clamp(value, min, max) {
-    return Math.max(min, Math.min(max, value));
-  }
-
-  function cropImageFromScreenshot(screenshot, candidate) {
-    const naturalWidth = screenshot.naturalWidth || screenshot.width;
-    const naturalHeight = screenshot.naturalHeight || screenshot.height;
-    if (!naturalWidth || !naturalHeight) throw new Error('截图尺寸异常，请重试。');
-
-    const scaleX = naturalWidth / Math.max(1, window.innerWidth);
-    const scaleY = naturalHeight / Math.max(1, window.innerHeight);
-    const padding = 6;
-    const left = clamp(candidate.rect.left - padding, 0, window.innerWidth);
-    const top = clamp(candidate.rect.top - padding, 0, window.innerHeight);
-    const right = clamp(candidate.rect.right + padding, 0, window.innerWidth);
-    const bottom = clamp(candidate.rect.bottom + padding, 0, window.innerHeight);
-    const sourceX = Math.floor(left * scaleX);
-    const sourceY = Math.floor(top * scaleY);
-    const sourceWidth = Math.max(1, Math.ceil((right - left) * scaleX));
-    const sourceHeight = Math.max(1, Math.ceil((bottom - top) * scaleY));
-
-    let targetWidth = sourceWidth;
-    let targetHeight = sourceHeight;
-    const maxDimension = LIMITS.IMAGE_MAX_DIMENSION;
-    if (targetWidth > maxDimension || targetHeight > maxDimension) {
-      const factor = maxDimension / Math.max(targetWidth, targetHeight);
-      targetWidth = Math.max(1, Math.round(targetWidth * factor));
-      targetHeight = Math.max(1, Math.round(targetHeight * factor));
-    }
-
-    let attemptWidth = targetWidth;
-    let attemptHeight = targetHeight;
-    let quality = LIMITS.IMAGE_JPEG_QUALITY;
-    let dataUrl = '';
-
-    for (let attempt = 0; attempt < 3; attempt += 1) {
-      const canvas = document.createElement('canvas');
-      canvas.width = attemptWidth;
-      canvas.height = attemptHeight;
-      const context = canvas.getContext('2d', { alpha: false });
-      if (!context) throw new Error('无法处理页面截图，请重试。');
-      context.fillStyle = '#ffffff';
-      context.fillRect(0, 0, attemptWidth, attemptHeight);
-      context.imageSmoothingEnabled = true;
-      context.imageSmoothingQuality = 'high';
-      context.drawImage(
-        screenshot,
-        sourceX,
-        sourceY,
-        sourceWidth,
-        sourceHeight,
-        0,
-        0,
-        attemptWidth,
-        attemptHeight
-      );
-      try {
-        dataUrl = canvas.toDataURL('image/jpeg', quality);
-      } catch (_error) {
-        throw new Error('无法读取页面图片，浏览器拒绝了截图数据。');
-      }
-      if (dataUrl.length <= LIMITS.IMAGE_MAX_DATA_URL_CHARS - 200000) break;
-      attemptWidth = Math.max(1, Math.round(attemptWidth * 0.72));
-      attemptHeight = Math.max(1, Math.round(attemptHeight * 0.72));
-      quality = Math.max(0.55, quality - 0.1);
-    }
-
-    if (!dataUrl) throw new Error('无法编码页面截图，请重试。');
-    return dataUrl;
-  }
-
-  function nextPaint() {
-    return new Promise((resolve) => {
-      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
-    });
-  }
-
   async function processImageJob(job) {
     const runId = job.runId;
-    let captureMode = false;
+    if (runId !== imageJob.runId) return;
     try {
       // Never let our own overlays end up in the screenshot we send for OCR.
+      captureRunId = runId;
       overlay.setCaptureMode(true);
-      captureMode = true;
       await nextPaint();
+      if (runId !== imageJob.runId) return;
       const screenshotResponse = await app.sendRuntime({ type: MSG.CAPTURE_SCREENSHOT });
-      overlay.setCaptureMode(false);
-      captureMode = false;
+      finishCapture(runId);
       if (runId !== imageJob.runId) return;
 
       const screenshot = await loadScreenshotImage(screenshotResponse.dataUrl);
@@ -402,7 +325,7 @@
       overlay.showToast('图片翻译失败，请在图片结果面板查看详情。', 'error');
       renderImagePanel();
     } finally {
-      if (captureMode) overlay.setCaptureMode(false);
+      finishCapture(runId);
     }
   }
 
@@ -414,8 +337,12 @@
     }
 
     const revision = capabilityRevision;
+    const pendingRunId = imageJob.runId;
+    const cancelled = () => pendingRunId !== imageJob.runId;
+    const cancelledResult = () => ({ started: false, reason: imageJob.running ? 'running' : 'cancelled' });
     const enabled = await imageTranslationEnabled();
     if (revision !== capabilityRevision) return { started: false, reason: 'model-changed' };
+    if (cancelled()) return cancelledResult();
     if (!enabled) {
       showImageUnsupported();
       return { started: false, reason: 'vision-unsupported' };
@@ -424,11 +351,13 @@
 
     const settings = await app.readSettings();
     if (revision !== capabilityRevision) return { started: false, reason: 'model-changed' };
+    if (cancelled()) return cancelledResult();
     const targetCode = languages.normalizeTarget(
       request.targetCode !== undefined ? request.targetCode : settings.targetLang
     );
     const collected = await collectVisibleImages();
     if (revision !== capabilityRevision) return { started: false, reason: 'model-changed' };
+    if (cancelled()) return cancelledResult();
     // Two starts can both pass the check at the top while these awaits are pending.
     if (imageJob.running) return { started: false, reason: 'running' };
     if (collected.candidates.length === 0) {

@@ -35,8 +35,10 @@ for (const failure of [config.MSG.CAPTURE_SCREENSHOT, config.MSG.TRANSLATE_IMAGE
         toDataURL: () => 'data:image/jpeg;base64,AA=='
       }) }
     });
-    vm.runInContext(fs.readFileSync(path.join(__dirname, '../../content/content-images.js'), 'utf8'), context);
-    Object.assign(app, context.DSHT.contentModules.images(app));
+    for (const name of ['image-capture', 'images']) {
+      vm.runInContext(fs.readFileSync(path.join(__dirname, `../../content/content-${name}.js`), 'utf8'), context);
+      Object.assign(app, context.DSHT.contentModules[name](app));
+    }
     await app.processImageJob({ runId: 1, candidates: [{ alt: '', rect: {
       left: 10, top: 10, right: 210, bottom: 160, width: 200, height: 150
     } }] });

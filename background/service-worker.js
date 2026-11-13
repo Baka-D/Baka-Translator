@@ -94,6 +94,7 @@ const CONTENT_SCRIPTS = [
   'content/content-pretranslation.js',
   'content/content-dynamic.js',
   'content/content-selection.js',
+  'content/content-image-capture.js',
   'content/content-images.js',
   'content/content.js'
 ];
