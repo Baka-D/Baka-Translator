@@ -91,6 +91,14 @@ export function wireEvents() {
   ui.saveCustomProviderButton.addEventListener('click', () => {
     void handleSaveCustomProvider();
   });
+  for (const input of [ui.providerNameInput, ui.customEndpointInput, ui.customModelInput]) {
+    input.addEventListener('keydown', (event) => {
+      // isComposing: Enter that confirms an IME candidate must not save.
+      if (event.key !== 'Enter' || event.isComposing) return;
+      event.preventDefault();
+      void handleSaveCustomProvider();
+    });
+  }
   ui.deleteProviderButton.addEventListener('click', () => void handleDeleteProviderClick());
   ui.translationProviderSelect.addEventListener('change', () => {
     const providerIdValue = ui.translationProviderSelect.value;
