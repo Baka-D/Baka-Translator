@@ -140,6 +140,8 @@
       bubbleTarget.value = model.targetCode || (languages[0] && languages[0].code) || 'zh';
       bubbleCopy.disabled = !currentTranslation || Boolean(model.loading);
       bubbleCopy.classList.toggle('dsht-hidden', Boolean(model.error));
+      // Hiding the focused Retry button would drop keyboard focus out of the bubble.
+      if (!model.canRetry && bubble.getRootNode().activeElement === bubbleRetry) bubbleTarget.focus();
       bubbleRetry.classList.toggle('dsht-hidden', !model.canRetry);
       bubbleSettings.classList.toggle('dsht-hidden', !model.showSettings);
 
