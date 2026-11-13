@@ -57,7 +57,8 @@
     const proposed = protocol.parseJsonObject(
       await ask(protocol.buildGlossaryTidyMessages({ terms, targetCode, workTitle }))
     );
-    if (!proposed) return null;
+    // A refusal or error object is not a successful "nothing to tidy" response.
+    if (!proposed || !Array.isArray(proposed.drop) || !Array.isArray(proposed.merge)) return null;
     const changes = glossary.tidyChanges(terms, proposed);
     if (changes.length === 0) return [];
     const checked = protocol.parseJsonObject(
@@ -85,26 +86,31 @@
     const changes = [];
     const replies = [];
     let failed = false;
+    let cancelled = false;
     const ask = async (messages) => {
+      if (await opts.cancelled?.()) {
+        cancelled = true;
+        throw new Error('Glossary tidy cancelled');
+      }
       const reply = await chat({
         ...opts, messages, kind: 'tidy', temperature: 0, timeoutMs: TIDY_TIMEOUT_MS
       });
       replies.push(reply);
+      await opts.onReply?.(reply);
       return reply.content;
     };
     for (const batch of glossary.tidyBatches(opts.terms, opts.batchTerms)) {
-      if (await opts.cancelled?.()) break;
       try {
         const accepted = await tidyBatch(batch, opts, ask);
         if (accepted) changes.push(...accepted);
         else failed = true;
       } catch (_error) {
-        failed = true;
+        if (!cancelled) failed = true;
         // The replies so far are billed either way; further batches would likely fail too.
         break;
       }
     }
-    return { changes, replies, failed };
+    return { changes, replies, failed, cancelled };
   }
 
   const api = Object.freeze({ reviewTerms, tidyGlossary });

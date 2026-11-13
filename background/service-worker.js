@@ -134,6 +134,7 @@ importScripts(
   chrome.runtime.getURL('background/worker-vision.js'),
   chrome.runtime.getURL('background/worker-requests.js'),
   chrome.runtime.getURL('background/worker-pretranslation.js'),
+  chrome.runtime.getURL('background/worker-novel-storage.js'),
   chrome.runtime.getURL('background/worker-glossary-tidy.js'),
   chrome.runtime.getURL('background/worker-pages.js'),
   chrome.runtime.getURL('background/worker-capture.js'),
@@ -220,6 +221,15 @@ async function handleMessage(message, sender) {
 
     case MSG.TIDY_GLOSSARY:
       return handleTidyGlossary(message, sender);
+
+    case MSG.LOAD_NOVEL_CONTEXT:
+      return loadNovelContext(message, sender);
+
+    case MSG.SAVE_NOVEL_GLOSSARY:
+      return saveNovelGlossary(message, sender);
+
+    case MSG.GLOSSARY_EDIT:
+      return handleGlossaryEdit(message, sender);
 
     case MSG.PRETRANSLATE_CHAPTER:
       return handlePretranslateChapter(message, sender);

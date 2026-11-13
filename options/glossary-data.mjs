@@ -94,14 +94,7 @@ export function normalizeGlossaryRows(rows) {
   return { terms };
 }
 
-/** Add terms stored since the draft opened; rows the user removed stay removed. */
-// shortcut: only new sources are merged, so a note or gender added to a term already in the
-// draft is overwritten, merge per field if that loss shows up.
-export function withNewStoredTerms(edited, stored, opened) {
-  const known = new Set([...opened, ...edited].map((term) => novelUtils.termKey(term.source)));
-  const added = novelUtils.mergeGlossary(stored, []);
-  return edited.concat(added.filter((term) => !known.has(novelUtils.termKey(term.source))));
-}
+export const withNewStoredTerms = novelUtils.withNewStoredTerms;
 
 export function describeGlossary(key, terms, allValues) {
   const parsed = parseGlossaryKey(key);

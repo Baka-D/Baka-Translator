@@ -1,24 +1,14 @@
 // Automatic glossary tidying: its settings and undoing the last run.
 import { FEEDBACK_CLEAR_MS, KEYS, config, novelUtils, ui } from './context.mjs';
 import { persist, setFeedback } from './utils.mjs';
+import { beginGlossaryOperation, editGlossary, glossaryBusy } from './glossary-operation.mjs';
 
 const UNDO_CONFIRM_MS = 5000;
 let undoArmed = false;
 let undoTimer = 0;
+let shownTidyAt = null;
 
-/** Only what the tidy touched goes back; every other entry stays as it is now. */
-export function undoneTerms(tidy, stored) {
-  const key = (term) => novelUtils.termKey(term.source);
-  const touched = new Set(Array.isArray(tidy.touched) ? tidy.touched : []);
-  const current = novelUtils.mergeGlossary(stored, []);
-  const byKey = new Map(current.map((term) => [key(term), term]));
-  const restored = novelUtils.mergeGlossary(tidy.terms, []).flatMap((term) => {
-    if (touched.has(key(term))) return [term];
-    return byKey.has(key(term)) ? [byKey.get(key(term))] : [];
-  });
-  const kept = new Set(restored.map(key));
-  return restored.concat(current.filter((term) => !kept.has(key(term))));
-}
+export const undoneTerms = novelUtils.undoneTerms;
 
 function resetUndoButton() {
   undoArmed = false;
@@ -31,6 +21,7 @@ export function renderTidyUndo(entry) {
   if (!ui.glossaryUndoRow) return;
   resetUndoButton();
   const tidy = entry.tidy;
+  shownTidyAt = tidy?.tidiedAt ?? null;
   ui.glossaryUndoRow.hidden = !(tidy && Array.isArray(tidy.terms));
   if (ui.glossaryUndoRow.hidden) return;
   const when = new Date(Number(tidy.tidiedAt) || 0).toLocaleString('zh-CN');
@@ -38,19 +29,17 @@ export function renderTidyUndo(entry) {
 }
 
 async function undoTidy(entry, reload) {
+  const finish = beginGlossaryOperation();
+  if (!finish) return;
+  setFeedback(ui.glossaryFeedback, '正在撤销这次整理…', '');
   try {
-    const stored = await chrome.storage.local.get([entry.key, entry.tidyKey]);
-    const tidy = stored[entry.tidyKey];
-    if (!tidy || !Array.isArray(tidy.terms)) return;
-    // Words earlier tidies dropped stay dropped; only this run is undone.
-    await chrome.storage.local.set({
-      [entry.key]: undoneTerms(tidy, stored[entry.key]),
-      [entry.tidyKey]: { removed: Array.isArray(tidy.earlierRemoved) ? tidy.earlierRemoved : [] }
-    });
+    const result = await editGlossary(entry, 'undo', { expectedTidyAt: shownTidyAt });
     await reload();
-    setFeedback(ui.glossaryFeedback, '已撤销这次整理。', 'success', FEEDBACK_CLEAR_MS);
-  } catch (_error) {
-    setFeedback(ui.glossaryFeedback, '撤销失败，请重试。', 'error');
+    setFeedback(ui.glossaryFeedback, result.undone ? '已撤销这次整理。' : '这次整理已撤销，无需重复操作。', 'success', FEEDBACK_CLEAR_MS);
+  } catch (error) {
+    setFeedback(ui.glossaryFeedback, error.code === 'GLOSSARY_CHANGED' ? error.message : '撤销失败，请重试。', 'error');
+  } finally {
+    finish();
   }
 }
 
@@ -95,6 +84,7 @@ export function wireGlossaryTidy(activeGlossary, reload) {
   });
   if (ui.glossaryUndoButton) {
     ui.glossaryUndoButton.addEventListener('click', () => {
+      if (glossaryBusy()) return;
       const entry = activeGlossary();
       if (!entry) return;
       if (undoArmed) {

@@ -1,10 +1,11 @@
 // Novel glossary editor for the advanced settings tab.
-import { FEEDBACK_CLEAR_MS, novelUtils, state, ui } from './context.mjs';
+import { FEEDBACK_CLEAR_MS, state, ui } from './context.mjs';
 import {
-  GLOSSARY_PREFIX, describeGlossary, glossaryPageRange, normalizeGlossaryRows, readGlossaryStorage, withNewStoredTerms
+  GLOSSARY_PREFIX, describeGlossary, glossaryPageRange, normalizeGlossaryRows, readGlossaryStorage
 } from './glossary-data.mjs';
 import { readTermRow, renderTermRow, termRowKey } from './glossary-row.mjs';
 import { renderTidyUndo, wireGlossaryTidy } from './glossary-tidy.mjs';
+import { beginGlossaryOperation, editGlossary, glossaryBusy } from './glossary-operation.mjs';
 import { makeButton, setFeedback } from './utils.mjs';
 
 const GLOSSARY_MIN_PAGE_SIZE = 30;
@@ -21,7 +22,9 @@ export async function loadGlossaries() {
   state.glossaries = Object.keys(all || {})
     .filter((key) => key.startsWith(GLOSSARY_PREFIX))
     .map((key) => describeGlossary(key, all[key], all))
-    .filter((entry) => entry && entry.terms.length > 0)
+    // Keep a fully tidied glossary reachable so its last automatic cleanup can be undone.
+    .filter((entry) => entry && (entry.terms.length > 0 ||
+      (Array.isArray(entry.tidy?.terms) && entry.tidy.terms.length > 0)))
     .sort((left, right) =>
       `${left.siteName}\u0000${left.title}\u0000${left.targetLabel}`.localeCompare(
         `${right.siteName}\u0000${right.title}\u0000${right.targetLabel}`,
@@ -58,7 +61,7 @@ function renderGlossaryList() {
   if (ui.glossaryEmptyHint) {
     ui.glossaryEmptyHint.hidden = (state.glossaries || []).length > 0;
   }
-  // A glossary a tidy emptied leaves the list, but an editor with unsaved edits stays until the user discards them.
+  // An externally removed glossary can leave the list while its unsaved editor stays open.
   if (state.activeGlossaryKey && !listedGlossary() && !hasUnsavedGlossaryEdits()) closeGlossaryEditor();
 
   for (const entry of state.glossaries || []) {
@@ -294,6 +297,7 @@ function showSaveError(error, rowIndex) {
 
 /** `rowIndex` is the row whose own save button was used; it keeps the keyboard there. Resolves true once saved. */
 async function saveGlossary(rowIndex) {
+  if (glossaryBusy()) return;
   const entry = activeGlossary();
   if (!entry) return;
   resetClearButton();
@@ -306,43 +310,39 @@ async function saveGlossary(rowIndex) {
   }
   const rawTitle = ui.glossaryTitleInput ? ui.glossaryTitleInput.value.trim() : entry.title;
   const title = (rawTitle || entry.title || entry.workId).slice(0, 200);
+  const finish = beginGlossaryOperation();
+  let saved = false;
+  setFeedback(ui.glossaryFeedback, '正在保存术语库…', '');
   try {
-    // Re-read: chapter tabs may have added terms and chapter ids since the list loaded.
-    const stored = await chrome.storage.local.get([entry.key, entry.metaKey, entry.tidyKey]);
-    if ((stored[entry.tidyKey]?.tidiedAt ?? null) !== openedTidyAt) {
-      // Refresh the cached entry so reopening picks up the tidy instead of hitting this again.
-      await loadGlossaries();
-      renderGlossaryList();
-      showSaveError('术语库已被自动整理，当前修改基于整理前的内容，无法直接保存；关闭编辑器会丢弃这些修改。', rowIndex);
-      return;
-    }
-    const terms = withNewStoredTerms(normalized.terms, stored && stored[entry.key], state.glossaryOpened);
-    const meta = novelUtils.normalizeMeta(stored && stored[entry.metaKey]) || {
-      siteId: entry.siteId,
-      workId: entry.workId,
-      title: '',
-      titleManual: false,
-      chapterIds: [],
-      extractedChapterIds: []
-    };
-    meta.title = title;
-    meta.titleManual = true;
-    await chrome.storage.local.set({
-      [entry.key]: terms,
-      [entry.metaKey]: meta
+    const result = await editGlossary(entry, 'save', {
+      terms: normalized.terms,
+      opened: state.glossaryOpened,
+      title,
+      expectedTidyAt: openedTidyAt
     });
-    setFeedback(ui.glossaryFeedback, `已保存 ${terms.length} 条术语和作品名称，对之后发起的翻译生效。`, 'success', FEEDBACK_CLEAR_MS);
+    setFeedback(ui.glossaryFeedback, `已保存 ${result.count} 条术语和作品名称，对之后发起的翻译生效。`, 'success', FEEDBACK_CLEAR_MS);
     await loadGlossaries();
     renderGlossaryList();
     renderGlossaryEditor();
-    if (Number.isInteger(rowIndex)) focusRowControl(rowIndex, 'delete');
+    saved = true;
     return true;
-  } catch (_error) {
-    showSaveError('保存术语库失败，请检查扩展存储空间。', rowIndex);
+  } catch (error) {
+    if (error.code === 'GLOSSARY_CHANGED') {
+      // Reopening must see the newer tidy, while the unsaved draft stays visible for copying.
+      await loadGlossaries().catch(() => {});
+      renderGlossaryList();
+      showSaveError(error.message, rowIndex);
+    } else {
+      showSaveError('保存术语库失败，请重试或检查扩展存储空间。', rowIndex);
+    }
+  } finally {
+    finish();
+    if (saved && Number.isInteger(rowIndex)) focusRowControl(rowIndex, 'delete');
   }
 }
 
 async function clearGlossary() {
+  if (glossaryBusy()) return;
   const entry = activeGlossary();
   if (!entry) return;
   if (!state.glossaryClearArmed) {
@@ -354,14 +354,18 @@ async function clearGlossary() {
     return;
   }
   resetClearButton();
+  const finish = beginGlossaryOperation();
+  setFeedback(ui.glossaryFeedback, '正在清空术语库…', '');
   try {
-    await chrome.storage.local.remove([entry.key, entry.tidyKey]);
+    await editGlossary(entry, 'clear');
     await loadGlossaries();
     closeGlossaryEditor();
     renderGlossaryList();
     setFeedback(ui.glossaryFeedback, '术语库已清空。', 'success', FEEDBACK_CLEAR_MS);
   } catch (_error) {
     setFeedback(ui.glossaryFeedback, '清空术语库失败，请重试。', 'error');
+  } finally {
+    finish();
   }
 }
 
@@ -379,6 +383,7 @@ export function wireGlossaryEvents() {
     if (hasUnsavedGlossaryEdits()) event.preventDefault();
   });
   ui.glossaryList.addEventListener('click', (event) => {
+    if (glossaryBusy()) return;
     const button = event.target && event.target.closest
       ? event.target.closest('[data-glossary-edit]')
       : null;
@@ -397,6 +402,7 @@ export function wireGlossaryEvents() {
   }
   if (ui.glossaryCloseButton) {
     ui.glossaryCloseButton.addEventListener('click', () => {
+      if (glossaryBusy()) return;
       if (confirmDiscardGlossaryEdits()) closeGlossaryEditor();
     });
   }
@@ -416,6 +422,7 @@ export function wireGlossaryEvents() {
   }
   if (ui.glossaryRefreshButton) {
     ui.glossaryRefreshButton.addEventListener('click', () => {
+      if (glossaryBusy()) return;
       void (async () => {
         try {
           await loadGlossaries();

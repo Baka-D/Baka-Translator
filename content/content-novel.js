@@ -29,39 +29,27 @@
     if (!novelUtils || !chapter || !chapter.isChapter) {
       return { chapter: null, meta: null, glossary: [] };
     }
-    const metaKey = novelUtils.metaKeyForWork(chapter, targetCode);
-    const glossaryKey = novelUtils.glossaryKeyForWork(chapter, targetCode);
-    const values = await app.storageGet([metaKey, glossaryKey]);
-    const meta = novelUtils.addChapterToMeta(values[metaKey], chapter);
-    const workTitle = novelUtils.getWorkTitle(document, chapter);
-    if (!meta.titleManual && workTitle) meta.title = workTitle;
-    else if (!meta.title) meta.title = workTitle || '';
-    // Merging folds spellings that older versions stored as separate terms.
-    const glossary = novelUtils.glossaryForPrompt(novelUtils.mergeGlossary(values[glossaryKey], []));
-    await app.storageSet({ [metaKey]: meta });
-    return { chapter, meta, glossary };
+    return app.sendRuntime({
+      type: MSG.LOAD_NOVEL_CONTEXT, chapterUrl: chapter.canonicalUrl, targetCode,
+      title: novelUtils.getWorkTitle(document, chapter)
+    });
   }
 
   async function saveNovelGlossary(chapter, meta, glossary, targetCode) {
     if (!novelUtils || !chapter) return;
-    const glossaryKey = novelUtils.glossaryKeyForWork(chapter, targetCode);
-    const metaKey = novelUtils.metaKeyForWork(chapter, targetCode);
-    const tidyKey = novelUtils.tidyKeyForWork(chapter, targetCode);
-    // Re-read so glossary edits and renames saved elsewhere since this run began are kept.
-    const values = await app.storageGet([glossaryKey, metaKey, tidyKey]);
-    const merged = novelUtils.mergeGlossary(
-      values[glossaryKey], novelUtils.extractedTerms(values[glossaryKey], glossary, values[tidyKey])
-    );
-    const fresh = novelUtils.addChapterToMeta(values[metaKey], chapter);
-    if (!fresh.title && meta && meta.title) fresh.title = meta.title;
-    const extracted = (meta && meta.extractedChapterIds) || [];
-    fresh.chaptersSinceTidy += extracted.filter((id) => !fresh.extractedChapterIds.includes(id)).length;
-    fresh.extractedChapterIds = Array.from(
-      new Set(fresh.extractedChapterIds.concat(extracted))
-    ).slice(-200);
-    if (!(await app.storageSet({ [glossaryKey]: merged, [metaKey]: fresh }))) return false;
-    page.glossary = novelUtils.glossaryForPrompt(merged);
-    page.novelMeta = fresh;
+    const runId = page.runId;
+    const currentChapter = page.novel?.canonicalUrl;
+    const currentTarget = page.targetCode;
+    const result = await app.sendRuntime({
+      type: MSG.SAVE_NOVEL_GLOSSARY, chapterUrl: chapter.canonicalUrl, targetCode,
+      title: meta?.title || '', terms: glossary,
+      extracted: Array.isArray(meta?.extractedChapterIds) && meta.extractedChapterIds.includes(chapter.chapterId)
+    });
+    if (!result.saved) return false;
+    if (page.runId === runId && page.novel?.canonicalUrl === currentChapter && page.targetCode === currentTarget) {
+      page.glossary = result.glossary;
+      page.novelMeta = result.meta;
+    }
     return true;
   }
 
@@ -134,10 +122,8 @@
           ? meta.extractedChapterIds
           : meta.extractedChapterIds.concat(page.novel.chapterId).slice(-200)
       };
-      const saved = await saveNovelGlossary(page.novel, meta, response.terms || [], targetCode);
-      app.renderPagePanel();
-      // Not awaited: the worker finishes a tidy even after the reader moves on.
-      if (saved) void tidyNovelGlossary(targetCode, runId);
+      await saveNovelGlossary(page.novel, meta, response.terms || [], targetCode);
+      if (runId === page.runId) app.renderPagePanel();
     } catch (error) {
       // Glossary extraction is best-effort and must not break translation.
       if (runId === page.runId) {
@@ -157,14 +143,18 @@
       for (const billing of response.tidyBilling || []) app.addPageCost(billing);
       app.addDiscardedCost(response);
       if (response.dropped || response.merged) {
-        overlay.showToast(`术语表已整理：移除 ${response.dropped} 条，合并 ${response.merged} 组，可在设置中撤销。`, 'success');
+        const retry = response.failed ? '部分整理未完成，5 分钟后完成章节时会重试。' : '';
+        overlay.showToast(`术语表已整理：移除 ${response.dropped} 条，合并 ${response.merged} 组，可在设置中撤销。${retry}`, response.failed ? 'info' : 'success');
       } else if (response.failed) {
-        overlay.showToast('术语表整理未完成，到下个周期会再试。', 'info');
+        overlay.showToast('术语表整理未完成，5 分钟后完成章节时会重试。', 'info');
       }
       if (response.tidyBilling) app.renderPagePanel();
     } catch (error) {
-      // The chapter is finished and the glossary is unchanged; say why, e.g. a missing key.
-      if (runId === page.runId) overlay.showToast(`术语表整理失败：${error.message}`, 'error');
+      if (runId === page.runId) {
+        app.addDiscardedCost(error);
+        app.renderPagePanel();
+        overlay.showToast(`术语表整理失败：${error.message}`, 'error');
+      }
     }
   }
 
@@ -243,9 +233,14 @@
     if (job.runId !== page.runId) return;
     // Updating terminology must not hold up preparing the next chapter.
     await Promise.all([
-      maybeExtractNovelTerms(job.plan, job.targetCode, job.sourceHint, job.runId),
-      page.pretranslateEnabled ? app.pretranslateNextChapter(job) : Promise.resolve(),
-      job.saveCache ? saveChapterCache(job) : Promise.resolve()
+      Promise.all([
+        maybeExtractNovelTerms(job.plan, job.targetCode, job.sourceHint, job.runId),
+        job.saveCache ? saveChapterCache(job) : Promise.resolve()
+      ]).then(() => {
+        // Extraction failures and cached chapters must not block an already overdue tidy.
+        if (job.runId === page.runId) void tidyNovelGlossary(job.targetCode, job.runId);
+      }),
+      page.pretranslateEnabled ? app.pretranslateNextChapter(job) : Promise.resolve()
     ]);
   }
 
