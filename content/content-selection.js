@@ -158,7 +158,9 @@
       };
     }
 
+    const runId = ++bubble.runId;
     const settings = await app.readSettings();
+    if (runId !== bubble.runId) return { started: false, reason: 'cancelled' };
     const targetCode = languages.normalizeTarget(
       request.targetCode !== undefined ? request.targetCode : settings.targetLang
     );
@@ -168,9 +170,6 @@
     bubble.rect = selection.rect || fallbackAnchorRect();
     bubble.range = selection.range;
     bubble.open = true;
-    bubble.runId += 1;
-    const runId = bubble.runId;
-
     bindBubbleListeners();
     renderBubbleLoading();
     void runSelectionTranslation(runId);
