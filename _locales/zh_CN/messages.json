@@ -2671,6 +2671,17 @@
   "opt_models_reloaded": {
     "message": "模型清单已重新加载。"
   },
+  "opt_novel_site": {
+    "message": "$arg1$（$arg2$）",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
   "opt_novel_support": {
     "message": "轻小说模式：适配 $arg1$，自动识别章节与下一章链接。同一作品累计记录 3 个不同章节后，会在章节翻译完成时尝试提取术语；成功提取后会在本机建立术语表。目前仅支持以上站点。",
     "placeholders": {

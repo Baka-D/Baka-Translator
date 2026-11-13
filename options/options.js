@@ -335,7 +335,7 @@ export function renderNovelSupportNote() {
   const sites = adapters
     .map((adapter) => {
       const host = Array.isArray(adapter.hosts) && adapter.hosts.length > 0 ? adapter.hosts[0] : '';
-      return host ? `${host}（${adapter.name}）` : adapter.name;
+      return host ? t('opt_novel_site', [host, adapter.name]) : adapter.name;
     })
     .join(t('opt_list_separator'));
   ui.novelSupportNote.textContent = t('opt_novel_support', [sites]);

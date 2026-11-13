@@ -636,6 +636,7 @@
   "opt_model_unavailable_name": "（已失效）$1",
   "opt_models_about": "翻译：$1 / 润色：$2",
   "opt_models_reloaded": "模型清单已重新加载。",
+  "opt_novel_site": "$1（$2）",
   "opt_novel_support": "轻小说模式：适配 $1，自动识别章节与下一章链接。同一作品累计记录 3 个不同章节后，会在章节翻译完成时尝试提取术语；成功提取后会在本机建立术语表。目前仅支持以上站点。",
   "opt_polish_effort_default": "未指定时使用该模型默认值（$1）。",
   "opt_polish_effort_default_same": "未指定时使用该模型默认值（$1）；与翻译同模型时跟随翻译强度。",

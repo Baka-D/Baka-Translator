@@ -636,6 +636,7 @@
   "opt_model_unavailable_name": "(Unavailable) $1",
   "opt_models_about": "Translation: $1 / Polishing: $2",
   "opt_models_reloaded": "Model list reloaded.",
+  "opt_novel_site": "$1 ($2)",
   "opt_novel_support": "Novel mode supports $1 and automatically detects chapters and next-chapter links. Once three different chapters of a work have been recorded, the extension attempts to extract terms after translating a chapter. Successful extraction creates a glossary on this device. Only these sites are currently supported.",
   "opt_polish_effort_default": "When unspecified, use the model default ($1).",
   "opt_polish_effort_default_same": "When unspecified, use the model default ($1); when sharing the translation model, follow its reasoning effort.",

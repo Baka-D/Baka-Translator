@@ -2671,6 +2671,17 @@
   "opt_models_reloaded": {
     "message": "Model list reloaded."
   },
+  "opt_novel_site": {
+    "message": "$arg1$ ($arg2$)",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
+  },
   "opt_novel_support": {
     "message": "Novel mode supports $arg1$ and automatically detects chapters and next-chapter links. Once three different chapters of a work have been recorded, the extension attempts to extract terms after translating a chapter. Successful extraction creates a glossary on this device. Only these sites are currently supported.",
     "placeholders": {
