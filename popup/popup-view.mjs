@@ -71,7 +71,7 @@ function renderStatus() {
   // Counts stay out of the live region so screen readers are not re-announced on every poll.
   let count = '';
 
-  if (state.loading && !info) {
+  if ((state.loading || state.initialFetch) && !info) {
     tone = 'running';
     text = t('pop_loading');
   } else if (state.pageError) {
