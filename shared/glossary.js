@@ -182,6 +182,20 @@
     return batches;
   }
 
+  /** One entry cannot retain two translations for the same spelling. */
+  function conflictingMergeSpellings(terms, targets) {
+    const translations = new Map();
+    for (const [index, term] of terms.entries()) {
+      const spellings = [{ source: term.source, target: targets[index] }, ...(term.aliases || [])];
+      for (const { source, target } of spellings) {
+        const key = termKey(source);
+        if (translations.has(key) && translations.get(key) !== target) return true;
+        translations.set(key, target);
+      }
+    }
+    return false;
+  }
+
   /** The changes in a model `reply` that `batch` allows; anything else in it is ignored. */
   function tidyChanges(batch, reply) {
     const byId = new Map(batch.map((term) => [term.id, term]));
@@ -191,7 +205,9 @@
     for (const group of list(reply.merge)) {
       const members = list(group && group.terms);
       // Strict lookups: null, "" or false must not read as id 0.
-      const terms = members.map((member) => byId.get(member && member.id));
+      const terms = members.map((member) =>
+        member && typeof member === 'object' && !Array.isArray(member) ? byId.get(member.id) : undefined
+      );
       if (terms.length < 2 || new Set(terms).size < terms.length) continue;
       if (terms.some((term) => !term || used.has(term))) continue;
       const genders = new Set(terms.map((term) => term.gender).filter((gender) => gender && gender !== 'none'));
@@ -201,6 +217,8 @@
       // Only a translation already in use: the model must not coin a new one.
       const known = new Set(terms.map((term) => term.target));
       const targets = members.map(({ target }, index) => (known.has(target) ? target : terms[index].target));
+      // Main-entry targets may be corrected, but existing aliases must survive intact.
+      if (conflictingMergeSpellings(terms, targets)) continue;
       terms.forEach((term) => used.add(term));
       changes.push({ action: 'merge', targets, terms });
     }
@@ -290,6 +308,72 @@
     });
   }
 
+  /** Keep user edits and removals, while retaining newer values of untouched fields. */
+  function withNewStoredTerms(edited, stored, opened) {
+    const spellings = (term) => [term.source, ...(term.aliases || []).map((alias) => alias.source)].map(termKey);
+    const originals = new Map(opened.map(normalizeTerm).filter(Boolean).map((term) => [termKey(term.source), term]));
+    const added = mergeGlossary(stored, []);
+    const current = new Map(added.map((term) => [termKey(term.source), term]));
+    const draft = edited.map(normalizeTerm).filter(Boolean);
+    const draftSpellings = new Set(draft.flatMap(spellings));
+    const removed = new Set(opened.flatMap(spellings).filter((key) => !draftSpellings.has(key)));
+    const candidates = draft.map((term) => {
+      const key = termKey(term.source);
+      const original = originals.get(key);
+      const latest = current.get(key);
+      if (!original) return term;
+      if (!latest) return JSON.stringify(term) === JSON.stringify(original) ? null : term;
+      const merged = { ...term };
+      for (const field of ['source', 'target', 'category', 'note', 'gender', 'aliases']) {
+        if (JSON.stringify(term[field]) === JSON.stringify(original[field])) merged[field] = latest[field];
+      }
+      return normalizeTerm(merged);
+    });
+    // Reserve final sources and explicitly edited aliases, not obsolete inherited owners.
+    const owners = new Map(candidates.flatMap((term, index) => term ? [[termKey(term.source), index]] : []));
+    draft.forEach((term, index) => {
+      if (!candidates[index]) return;
+      const original = originals.get(termKey(term.source));
+      if (JSON.stringify(term.aliases) === JSON.stringify(original?.aliases)) return;
+      for (const alias of term.aliases || []) owners.set(termKey(alias.source), index);
+    });
+    const result = candidates.flatMap((term, index) => {
+      if (!term) return [];
+      const aliases = (term.aliases || []).filter((alias) => {
+        const key = termKey(alias.source);
+        const owner = owners.get(key);
+        return !removed.has(key) && (owner === undefined || owner === index);
+      });
+      const normalized = normalizeTerm({ ...term, aliases });
+      for (const spelling of spellings(normalized)) owners.set(spelling, index);
+      return [normalized];
+    });
+    // Only intentional removals stay blocked; untouched aliases may now be standalone terms.
+    const known = new Set([...removed, ...result.flatMap(spellings)]);
+    for (const term of added) {
+      if (known.has(termKey(term.source))) continue;
+      const aliases = (term.aliases || []).filter((alias) => !known.has(termKey(alias.source)));
+      const normalized = normalizeTerm({ ...term, aliases });
+      result.push(normalized);
+      for (const key of spellings(normalized)) known.add(key);
+    }
+    return result;
+  }
+
+  /** Only what the tidy touched goes back; every other entry stays as it is now. */
+  function undoneTerms(tidy, stored) {
+    const key = (term) => termKey(term.source);
+    const touched = new Set(Array.isArray(tidy.touched) ? tidy.touched : []);
+    const current = mergeGlossary(stored, []);
+    const byKey = new Map(current.map((term) => [key(term), term]));
+    const restored = mergeGlossary(tidy.terms, []).flatMap((term) => {
+      if (touched.has(key(term))) return [term];
+      return byKey.has(key(term)) ? [byKey.get(key(term))] : [];
+    });
+    const kept = new Set(restored.map(key));
+    return restored.concat(current.filter((term) => !kept.has(key(term))));
+  }
+
   const api = Object.freeze({
     MAX_REQUEST_TERMS,
     isCharacterCategory,
@@ -307,7 +391,9 @@
     tidyChanges,
     termExcerpts,
     applyGlossaryTidy,
-    extractedTerms
+    extractedTerms,
+    withNewStoredTerms,
+    undoneTerms
   });
 
   globalScope.DSHT = globalScope.DSHT || {};
