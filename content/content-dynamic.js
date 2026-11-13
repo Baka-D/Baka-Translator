@@ -11,6 +11,22 @@
   const revealed = new Set();
   let composedRoots = [];
   let rootsChanged = false;
+  // Text the page rewrites again within LIVE_MS (countdowns, streamed answers) waits until it
+  // settles, so a ticking node is not paid for on every tick.
+  const LIVE_MS = 2000;
+  const rewrites = new WeakMap();
+
+  function noteRewrite(element) {
+    if (!element) return;
+    const now = Date.now();
+    const prior = rewrites.get(element);
+    rewrites.set(element, { at: now, live: Boolean(prior && now - prior.at < LIVE_MS) });
+  }
+
+  function stillLive(root) {
+    const entry = rewrites.get(root.nodeType === 3 ? root.parentElement : root); // 3: text node
+    return Boolean(entry && entry.live && Date.now() - entry.at < LIVE_MS);
+  }
 
   function disconnectDynamicObserver() {
     observedRoots = new WeakSet();
@@ -83,6 +99,7 @@
       if (record.type === 'characterData') {
         const previous = page.translatedNodes.get(record.target);
         if (!previous || record.target.nodeValue !== previous.translated) {
+          noteRewrite(record.target.parentElement);
           page.dynamicQueue.add(record.target);
         }
         continue;
@@ -102,7 +119,10 @@
       for (const added of record.addedNodes) {
         if (!added) continue;
         if (added.nodeType === Node.TEXT_NODE) {
-          if (added.parentElement) page.dynamicQueue.add(added.parentElement);
+          if (added.parentElement) {
+            noteRewrite(added.parentElement);
+            page.dynamicQueue.add(added.parentElement);
+          }
         } else if (added.nodeType === Node.ELEMENT_NODE) {
           if (added.hasAttribute && added.hasAttribute(BILINGUAL_ATTR)) continue;
           page.dynamicQueue.add(added);
@@ -252,9 +272,12 @@
     }
     if (rootsChanged) rescanRoots();
     queueRevealed();
-    const roots = Array.from(page.dynamicQueue);
-    page.dynamicQueue.clear();
-    if (roots.length === 0) return;
+    const roots = Array.from(page.dynamicQueue).filter((root) => !root || !stillLive(root));
+    for (const root of roots) page.dynamicQueue.delete(root);
+    if (roots.length === 0) {
+      if (page.dynamicQueue.size > 0) scheduleDynamicFlush();
+      return;
+    }
 
     page.dynamicBusy = true;
     const runId = page.runId;
