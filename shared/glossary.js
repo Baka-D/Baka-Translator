@@ -174,8 +174,9 @@
   // shortcut: spellings that land in different batches are never compared, compare
   // batch leaders in a further request if works outgrow one batch.
   function tidyBatches(terms, size) {
-    const sorted = terms.map((term, id) => ({ ...term, id }))
-      .sort((left, right) => (termKey(left.source) < termKey(right.source) ? -1 : 1));
+    const sorted = terms.map((term, id) => ({ term: { ...term, id }, key: termKey(term.source) }))
+      .sort((left, right) => left.key < right.key ? -1 : left.key > right.key ? 1 : 0)
+      .map(({ term }) => term);
     const batches = [];
     for (let at = 0; at < sorted.length; at += size) batches.push(sorted.slice(at, at + size));
     return batches;
