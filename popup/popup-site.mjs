@@ -155,7 +155,16 @@ async function readSiteSettings() {
   }
 }
 
-async function saveSiteFlag(host, patch, removeKeys) {
+// Every update replaces the whole map, so reads must wait for earlier writes.
+let siteSaveQueue = Promise.resolve();
+
+function saveSiteFlag(host, patch, removeKeys) {
+  const saved = siteSaveQueue.then(() => writeSiteFlag(host, patch, removeKeys));
+  siteSaveQueue = saved.catch(() => false);
+  return saved;
+}
+
+async function writeSiteFlag(host, patch, removeKeys) {
   if (!host) return false;
   try {
     const values = await chrome.storage.local.get([KEYS.SITE_SETTINGS]);
