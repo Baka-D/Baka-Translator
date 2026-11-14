@@ -79,10 +79,7 @@
     const opts = options || {};
     const provider = opts.provider || fallbackProvider();
     const model = opts.model || fallbackModel();
-    const endpoint = String(model.endpoint || provider.endpoint || config.API_BASE_URL).replace(
-      /\/+$/,
-      ''
-    );
+    const endpoint = modelsUtils.normalizeEndpoint(model.endpoint || provider.endpoint || config.API_BASE_URL);
     const requestUrl =
       opts.requestUrl ||
       (modelsUtils

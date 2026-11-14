@@ -36,7 +36,7 @@
       url.hash = '';
       // Users often paste the full completions URL from provider docs; joinEndpoint adds it back.
       url.pathname = url.pathname.replace(/\/+$/, '').replace(/\/chat\/completions$/i, '');
-      return url.toString().replace(/\/+$/, '');
+      return url.search ? url.toString() : url.toString().replace(/\/+$/, '');
     } catch (_error) {
       return '';
     }
