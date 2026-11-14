@@ -95,18 +95,6 @@
     });
   }
 
-  function storageSet(values) {
-    return new Promise((resolve) => {
-      try {
-        chrome.storage.local.set(values, () => {
-          resolve(!chrome.runtime.lastError);
-        });
-      } catch (_error) {
-        resolve(false);
-      }
-    });
-  }
-
   function storageRemove(keys) {
     return new Promise((resolve) => {
       try {
@@ -227,7 +215,6 @@
     siteFeatures,
     contextEnabled,
     storageGet,
-    storageSet,
     storageRemove,
     saveTargetLanguage,
     extensionMessage,

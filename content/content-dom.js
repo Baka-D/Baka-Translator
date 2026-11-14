@@ -5,7 +5,7 @@
   const modules = globalScope.DSHT.contentModules ||= {};
   modules['dom'] = function createModule(app) {
   const { detect, textUtils, LIMITS, page } = app;
-  const { rubyForNode, collectRubyBaseTextNodes, collectRubyReadingElements, hideRubyReadings, restoreRubyReadings } = app;
+  const { rubyForNode, collectRubyBaseTextNodes, collectRubyReadingElements } = app;
 
   const SKIP_TAGS = new Set([
     'SCRIPT',
@@ -280,19 +280,22 @@
     return sampleParts.join('\n').slice(0, maxChars);
   }
 
-  function detectPageLanguage(force) {
-    const now = Date.now();
-    if (!force && page.detectionCache && now - page.detectionCache.at < 15000) {
-      return page.detectionCache.value;
-    }
-    const sample = collectPageSample(18000);
+  function detectSample(sample) {
     const result = detect.detectPageLanguage(sample, document.documentElement.lang || '');
-    const value = {
+    return {
       code: result.code,
       label: globalScope.DSHT.i18n.languageLabel(result.code),
       confidence: result.confidence || 0,
       mixed: Boolean(result.mixed)
     };
+  }
+
+  function detectPageLanguage(force) {
+    const now = Date.now();
+    if (!force && page.detectionCache && now - page.detectionCache.at < 15000) {
+      return page.detectionCache.value;
+    }
+    const value = detectSample(collectPageSample(18000));
     page.detectionCache = { value, at: now };
     return value;
   }
@@ -303,13 +306,7 @@
       .map((target) => target.core)
       .join('\n')
       .slice(0, 20000);
-    const result = detect.detectPageLanguage(sample, document.documentElement.lang || '');
-    return {
-      code: result.code,
-      label: globalScope.DSHT.i18n.languageLabel(result.code),
-      confidence: result.confidence || 0,
-      mixed: Boolean(result.mixed)
-    };
+    return detectSample(sample);
   }
 
   function noTranslatableTextMessage() {
@@ -495,8 +492,6 @@
     detectPageLanguage,
     detectFromTargets,
     noTranslatableTextMessage,
-    hideRubyReadings,
-    restoreRubyReadings,
     collectTargets
   };
   };
