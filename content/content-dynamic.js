@@ -298,7 +298,7 @@
         if (!nodes.some(stillLive)) return true;
         // Rescan a ruby group's parent so a separately queued tail cannot split the sentence.
         page.dynamicQueue.add(nodes.length > 1
-          ? (app.rubyForNode(target.node) || target.node).parentElement
+          ? (app.rubyForNode(target.node) || target.node).parentNode
           : target.node);
         return false;
       });

@@ -190,6 +190,25 @@ test(`a group starting ${startsWithRuby ? 'inside' : 'before'} ruby waits and tr
 });
 }
 
+test('a ruby group directly inside a shadow root keeps its whole rescan root', async () => {
+  const h = harness();
+  h.root.nodeType = 11;
+  const ruby = h.element(h.root, 'RUBY');
+  ruby.parentElement = null;
+  const first = h.addText('Prefix ', ruby);
+  const live = h.addText('Start', h.element(ruby, 'SPAN'));
+  h.rewrite(live, 'First word');
+  h.rewrite(live, 'Final word');
+  h.page.dynamicQueue.add(h.root);
+  await h.flush();
+  assert.deepEqual(h.sent, []);
+  assert.equal(h.page.dynamicQueue.has(h.root), true);
+  h.clock.now += 2000;
+  await h.flush();
+  assert.deepEqual(h.sent, ['Prefix Final word']);
+  assert.equal(first.nodeValue, '译:Prefix Final word');
+});
+
 for (const stop of ['restore', 'navigate']) {
   test(`${stop} cancels text deferred by an ancestor scan`, async () => {
     const h = harness();
