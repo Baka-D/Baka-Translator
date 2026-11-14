@@ -1,12 +1,9 @@
 /**
  * Shared runtime configuration. Loaded in the service worker, content script
- * and extension pages, after the UI localization helper.
+ * and extension pages.
  */
 (function initConfig(globalScope) {
   'use strict';
-  const i18n = globalScope.DSHT?.i18n ||
-    (typeof require === 'function' ? require('./i18n.js') : null);
-
   const config = Object.freeze({
     isRestrictedUrl(url) {
       if (!url) return false;
@@ -19,10 +16,6 @@
     MODELS_ENDPOINT: '/models',
     // DeepSeek-V4.1-Flash-1017: supports text + vision and JSON output.
     MODEL: 'deepseek-flash',
-    // DeepSeek enables thinking by default. Translation should be fast and
-    // deterministic, so every request explicitly disables it.
-    THINKING: Object.freeze({ type: 'disabled' }),
-
     DEFAULT_TARGET: 'zh',
     DEFAULT_BILINGUAL: false,
     DEFAULT_MODEL_ID: 'deepseek-flash',
@@ -126,15 +119,6 @@
       TEST_MS: 20000,
       API_MAX_RETRIES: 2,
       RETRY_BASE_DELAY_MS: 700
-    }),
-
-    SOURCE_LABELS: Object.freeze({
-      zh: i18n.languageLabel('zh'),
-      en: i18n.languageLabel('en'),
-      ko: i18n.languageLabel('ko'),
-      ja: i18n.languageLabel('ja'),
-      ru: i18n.languageLabel('ru'),
-      unknown: i18n.languageLabel('unknown')
     }),
 
     MSG: Object.freeze({
