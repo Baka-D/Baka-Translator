@@ -48,8 +48,8 @@ export async function loadStoredData() {
     typeof values[KEYS.TRANSLATION_EFFORT] === 'string'
       ? values[KEYS.TRANSLATION_EFFORT].trim()
       : '';
-  state.storedModelId = typeof values[KEYS.MODEL_ID] === 'string' ? values[KEYS.MODEL_ID] : '';
-  state.storedEffort = typeof values[KEYS.EFFORT] === 'string' ? values[KEYS.EFFORT] : '';
+  const storedModelId = typeof values[KEYS.MODEL_ID] === 'string' ? values[KEYS.MODEL_ID] : '';
+  const storedEffort = typeof values[KEYS.EFFORT] === 'string' ? values[KEYS.EFFORT] : '';
   state.storedTranslationModel = Boolean(storedTranslationModel);
   state.storedTranslationEffort = Boolean(storedTranslationEffort);
   state.storedPresetId = typeof values[KEYS.PRESET_ID] === 'string' ? values[KEYS.PRESET_ID] : '';
@@ -64,7 +64,7 @@ export async function loadStoredData() {
           : '';
   state.modelId =
     storedTranslationModel ||
-    state.storedModelId.trim() ||
+    storedModelId.trim() ||
     snapshotModelId ||
     config.DEFAULT_MODEL_ID ||
     'deepseek-flash';
@@ -76,7 +76,7 @@ export async function loadStoredData() {
         : '';
   state.effortLevel =
     storedTranslationEffort ||
-    state.storedEffort.trim() ||
+    storedEffort.trim() ||
     snapshotEffort ||
     config.DEFAULT_EFFORT ||
     'none';

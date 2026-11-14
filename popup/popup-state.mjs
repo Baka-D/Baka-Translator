@@ -8,7 +8,6 @@ const languages = root.languages;
 const MSG = config.MSG;
 const KEYS = config.STORAGE_KEYS;
 const TARGETS = languages.TARGET_LANGUAGES;
-const LABEL_BY_CODE = new Map(TARGETS.map((language) => [language.code, language.label]));
 const usageTools = root.usage || null;
 const billingTools = root.billing || null;
 const novelUtils = root.novel || null;
@@ -148,4 +147,4 @@ function renderUsage() {
 }
 
 
-export { t, i18n, config, languages, MSG, KEYS, TARGETS, LABEL_BY_CODE, usageTools, billingTools, novelUtils, presetsTools, POLL_INTERVAL_MS, PRETRANSLATE_POLL_MS, KEY_NOTICE_TEXT, VISION_NOTICE_TEXT, EXT_PAGE_MESSAGE, PAGE_ERROR_MESSAGES, ui, state, labelOf, normalizeUsage, renderUsage };
+export { t, i18n, config, languages, MSG, KEYS, TARGETS, usageTools, billingTools, novelUtils, presetsTools, POLL_INTERVAL_MS, PRETRANSLATE_POLL_MS, KEY_NOTICE_TEXT, VISION_NOTICE_TEXT, EXT_PAGE_MESSAGE, PAGE_ERROR_MESSAGES, ui, state, labelOf, normalizeUsage, renderUsage };

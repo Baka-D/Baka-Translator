@@ -182,10 +182,8 @@ export const state = {
   polishModelIdRaw: '',
   polishEffortRaw: '',
   presetId: config.DEFAULT_PRESET_ID || 'general',
-  storedModelId: '',
   // A stored translation model that no longer exists; `modelId` holds the stand-in shown meanwhile.
   staleModelId: '',
-  storedEffort: '',
   storedTranslationModel: false,
   storedTranslationEffort: false,
   storedPolishModel: false,

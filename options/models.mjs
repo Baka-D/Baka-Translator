@@ -27,14 +27,6 @@ export function translationProvider() {
   return modelsTools.getProvider(state.registry, model.provider);
 }
 
-export function selectedModel() {
-  return translationModel();
-}
-
-export function selectedProvider() {
-  return translationProvider();
-}
-
 export function polishModel() {
   if (!state.registry || !modelsTools) return translationModel();
   if (state.polishModelIdRaw) {
@@ -63,14 +55,6 @@ export function polishEffortLevel() {
   const translation = translationModel();
   if (model.id === (translation && translation.id)) return state.effortLevel;
   return model.defaultEffort;
-}
-
-export function purposeModel(purpose) {
-  return purpose === 'polish' ? polishModel() : translationModel();
-}
-
-export function purposeProvider(purpose) {
-  return purpose === 'polish' ? polishProvider() : translationProvider();
 }
 
 export function providerKeyFor(providerIdValue) {
