@@ -291,7 +291,17 @@
         }
         return true;
       });
-      const { targets: uniqueTargets } = app.collectTargets(uncovered, { bilingual: page.bilingual });
+      const { targets } = app.collectTargets(uncovered, { bilingual: page.bilingual });
+      const uniqueTargets = targets.filter((target) => {
+        // An ancestor scan can include a live descendant even when its own queued root waits.
+        const nodes = target.nodes || [target.node];
+        if (!nodes.some(stillLive)) return true;
+        // Rescan a ruby group's parent so a separately queued tail cannot split the sentence.
+        page.dynamicQueue.add(nodes.length > 1
+          ? (app.rubyForNode(target.node) || target.node).parentElement
+          : target.node);
+        return false;
+      });
       if (uniqueTargets.length === 0) return;
 
       const remainingNodes = LIMITS.DYNAMIC_MAX_NODES - page.dynamicNodeCount;
