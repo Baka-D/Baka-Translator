@@ -70,37 +70,8 @@ let registryPromise = null;
 let presetIndexPromise = null;
 const presetCache = new Map();
 
-const CONTENT_SCRIPTS = [
-  'shared/i18n.js',
-  'shared/config.js',
-  'shared/languages.js',
-  'shared/detect.js',
-  'shared/text.js',
-  'shared/glossary.js',
-  'shared/novel.js',
-  'content/overlay-style-base.js',
-  'content/overlay-style-images.js',
-  'content/overlay-ui.js',
-  'content/overlay-panel.js',
-  'content/overlay-bubble.js',
-  'content/overlay-images.js',
-  'content/overlay-image-frame.js',
-  'content/overlay.js',
-  'content/content-runtime.js',
-  'content/content-ruby.js',
-  'content/content-dom.js',
-  'content/content-captions.js',
-  'content/content-page-ui.js',
-  'content/content-page.js',
-  'content/content-polish.js',
-  'content/content-novel.js',
-  'content/content-pretranslation.js',
-  'content/content-dynamic.js',
-  'content/content-selection.js',
-  'content/content-image-capture.js',
-  'content/content-images.js',
-  'content/content.js'
-];
+// Manual injection uses the same ordered modules as automatic novel-page injection.
+const CONTENT_SCRIPTS = chrome.runtime.getManifest().content_scripts[0].js;
 
 const MENU_IDS = Object.freeze({
   ROOT: 'dsht-root',

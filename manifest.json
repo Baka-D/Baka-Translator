@@ -35,7 +35,6 @@
         "content/overlay-ui.js",
         "content/overlay-panel.js",
         "content/overlay-bubble.js",
-        "content/overlay-images.js",
         "content/overlay-image-frame.js",
         "content/overlay.js",
         "content/content-runtime.js",

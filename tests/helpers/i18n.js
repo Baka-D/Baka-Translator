@@ -32,6 +32,9 @@ function createLocalizedContext(sandbox = {}, { locale = 'zh_CN' } = {}) {
     delete sandbox.globalThis;
   }
   sandbox.chrome ||= {};
+  if (sandbox.chrome.runtime) {
+    sandbox.chrome.runtime.getManifest ||= () => structuredClone(require('../../manifest.json'));
+  }
   sandbox.chrome.i18n ||= createChromeI18n(locale);
   const context = vm.createContext(sandbox);
   vm.runInContext(source, context, { filename });
