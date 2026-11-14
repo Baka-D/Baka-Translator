@@ -399,31 +399,16 @@
 
   function normalizeMeta(raw) {
     if (!raw || typeof raw !== 'object') return null;
-    const chapters = Array.isArray(raw.chapterIds)
-      ? Array.from(
-          new Set(
-            raw.chapterIds
-              .map((value) => String(value || '').trim())
-              .filter(Boolean)
-          )
-        )
-      : [];
-    const extracted = Array.isArray(raw.extractedChapterIds)
-      ? Array.from(
-          new Set(
-            raw.extractedChapterIds
-              .map((value) => String(value || '').trim())
-              .filter(Boolean)
-          )
-        )
+    const chapterIds = (value) => Array.isArray(value)
+      ? Array.from(new Set(value.map((id) => String(id || '').trim()).filter(Boolean))).slice(-200)
       : [];
     return {
       siteId: String(raw.siteId || ''),
       workId: String(raw.workId || ''),
       title: String(raw.title || '').trim(),
       titleManual: raw.titleManual === true,
-      chapterIds: chapters.slice(-200),
-      extractedChapterIds: extracted.slice(-200),
+      chapterIds: chapterIds(raw.chapterIds),
+      extractedChapterIds: chapterIds(raw.extractedChapterIds),
       chaptersSinceTidy: Math.max(0, Math.trunc(Number(raw.chaptersSinceTidy)) || 0)
     };
   }
