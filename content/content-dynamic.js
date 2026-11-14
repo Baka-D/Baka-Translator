@@ -346,12 +346,14 @@
             if (runId !== page.runId) return;
             app.addPageCost(response.billing);
             app.addDiscardedCost(response);
+            if (currentRoute() !== page.translatedRoute) return;
             app.applyTranslationsForBatch(batch, response.translations, plan, {
               updateProgress: false
             });
           } catch (error) {
             if (runId !== page.runId) return;
             app.addDiscardedCost(error);
+            if (currentRoute() !== page.translatedRoute) return;
             if (FATAL_ERROR_CODES.has(String(error.code || ''))) {
               page.abortFatal = true;
               page.error = error.message || page.error;
@@ -367,7 +369,7 @@
         Math.min(LIMITS.IMAGE_MAX_CONCURRENCY, batches.length, 2)
       );
       await Promise.all(Array.from({ length: workerCount }, () => worker()));
-      if (runId !== page.runId) return;
+      if (runId !== page.runId || currentRoute() !== page.translatedRoute) return;
       if (captions.length > 0) app.applyBilingualCaptions(captions);
 
       // Count what was sent, not what was written back: the limit bounds what leaves the page.
@@ -381,7 +383,9 @@
     } finally {
       if (runId === page.runId) {
         page.dynamicBusy = false;
-        if (page.dynamicQueue.size > 0 || rootsChanged || revealed.size > 0) scheduleDynamicFlush();
+        if (!leftTranslatedRoute() && (page.dynamicQueue.size > 0 || rootsChanged || revealed.size > 0)) {
+          scheduleDynamicFlush();
+        }
       }
     }
   }
