@@ -220,11 +220,6 @@
       error.code = 'MISSING_MODEL';
       throw error;
     }
-    if (opts.modelId && !getModel(registry, opts.modelId)) {
-      const error = new Error(i18n.t('shared_model_missing'));
-      error.code = 'MISSING_MODEL';
-      throw error;
-    }
     const model = getModel(registry, opts.modelId) || getModel(registry, registry && registry.defaultModelId);
     if (!model) {
       const error = new Error(i18n.t('shared_models_empty'));
@@ -379,10 +374,7 @@
     const defaultModelId = models.some((model) => model.id === registry.defaultModelId)
       ? registry.defaultModelId
       : (models[0] && models[0].id) || '';
-    return {
-      ...registry, providers, models, defaultModelId,
-      customTemplate: { provider: template, model: templateModel }
-    };
+    return { ...registry, providers, models, defaultModelId };
   }
 
   function apiKeyRequired(resolved) {
