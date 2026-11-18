@@ -1,0 +1,68 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #fff;
+  color: #202532;
+  font: 1rem/1.8 system-ui, sans-serif;
+}
+
+main {
+  max-width: 52rem;
+  margin: 0 auto;
+  padding: clamp(1rem, 4vw, 3rem) clamp(1.25rem, 4vw, 2.5rem) 4rem;
+  overflow-wrap: anywhere;
+}
+
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .25rem 1.25rem;
+  padding-bottom: .75rem;
+  border-bottom: 1px solid #d7dbe2;
+}
+
+nav a {
+  display: inline-block;
+  padding: .35rem 0;
+}
+
+nav [aria-current="page"] {
+  color: #202532;
+  font-weight: 700;
+  text-decoration-thickness: .15em;
+}
+
+a {
+  color: #244ab5;
+  text-underline-offset: .2em;
+}
+
+a:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
+h1, h2 {
+  line-height: 1.35;
+}
+
+h1 {
+  margin: 2rem 0 .5rem;
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
+}
+
+h2 {
+  margin: 2rem 0 .5rem;
+  font-size: 1.3rem;
+}
+
+p {
+  margin: .65rem 0;
+}
+
+.date {
+  color: #515b6b;
+}

@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Baka Translator Privacy Policy</title>
+  <link rel="stylesheet" href="privacy-policy.css">
+  <link rel="alternate" hreflang="zh-CN" href="privacy-policy.html">
+  <link rel="alternate" hreflang="en" href="privacy-policy.en.html">
+  <link rel="alternate" hreflang="ko" href="privacy-policy.ko.html">
+</head>
+<body>
+<main>
+  <nav aria-label="Privacy policy language">
+    <a href="privacy-policy.html" lang="zh-CN" hreflang="zh-CN">简体中文</a>
+    <a href="privacy-policy.en.html" lang="en" hreflang="en" aria-current="page">English</a>
+    <a href="privacy-policy.ko.html" lang="ko" hreflang="ko">한국어</a>
+  </nav>
+  <h1>Baka Translator Privacy Policy</h1>
+  <p class="date">Effective <time datetime="2026-11-18">November 18, 2026</time>. Applies to version 1.3.0 of the extension.</p>
+
+  <section>
+    <h2>Scope of this policy</h2>
+    <p>Baka Translator uses the model service you choose to translate web pages, selected text and text in images, polish translations, and help you read light novels. This policy explains what information the extension processes, who receives it, where it is stored, and how you can manage it.</p>
+    <p>The extension sends the content needed for each task directly to the model service you select. The developer does not operate a server that relays your content or receive usage analytics or advertising tracking data from the extension.</p>
+  </section>
+
+  <section>
+    <h2>Information the extension uses and why</h2>
+    <p>The extension uses your API key, provider and model selections, custom endpoint address, reasoning effort setting and prompts to connect to the service and run requests. The translation target determines the language of the model’s output. The extension stores your interface language, bilingual display preference and per-site settings on your device. You can follow the browser’s language or select Simplified Chinese, English or Korean. The extension includes the interface translations, so changing the interface language requires no request to a model service.</p>
+    <p>Translation, polishing and light novel features may use page text, selected text, draft translations, relevant context from preceding text or chapters, the title of a work and related glossary terms. Image translation uses a screenshot of the visible part of the current tab, cropped images, recognized text and its translation.</p>
+    <p>The extension uses the current website’s domain to save site-specific settings. To match novel chapters with cached translations, it also stores the novel site, work and chapter identifiers, chapter URLs and titles, cached source text and translations, processing times and related settings on your device. It does not build a history of all your browsing activity.</p>
+    <p>Local usage statistics show you the number of API requests, token usage, cache usage, estimated costs and the time of the last update. The extension does not log clicks, keystrokes, mouse positions or scrolling activity.</p>
+    <p>If you translate webmail, chats or other communications, their text or images may be sent to the model service. Full-page translation may also process messages that arrive later on the same page, as described below. The extension does not connect to email APIs or sync emails or messages in the background. Content you translate may include personal or sensitive information. The extension does not build separate profiles from names, health information, payment details or credit status.</p>
+  </section>
+
+  <section>
+    <h2>When the extension processes content</h2>
+    <p>On ordinary web pages, you can start translation from the toolbar, a keyboard shortcut, the context menu or the extension interface. The extension captures the visible part of the current tab only when you use image translation.</p>
+    <p>After you start full-page translation, text that appears later on that page may be sent automatically to your chosen model. Examples include paragraphs loaded as you scroll and newly received messages. This stops when you restore the original page, navigate away, or reach the limit for additional text on that page (60,000 characters or 1,200 text nodes). Jumping to an existing anchor on the same page counts as staying on that page. For embedded frames, automatic translation covers only documents that the extension could access when translation began. Frame documents loaded later are excluded.</p>
+    <p>On supported chapter pages on Shōsetsuka ni Narō (小説家になろう) and Kakuyomu (カクヨム), the extension automatically loads its bundled scripts to identify the chapter. When you start a full-chapter translation, it records the work and chapter and may retrieve context, extract glossary terms and cache the current chapter. If you enable next-chapter pretranslation for the site, it may also fetch the next chapter from the original site, send it to the model for translation in advance, and apply or resume that translation when you open the chapter. A background pretranslation task that has already started can continue after you leave the page.</p>
+    <p>If you enable automatic glossary cleanup, the extension sends the work’s title and the entries to be reviewed to the translation or polishing model you specified once the configured chapter count is reached. An entry may include the source term, its translation, aliases, category, gender and notes. When checking a proposed change, the extension may also send short excerpts of the original text from the local chapter cache to help the model determine how the work uses a term.</p>
+  </section>
+
+  <section>
+    <h2>Who receives the data</h2>
+    <p>Built-in model providers include DeepSeek, OpenAI, Anthropic, xAI and Google. For a custom endpoint, the address you enter determines the recipient. You can choose different providers for translation and polishing, so the relevant source text, drafts, context, prompts and glossary terms may go to different recipients.</p>
+    <p>When you use a model, test a connection or fetch the list of models, the extension sends the API key to your chosen provider for authentication as required by its API. Fetching the model list can use a key you have just entered without saving it. This request does not include page text. The extension does not insert saved keys into text submitted for translation or into prompts.</p>
+    <p>For image translation, the extension takes a screenshot on your device, crops it to the image’s location, then resizes and compresses the crop. The vision model receives the pixels in that area, which may include nearby page content at its edges. The full tab screenshot stays on your device.</p>
+    <p>Requests to model APIs omit browser cookies. When the extension fetches adjacent chapters from the original novel site, the browser may include your existing login session for that site to retrieve content you have permission to access. The extension does not use the cookies API to read or export cookie values.</p>
+    <p>Recipients may receive the request content, authentication information and network details such as your IP address and the time of the request. Whether a provider keeps logs, uses data for training or human review, where it processes the data, and how it deletes the data depend on its policies and your account settings. If you use a custom endpoint, check the policy of the service that actually receives your requests.</p>
+  </section>
+
+  <section>
+    <h2>Local storage and retention</h2>
+    <p>The extension stores API keys, settings, model lists and capability records, glossaries, work metadata, cached chapters and usage totals in the browser’s <code>chrome.storage.local</code> on your device. It does not sync this data using <code>chrome.storage.sync</code>. The extension does not add its own encryption to API keys. Their local protection depends on the browser, operating system access controls and device security.</p>
+    <p>The extension caches up to 30 chapters per work. Cached chapters expire after 30 days. The extension checks for expired records when reading or subsequently writing to the cache, so removal may occur after the expiry date. There is no common automatic expiry for settings, glossaries or work metadata. When automatic cleanup changes a glossary, the extension keeps a local snapshot from before the most recent cleanup and a cleanup record so you can undo it.</p>
+    <p>Full screenshots, cropped images and image recognition results are used for the current task and its display. The extension does not write them to persistent storage. Closing the image results panel clears the results it holds. The browser manages the release of memory.</p>
+  </section>
+
+  <section>
+    <h2>Your controls and deletion options</h2>
+    <p>In settings, you can replace or clear a saved API key, change models and prompts, disable features for a site or turn off automatic glossary cleanup, reset usage statistics, or clear the glossary for a specific work and target language. Clearing that glossary also clears its cleanup record. The chapter cache and work metadata stay on your device.</p>
+    <p>You can manage the extension’s access to websites in your browser. Uninstalling the extension clears its local extension storage in that browser.</p>
+    <p>Clearing a key from your device does not revoke it with the provider or recall requests already sent. To revoke a key, change retention settings or delete data a provider has received, use that provider’s controls or contact the provider.</p>
+  </section>
+
+  <section>
+    <h2>Data transmission and Limited Use</h2>
+    <p>Built-in remote endpoints use HTTPS. The custom provider settings also allow HTTP endpoints on <code>localhost</code> or <code>127.0.0.1</code>. These local HTTP connections do not provide TLS encryption in transit.</p>
+    <p>Baka Translator follows the Chrome Web Store User Data Policy, including its Limited Use requirements. Information obtained through the extension is used only to provide or improve translation and directly related features. The extension does not sell this information or use it for targeted advertising, ad profiling, credit assessments or lending decisions. The developer does not collect it to train general-purpose AI models.</p>
+    <p>Sending the data needed for translation to your chosen provider is part of using the model features. How third-party services handle that data depends on their policies and your account settings.</p>
+  </section>
+
+  <section>
+    <h2>Policy updates and contact</h2>
+    <p>When our data handling practices change, we will update this policy and give it a new effective date.</p>
+    <p>You can contact the maintainer through the project’s issue tracker. Remove API keys and sensitive page content before posting public feedback. <a href="https://github.com/Baka-D/Baka-Translator/issues">Project issue tracker</a></p>
+    <p><a href="https://github.com/Baka-D/Baka-Translator">Project website</a> · <a href="https://developer.chrome.com/docs/webstore/program-policies/policies#protecting-user-privacy">Chrome Web Store User Data Policy</a></p>
+  </section>
+</main>
+</body>
+</html>
