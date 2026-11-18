@@ -14,6 +14,17 @@
     node.style.setProperty(key, value, 'important');
   }
 
+  function localizedEl(tag, className, key) {
+    const node = el(tag, className, globalScope.DSHT.i18n.t(key));
+    node.setAttribute('data-i18n', key);
+    return node;
+  }
+
+  function localizedAttribute(node, attribute, key) {
+    node.setAttribute(attribute, globalScope.DSHT.i18n.t(key));
+    node.setAttribute('data-i18n-' + attribute, key);
+  }
+
   function onTrusted(node, type, callback) {
     node.addEventListener(type, (event) => {
       if (event.isTrusted !== true || node.disabled || node.closest('.dsht-hidden')) return;
@@ -51,6 +62,8 @@
   }
 
   parts.el = el;
+  parts.localizedEl = localizedEl;
+  parts.localizedAttribute = localizedAttribute;
   parts.setImportant = setImportant;
   parts.onTrusted = onTrusted;
   parts.copyText = copyText;

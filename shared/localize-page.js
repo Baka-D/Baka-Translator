@@ -1,8 +1,13 @@
-/** Static extension pages localize once, without changing user content or HTML. */
+/** Localize static extension markup before application-specific rendering. */
 (function localizePage(globalScope) {
   'use strict';
-  const apply = () => globalScope.DSHT.i18n.localizeDocument();
-  // Loaded at the end of body, before app startup; never overwrite a rendered status later.
-  if (document.body) apply();
-  else document.addEventListener('DOMContentLoaded', apply, { once: true });
+  const i18n = globalScope.DSHT.i18n;
+  let applied;
+  function apply() {
+    if (applied === i18n.locale) return;
+    i18n.localizeDocument();
+    applied = i18n.locale;
+  }
+  i18n.onChange(apply);
+  void i18n.ready.then(apply);
 })(globalThis);

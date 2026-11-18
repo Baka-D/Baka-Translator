@@ -3,21 +3,17 @@ import { novelUtils, t } from './context.mjs';
 import { addAlias, readAliases, renderAliases } from './glossary-aliases.mjs';
 import { makeButton } from './utils.mjs';
 
-const GENDER_OPTIONS = [['none', t('opt_glossary_gender_none')], ['male', t('opt_glossary_gender_male')], ['female', t('opt_glossary_gender_female')]];
-const CATEGORY_OPTIONS = [
-  ['character', t('opt_glossary_category_character')], ['place', t('opt_glossary_category_place')], ['organization', t('opt_glossary_category_organization')],
-  ['skill', t('opt_glossary_category_skill')], ['item', t('opt_glossary_category_item')], ['term', t('opt_glossary_category_term')]
-];
+const CATEGORY_OPTIONS = ['character', 'place', 'organization', 'skill', 'item', 'term'];
 
 function makeCategorySelect(value, index) {
   const select = document.createElement('select');
   select.className = 'select glossary-input';
   select.dataset.role = 'category';
   select.setAttribute('aria-label', t('opt_glossary_row_category_label', [index + 1]));
-  for (const [category, label] of CATEGORY_OPTIONS) select.add(new Option(label, category));
+  for (const category of CATEGORY_OPTIONS) select.add(new Option(t(`opt_glossary_category_${category}`), category));
   const current = String(value || '').trim() || 'term';
   // A category the model wrote outside this list stays selectable as it is.
-  if (!CATEGORY_OPTIONS.some(([category]) => category === current)) select.add(new Option(current, current));
+  if (!CATEGORY_OPTIONS.includes(current)) select.add(new Option(current, current));
   select.value = current;
   return select;
 }
@@ -31,7 +27,7 @@ function makeGenderSelect(term, index) {
   const unset = new Option(t('opt_glossary_gender'), '');
   unset.hidden = true;
   select.add(unset);
-  for (const [value, label] of GENDER_OPTIONS) select.add(new Option(label, value));
+  for (const value of ['none', 'male', 'female']) select.add(new Option(t(`opt_glossary_gender_${value}`), value));
   select.value = term.gender || '';
   return select;
 }
@@ -48,7 +44,7 @@ export function readTermRow(row) {
     category: value('category'),
     note: value('note'),
     gender: value('gender'),
-    aliases: readAliases(row, value('target'))
+    aliases: readAliases(row)
   };
 }
 

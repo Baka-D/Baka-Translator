@@ -83,9 +83,6 @@ export function renderCustomFields(provider, switched) {
   }
 }
 
-const MOVE_WARNING = t('opt_provider_move_warning');
-const DELETE_WARNING = t('opt_provider_delete_warning');
-
 /** An expired confirm must not erase a message written after its warning. */
 function clearFeedbackIf(warning) {
   if (ui.customProviderFeedback.textContent === warning) setFeedback(ui.customProviderFeedback, '');
@@ -150,13 +147,14 @@ export async function handleSaveCustomProvider() {
     hostMoved(storedEntry(current.id), validation.endpoint)) {
     state.confirmMoveProvider = current.id;
     ui.saveCustomProviderButton.textContent = t('opt_provider_confirm_save');
-    setFeedback(ui.customProviderFeedback, MOVE_WARNING, 'warning');
+    const warning = t('opt_provider_move_warning');
+    setFeedback(ui.customProviderFeedback, warning, 'warning');
     window.clearTimeout(state.moveConfirmTimer);
     state.moveConfirmTimer = window.setTimeout(() => {
       state.moveConfirmTimer = 0;
       if (state.confirmMoveProvider !== current.id) return;
       state.confirmMoveProvider = '';
-      clearFeedbackIf(MOVE_WARNING);
+      clearFeedbackIf(warning);
       renderProviders();
     }, CONFIRM_RESET_MS);
     return;
@@ -242,13 +240,14 @@ export async function handleDeleteProviderClick() {
     state.confirmDeleteProvider = provider.id;
     ui.deleteProviderButton.textContent = t('opt_provider_confirm_delete');
     ui.deleteProviderButton.classList.add('is-confirming');
-    setFeedback(ui.customProviderFeedback, DELETE_WARNING, 'warning');
+    const warning = t('opt_provider_delete_warning');
+    setFeedback(ui.customProviderFeedback, warning, 'warning');
     window.clearTimeout(state.deleteConfirmTimer);
     state.deleteConfirmTimer = window.setTimeout(() => {
       state.deleteConfirmTimer = 0;
       if (state.confirmDeleteProvider !== provider.id) return;
       state.confirmDeleteProvider = '';
-      clearFeedbackIf(DELETE_WARNING);
+      clearFeedbackIf(warning);
       renderProviders();
     }, CONFIRM_RESET_MS);
     return;

@@ -274,7 +274,7 @@ test('moving the host rebuilds the window around the same model', async () => {
   assert.equal(updates.at(-1).model.items[0].original, secret);
 });
 
-test('renderer uses a private runtime port and clears its DOM when disconnected', () => {
+test('renderer uses a private runtime port and clears its DOM when disconnected', async () => {
   const accepted = viewer();
   const rendered = [], events = [], intervals = new Set();
   const context = createLocalizedContext({ URL, location: { hash: `#${sessionId}` },
@@ -285,7 +285,7 @@ test('renderer uses a private runtime port and clears its DOM when disconnected'
     DSHT: { overlayParts: { baseCss: '', imageCss: '', createImages() {
       return { build() {}, render(value) { rendered.push(value); }, hide() { rendered.push({ visible: false }); } } } } }
   });
-  vm.runInContext(fs.readFileSync(path.join(root, 'content/image-results.js'), 'utf8'), context);
+  await vm.runInContext(fs.readFileSync(path.join(root, 'content/image-results.js'), 'utf8'), context);
   accepted.port.onMessage.emit({ type: 'model', model });
   assert.equal(rendered.at(-1).items[0].original, secret);
   accepted.port.disconnect();

@@ -8,7 +8,9 @@
 
     function showPretranslation(snapshot, scope, chapterUrl) {
       page.pretranslationStatus = snapshot.status || '';
-      page.pretranslationNote = snapshot.note || '';
+      page.pretranslationNote = snapshot.noteKey
+        ? { key: snapshot.noteKey, detail: snapshot.noteDetail }
+        : snapshot.note || '';
       page.pretranslationProgress = snapshot.progress || { stage: '', done: 0, total: 0 };
       page.pretranslationScope = scope;
       page.pretranslationChapterUrl = chapterUrl;
@@ -35,7 +37,7 @@
       page.pretranslateBusy = true;
       showPretranslation({
         status: 'running', progress: { stage: 'fetching', done: 0, total: 0 },
-        note: t('content_reading_next_chapter')
+        noteKey: 'content_reading_next_chapter'
       }, 'next', nextUrl);
       try {
         app.assertPageRoute();
@@ -47,7 +49,7 @@
         app.assertPageRoute();
         const cached = saved && novelUtils.cacheMatchesSettings(saved, page.translationKey);
         if (snapshot.status !== 'running' && cached) {
-          snapshot = { status: 'ready', note: t('content_next_chapter_cached') };
+          snapshot = { status: 'ready', noteKey: 'content_next_chapter_cached' };
         } else if (snapshot.status !== 'running') {
           const doc = await app.fetchChapterDocument(nextUrl);
           if (job.runId !== page.runId) return;
@@ -97,11 +99,12 @@
         if (snapshot.status === 'ready') {
           overlay.showToast(t('content_next_chapter_done'), 'success');
         } else if (snapshot.status === 'none') {
-          showPretranslation({ status: 'error', note: t('content_pretranslation_stopped') }, 'next', nextUrl);
+          showPretranslation({ status: 'error', noteKey: 'content_pretranslation_stopped' }, 'next', nextUrl);
         }
       } catch (error) {
         if (job.runId === page.runId) {
-          showPretranslation({ status: 'error', note: error.message || t('content_pretranslation_failed') }, 'next', nextUrl);
+          showPretranslation({ status: 'error', note: error.message,
+            noteKey: error.message ? '' : 'content_pretranslation_failed' }, 'next', nextUrl);
         }
       } finally {
         if (job.runId === page.runId) {

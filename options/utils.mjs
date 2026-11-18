@@ -1,5 +1,5 @@
 // Settings-page utils.
-import { t, i18n, EFFORT_LABELS, KEYS, billingTools, feedbackTimers, usageTools } from './context.mjs';
+import { t, i18n, KEYS, billingTools, feedbackTimers, usageTools } from './context.mjs';
 
 /* ---------- 通用工具 ---------- */
 
@@ -163,7 +163,8 @@ export function maskKey(key) {
 }
 
 export function effortLabel(level) {
-  return EFFORT_LABELS[level] || String(level || 'none');
+  return ['none', 'low', 'medium', 'high', 'xhigh', 'max'].includes(level)
+    ? t(`opt_effort_${level}`) : String(level || 'none');
 }
 
 export function makeButton(label, className, onClick, ariaLabel) {

@@ -6,7 +6,6 @@
   modules['images'] = function createModule(app) {
   const { languages, MSG, LIMITS, page, imageJob, overlay } = app;
   const { loadScreenshotImage, clamp, cropImageFromScreenshot, nextPaint } = app;
-  const UNSUPPORTED_NOTICE = t('content_vision_unsupported');
   imageJob.unsupported = false;
   let capabilityRevision = 0;
   let captureRunId = null;
@@ -27,9 +26,9 @@
     finishCapture(imageJob.runId);
     imageJob.runId += 1;
     Object.assign(imageJob, { unsupported: true, open: true, running: false,
-      items: [], error: UNSUPPORTED_NOTICE, subtitle: '' });
+      items: [], error: '' });
     renderImagePanel();
-    if (notify) overlay.showToast(UNSUPPORTED_NOTICE, 'info');
+    if (notify) overlay.showToast(t('content_vision_unsupported'), 'info');
   }
 
   function bindImageCapabilityChanges() {
@@ -157,7 +156,9 @@
         hasText: Boolean(item.hasText),
         translation: item.translation || '',
         original: item.original || '',
-        sourceLabel: item.sourceLabel || '',
+        sourceLabel: item.sourceLanguage
+          ? t('content_detected_language', [globalScope.DSHT.i18n.languageLabel(item.sourceLanguage, item.sourceLanguage)])
+          : '',
         error: item.error || ''
       };
     });
@@ -165,7 +166,7 @@
     const finished = imageJob.items.filter(
       (item) => item.status === 'error' || item.status === 'done'
     ).length;
-    let subtitle = imageJob.subtitle || '';
+    let subtitle = imageJob.error ? t('content_keep_page_foreground') : '';
     const skipped = imageJob.skipped > 0 ? t('content_images_skipped', [imageJob.skipped]) : '';
     if (imageJob.running) {
       subtitle = t('content_images_progress', [finished, imageJob.items.length || 0, skipped]);
@@ -179,13 +180,18 @@
       title: imageJob.unsupported ? t('content_image_disabled') : imageJob.error && imageJob.items.length === 0 ? t('content_image_failed') : t('content_image_translation'),
       subtitle,
       items,
-      emptyMessage: imageJob.error || '',
+      emptyMessage: imageJob.unsupported ? t('content_vision_unsupported') : imageJob.error || '',
       footer: t('content_image_privacy')
     };
   }
 
   function renderImagePanel() {
     overlay.renderImagePanel(imagePanelModel());
+  }
+
+  function refreshImagePanelLanguage() {
+    // The panel stays hidden until the screenshot has been taken.
+    if (imageJob.open && captureRunId === null) renderImagePanel();
   }
 
   function closeImagePanel() {
@@ -227,7 +233,7 @@
             hasText: false,
             translation: '',
             original: '',
-            sourceLabel: '',
+            sourceLanguage: '',
             error: ''
           });
         } catch (error) {
@@ -239,7 +245,7 @@
             hasText: false,
             translation: '',
             original: '',
-            sourceLabel: '',
+            sourceLanguage: '',
             error: error.message || t('content_image_crop_error')
           });
         }
@@ -285,10 +291,7 @@
             item.hasText = Boolean(response.hasText);
             item.translation = typeof response.translation === 'string' ? response.translation : '';
             item.original = typeof response.original === 'string' ? response.original : '';
-            const sourceLanguage = String(response.sourceLanguage || '').slice(0, 40);
-            item.sourceLabel = response.sourceLanguage
-              ? t('content_detected_language', [globalScope.DSHT.i18n.languageLabel(sourceLanguage, sourceLanguage)])
-              : '';
+            item.sourceLanguage = String(response.sourceLanguage || '').slice(0, 40);
             item.error = '';
           } catch (error) {
             if (runId !== imageJob.runId) return;
@@ -313,7 +316,6 @@
       await Promise.all(Array.from({ length: workerCount }, () => worker()));
       if (runId !== imageJob.runId) return;
       imageJob.running = false;
-      imageJob.subtitle = '';
       renderImagePanel();
     } catch (error) {
       if (runId !== imageJob.runId) return;
@@ -324,7 +326,6 @@
       imageJob.error = error.message || t('content_image_translation_error');
       imageJob.running = false;
       imageJob.items = [];
-      imageJob.subtitle = t('content_keep_page_foreground');
       overlay.showToast(t('content_image_error_details'), 'error');
       renderImagePanel();
     } finally {
@@ -389,12 +390,11 @@
       hasText: false,
       translation: '',
       original: '',
-      sourceLabel: '',
+      sourceLanguage: '',
       error: ''
     }));
     imageJob.error = '';
     imageJob.skipped = Math.max(0, collected.totalEligible - LIMITS.IMAGE_MAX_COUNT);
-    imageJob.subtitle = t('content_capturing');
     // Do not paint the image panel before captureVisibleTab() runs.
     overlay.hideImagePanel();
 
@@ -415,6 +415,7 @@
     collectVisibleImages,
     imagePanelModel,
     renderImagePanel,
+    refreshImagePanelLanguage,
     closeImagePanel,
     loadScreenshotImage,
     clamp,

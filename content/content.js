@@ -14,6 +14,7 @@
   if (globalThis.__DSHT_CONTENT_LOADED__ === true) return;
   const {
     config,
+    i18n,
     languages,
     detect,
     textUtils,
@@ -69,7 +70,7 @@
     translationKey: '',
     translatedRoute: '',
     translatedDocuments: new WeakSet(),
-    captions: new Set(),
+    captions: new Map(),
     panelDismissed: false,
     observers: [],
     dynamicQueue: new Set(),
@@ -112,7 +113,6 @@
     sourceHint: '',
     items: [],
     error: '',
-    subtitle: '',
     skipped: 0
   };
 
@@ -141,12 +141,30 @@
   for (const name of moduleNames) Object.assign(app, globalThis.DSHT.contentModules[name](app));
   globalThis.__DSHT_CONTENT_LOADED__ = true;
 
+  // Cache the native template while this extension context is still valid.
+  const cacheReloadNotice = () => i18n.t('content_extension_updated');
+  void i18n.ready.then(cacheReloadNotice);
+  i18n.onChange(() => {
+    cacheReloadNotice();
+    overlay.refreshLanguage(bubble.open ? app.selectionDirection(bubble.source, bubble.targetCode) : '');
+    if (page.status !== 'idle') {
+      if (page.targetCode) page.targetLabel = i18n.languageLabel(page.targetCode);
+      app.renderPagePanel();
+      app.notifyBadge(page.status);
+    }
+    for (const [caption, original] of page.captions) {
+      if (caption.isConnected) caption.textContent = i18n.t('content_original_caption', [original]);
+    }
+    app.refreshImagePanelLanguage();
+  });
+
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (!message || typeof message.type !== 'string') return false;
     switch (message.type) {
       case MSG.PING:
-        sendResponse({ ok: true });
-        return false;
+        // The worker pings before sending the first page command.
+        i18n.ready.then(() => sendResponse({ ok: true }));
+        return true;
 
       case MSG.PAGE_INFO:
         sendResponse({ info: app.buildPageInfo() });
@@ -188,5 +206,5 @@
 
   app.bindBubbleListeners();
   app.bindImageCapabilityChanges();
-  if (novelUtils) setTimeout(() => { void app.maybeAutoApplyPretranslation(); }, 450);
+  if (novelUtils) setTimeout(() => { void i18n.ready.then(() => app.maybeAutoApplyPretranslation()); }, 450);
 })();

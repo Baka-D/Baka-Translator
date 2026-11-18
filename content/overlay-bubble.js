@@ -5,7 +5,7 @@
   const parts = globalScope.DSHT.overlayParts = globalScope.DSHT.overlayParts || {};
 
   parts.createBubble = function createBubble(callbacks, languages) {
-    const { el, copyText, onTrusted } = parts;
+    const { el, localizedEl, localizedAttribute, copyText, onTrusted } = parts;
     let bubble, bubbleDirection, bubbleLoading, bubbleText, bubbleError;
     let bubbleOriginal, bubbleOriginalText, bubbleTarget, bubbleCopy, bubbleRetry, bubbleSettings;
     let bubbleVisible = false;
@@ -17,18 +17,18 @@
     function buildBubble(layer) {
       bubble = el('section', 'dsht-bubble dsht-hidden');
       bubble.setAttribute('role', 'dialog');
-      bubble.setAttribute('aria-label', t('content_selection_panel_label'));
+      localizedAttribute(bubble, 'aria-label', 'content_selection_panel_label');
 
       const head = el('div', 'dsht-bubble-head');
-      const logo = el('div', 'dsht-logo dsht-logo-sm', t('content_translation_logo'));
+      const logo = localizedEl('div', 'dsht-logo dsht-logo-sm', 'content_translation_logo');
       const heading = el('div', 'dsht-bubble-heading');
-      const title = el('h2', 'dsht-bubble-title', t('content_selection_panel_label'));
+      const title = localizedEl('h2', 'dsht-bubble-title', 'content_selection_panel_label');
       bubbleDirection = el('div', 'dsht-bubble-direction', `${t('content_auto_detect')} → ${globalScope.DSHT.i18n.languageLabel('zh')}`);
       heading.appendChild(title);
       heading.appendChild(bubbleDirection);
       const close = el('button', 'dsht-icon-button', '×');
       close.type = 'button';
-      close.setAttribute('aria-label', t('content_close_selection'));
+      localizedAttribute(close, 'aria-label', 'content_close_selection');
       onTrusted(close, 'click', closeBubble);
       head.appendChild(logo);
       head.appendChild(heading);
@@ -41,14 +41,14 @@
       dots.appendChild(el('i'));
       dots.appendChild(el('i'));
       bubbleLoading.appendChild(dots);
-      bubbleLoading.appendChild(el('span', '', t('content_translation_loading')));
+      bubbleLoading.appendChild(localizedEl('span', '', 'content_translation_loading'));
 
       bubbleText = el('p', 'dsht-bubble-text');
       bubbleError = el('p', 'dsht-bubble-error dsht-hidden');
       bubbleError.setAttribute('role', 'alert');
 
       bubbleOriginal = el('details', 'dsht-original');
-      const summary = el('summary', '', t('content_view_original'));
+      const summary = localizedEl('summary', '', 'content_view_original');
       bubbleOriginalText = el('p', 'dsht-original-text');
       bubbleOriginal.appendChild(summary);
       bubbleOriginal.appendChild(bubbleOriginalText);
@@ -61,27 +61,28 @@
       const foot = el('div', 'dsht-bubble-foot');
       const selectWrap = el('div', 'dsht-select-wrap');
       bubbleTarget = el('select', 'dsht-select');
-      bubbleTarget.setAttribute('aria-label', t('content_translation_target'));
+      localizedAttribute(bubbleTarget, 'aria-label', 'content_translation_target');
       for (const language of languages) {
-        const option = el('option', '', `${globalScope.DSHT.i18n.languageLabel(language.code)} · ${language.nativeName}`);
+        const option = el('option');
         option.value = language.code;
         bubbleTarget.appendChild(option);
       }
+      refreshLanguage();
       onTrusted(bubbleTarget, 'change', () => {
         if (callbacks.onBubbleTargetChange) callbacks.onBubbleTargetChange(bubbleTarget.value);
       });
       selectWrap.appendChild(bubbleTarget);
       selectWrap.appendChild(el('span', 'dsht-select-arrow'));
 
-      bubbleRetry = el('button', 'dsht-btn dsht-btn-ghost dsht-hidden', t('content_retry'));
+      bubbleRetry = localizedEl('button', 'dsht-btn dsht-btn-ghost dsht-hidden', 'content_retry');
       bubbleRetry.type = 'button';
       onTrusted(bubbleRetry, 'click', () => callbacks.onBubbleRetry && callbacks.onBubbleRetry());
 
-      bubbleSettings = el('button', 'dsht-btn dsht-btn-ghost dsht-hidden', t('content_settings'));
+      bubbleSettings = localizedEl('button', 'dsht-btn dsht-btn-ghost dsht-hidden', 'content_settings');
       bubbleSettings.type = 'button';
       onTrusted(bubbleSettings, 'click', () => callbacks.onBubbleSettings && callbacks.onBubbleSettings());
 
-      bubbleCopy = el('button', 'dsht-btn dsht-btn-primary dsht-copy-btn', t('content_copy'));
+      bubbleCopy = localizedEl('button', 'dsht-btn dsht-btn-primary dsht-copy-btn', 'content_copy');
       bubbleCopy.type = 'button';
       onTrusted(bubbleCopy, 'click', async () => {
         if (!currentTranslation) return;
@@ -110,6 +111,17 @@
       bubble.classList.add('dsht-hidden');
       bubbleAnchorRect = null;
       if (callbacks.onBubbleClose) callbacks.onBubbleClose();
+    }
+
+    function refreshLanguage(direction) {
+      if (!bubbleTarget) return;
+      languages.forEach((language, index) => {
+        bubbleTarget.children[index].textContent = `${globalScope.DSHT.i18n.languageLabel(language.code)} · ${language.nativeName}`;
+      });
+      if (bubbleVisible && direction) {
+        bubbleDirection.textContent = direction;
+        positionBubble();
+      }
     }
 
     function renderBubble(model) {
@@ -187,7 +199,7 @@
 
     return {
       build: buildBubble, render: renderBubble, hide: hideBubble, close: closeBubble,
-      position: positionBubble, isVisible: () => bubbleVisible
+      position: positionBubble, refreshLanguage, isVisible: () => bubbleVisible
     };
   };
 

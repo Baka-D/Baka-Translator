@@ -46,7 +46,9 @@ function pretranslationSnapshot(job) {
   return {
     status: job.status,
     progress: { ...job.progress },
-    note: job.note || '',
+    note: t(job.noteKey, job.noteDetail),
+    noteKey: job.noteKey,
+    noteDetail: job.noteDetail,
     ...(job.error ? { error: { ...job.error } } : {})
   };
 }
@@ -60,7 +62,8 @@ function stopPretranslation(job) {
   if (!job) return;
   job.cancelled = true;
   job.status = 'none';
-  job.note = t('bg_pretranslation_stopped');
+  job.noteKey = 'bg_pretranslation_stopped';
+  job.noteDetail = '';
 }
 
 function trimPretranslationJobs() {
@@ -245,7 +248,7 @@ async function polishPretranslation(job) {
     id: segment.id, original: segment.text, translation: job.translations.get(segment.id)
   }));
   job.progress = { stage: 'polishing', done: 0, total: pairs.length };
-  job.note = t('bg_next_chapter_polishing');
+  job.noteKey = 'bg_next_chapter_polishing';
   // Keep the outer chunk loop so the pretranslation panel advances its
   // progress between chunks. Each slice fills the polish pool, which
   // handlePolishSegments runs as parallel inner chunks.
@@ -284,7 +287,7 @@ async function runPretranslation(job) {
         pretranslationNovel.mapCachedTranslations(job.segments, cached.entries).complete) {
       job.status = 'ready';
       job.progress = { stage: 'saving', done: job.segments.length, total: job.segments.length };
-      job.note = cached.polished ? t('bg_next_chapter_cached') : t('bg_next_chapter_draft_cached');
+      job.noteKey = cached.polished ? 'bg_next_chapter_cached' : 'bg_next_chapter_draft_cached';
       return;
     }
     // Every batch belongs to the same settings snapshot as the chapter's cache key.
@@ -300,19 +303,19 @@ async function runPretranslation(job) {
     await translatePretranslationBatches(job);
     if (!pretranslationActive(job)) return;
     job.progress.stage = 'saving';
-    job.note = t('bg_next_chapter_saving_draft');
+    job.noteKey = 'bg_next_chapter_saving_draft';
     await savePretranslationCache(job, false);
     if (!pretranslationActive(job)) return;
     if (job.polish) {
       await polishPretranslation(job);
       if (!pretranslationActive(job)) return;
       job.progress.stage = 'saving';
-      job.note = t('bg_next_chapter_saving_polish');
+      job.noteKey = 'bg_next_chapter_saving_polish';
       await savePretranslationCache(job, true);
       if (!pretranslationActive(job)) return;
     }
     job.status = 'ready';
-    job.note = job.polish ? t('bg_next_chapter_polish_done') : t('bg_next_chapter_done');
+    job.noteKey = job.polish ? 'bg_next_chapter_polish_done' : 'bg_next_chapter_done';
   } catch (error) {
     const superseded = () => job.cancelled || pretranslationOwners.get(job.cacheKey) !== job;
     if (superseded()) return;
@@ -321,9 +324,8 @@ async function runPretranslation(job) {
     if (job.hasDraft) await savePretranslationCache(job, false).catch(() => {});
     if (superseded()) return;
     job.status = job.hasDraft ? 'ready' : 'error';
-    job.note = job.hasDraft
-      ? t('bg_next_chapter_polish_failed', [detail.message])
-      : t('bg_next_chapter_failed', [detail.message]);
+    job.noteKey = job.hasDraft ? 'bg_next_chapter_polish_failed' : 'bg_next_chapter_failed';
+    job.noteDetail = detail.message;
     if (!job.hasDraft) job.error = detail;
   }
 }
@@ -350,7 +352,7 @@ async function handlePretranslateChapter(message, sender) {
     polish: message.polish === true,
     translationKey,
     status: 'running', progress: { stage: 'translating', done: 0, total: segments.length },
-    note: t('bg_next_chapter_running'), translations: new Map(), costUsd: 0,
+    noteKey: 'bg_next_chapter_running', noteDetail: '', translations: new Map(), costUsd: 0,
     hasDraft: false, failed: false, cancelled: false
   };
   pretranslationJobs.set(request.key, job);
@@ -404,10 +406,11 @@ async function getPretranslation(message, sender) {
   if (!cached || (translationKey !== null && !pretranslationNovel.cacheMatchesSettings(cached, translationKey))) {
     return pretranslationSnapshot(null);
   }
+  const noteKey = cached.polished ? 'bg_chapter_cached' : 'bg_chapter_draft_cached';
   return {
     status: 'ready',
     progress: { stage: 'saving', done: cached.entries.length, total: cached.entries.length },
-    note: cached.polished ? t('bg_chapter_cached') : t('bg_chapter_draft_cached')
+    note: t(noteKey), noteKey
   };
 }
 

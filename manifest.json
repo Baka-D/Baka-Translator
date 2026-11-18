@@ -57,7 +57,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["content/image-results.html"],
+      "resources": ["content/image-results.html", "locales/zh-cn.json", "locales/en.json", "locales/ko.json"],
       "matches": ["<all_urls>"]
     }
   ],

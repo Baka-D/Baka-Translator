@@ -56,10 +56,10 @@ export function addAlias(list, index) {
   row.querySelector('[data-role="alias-source"]').focus();
 }
 
-/** The aliases on screen; one without a translation uses the term's. */
-export function readAliases(termRow, target) {
+/** Read draft fields verbatim so re-rendering cannot change a half-edited alias. */
+export function readAliases(termRow) {
   return Array.from(termRow.querySelectorAll('[data-alias-row]'), (row) => ({
     source: row.querySelector('[data-role="alias-source"]').value,
-    target: row.querySelector('[data-role="alias-target"]').value.trim() || target
+    target: row.querySelector('[data-role="alias-target"]').value
   }));
 }

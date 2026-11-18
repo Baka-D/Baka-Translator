@@ -121,9 +121,15 @@ export async function loadPromptEditor() {
   ui.polishPromptInput.value = merged.polishPrompt || '';
   rememberPrompts();
   disarmReset();
+  renderPromptLabels(preset);
+}
+
+export function renderPromptLabels(preset) {
+  const presetId = state.presetId;
   if (ui.presetDescription) {
-    ui.presetDescription.textContent = i18n.presetDescription(presetId, preset.description || preset.name || '');
+    ui.presetDescription.textContent = i18n.presetDescription(presetId, preset?.description || preset?.name || '');
   }
+  const overrides = state.promptOverrides?.[presetId] || {};
   const hasOverride = Boolean(overrides.translationPrompt || overrides.polishPrompt);
   if (ui.promptStatus) {
     ui.promptStatus.textContent = hasOverride
@@ -197,7 +203,7 @@ export async function handleSavePrompts() {
   }
 }
 
-function disarmReset() {
+export function disarmReset() {
   resetArmed = false;
   window.clearTimeout(resetTimer);
   resetTimer = 0;

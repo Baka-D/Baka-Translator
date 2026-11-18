@@ -2,8 +2,6 @@
 (function registerContentModule(globalScope) {
   'use strict';
   const { t } = globalScope.DSHT.i18n;
-  // Prepare this before extension reload invalidates even chrome.i18n.getMessage.
-  const extensionUpdatedMessage = t('content_extension_updated');
   const modules = globalScope.DSHT.contentModules ||= {};
   modules['runtime'] = function createModule(app) {
   const { config, languages, MSG, page, overlay } = app;
@@ -152,7 +150,7 @@
     return extensionMessage(message).catch((error) => {
       if (/Extension context invalidated/i.test(String(error && error.message))) {
         error.code = 'EXTENSION_RELOADED';
-        error.message = extensionUpdatedMessage;
+        error.message = t('content_extension_updated');
       } else if (/message (channel|port) closed|Receiving end does not exist/i.test(String(error && error.message))) {
         error.code = 'WORKER_RESTARTED';
         error.retryable = true;
@@ -188,6 +186,7 @@
         {
           type: MSG.PAGE_STATUS,
           status,
+          targetCode: page.targetCode,
           targetLabel: page.targetLabel || ''
         },
         () => {

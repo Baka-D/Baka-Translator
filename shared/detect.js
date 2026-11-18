@@ -11,12 +11,12 @@
     (typeof require === 'function' ? require('./i18n.js') : null);
 
   const LABELS = Object.freeze({
-    zh: i18n.languageLabel('zh'),
-    en: i18n.languageLabel('en'),
-    ko: i18n.languageLabel('ko'),
-    ja: i18n.languageLabel('ja'),
-    ru: i18n.languageLabel('ru'),
-    unknown: i18n.languageLabel('unknown')
+    get zh() { return i18n.languageLabel('zh'); },
+    get en() { return i18n.languageLabel('en'); },
+    get ko() { return i18n.languageLabel('ko'); },
+    get ja() { return i18n.languageLabel('ja'); },
+    get ru() { return i18n.languageLabel('ru'); },
+    get unknown() { return i18n.languageLabel('unknown'); }
   });
 
   const MAX_ANALYZED_CHARS = 50000;

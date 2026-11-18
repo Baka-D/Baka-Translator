@@ -7,42 +7,20 @@
   const i18n = globalScope.DSHT?.i18n ||
     (typeof require === 'function' ? require('./i18n.js') : null);
 
+  function targetLanguage(code, promptName, nativeName) {
+    return Object.freeze({
+      code, promptName, nativeName,
+      get label() { return i18n.languageLabel(code); },
+      get shortLabel() { return i18n.t(`language_short_${code}`); }
+    });
+  }
+
   const TARGET_LANGUAGES = Object.freeze([
-    Object.freeze({
-      code: 'zh',
-      label: i18n.languageLabel('zh'),
-      shortLabel: i18n.t('language_short_zh'),
-      promptName: 'Simplified Chinese',
-      nativeName: '简体中文'
-    }),
-    Object.freeze({
-      code: 'en',
-      label: i18n.languageLabel('en'),
-      shortLabel: i18n.t('language_short_en'),
-      promptName: 'English',
-      nativeName: 'English'
-    }),
-    Object.freeze({
-      code: 'ko',
-      label: i18n.languageLabel('ko'),
-      shortLabel: i18n.t('language_short_ko'),
-      promptName: 'Korean',
-      nativeName: '한국어'
-    }),
-    Object.freeze({
-      code: 'ja',
-      label: i18n.languageLabel('ja'),
-      shortLabel: i18n.t('language_short_ja'),
-      promptName: 'Japanese',
-      nativeName: '日本語'
-    }),
-    Object.freeze({
-      code: 'ru',
-      label: i18n.languageLabel('ru'),
-      shortLabel: i18n.t('language_short_ru'),
-      promptName: 'Russian',
-      nativeName: 'Русский'
-    })
+    targetLanguage('zh', 'Simplified Chinese', '简体中文'),
+    targetLanguage('en', 'English', 'English'),
+    targetLanguage('ko', 'Korean', '한국어'),
+    targetLanguage('ja', 'Japanese', '日本語'),
+    targetLanguage('ru', 'Russian', 'Русский')
   ]);
 
   const BY_CODE = new Map(TARGET_LANGUAGES.map((language) => [language.code, language]));

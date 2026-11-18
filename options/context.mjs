@@ -27,14 +27,6 @@ export const FEEDBACK_CLEAR_MS = 2600;
 export const CONFIRM_RESET_MS = 5000;
 // Plain http would expose the API key, so it stays limited to this machine.
 export const LOCAL_HTTP_HOSTS = ['localhost', '127.0.0.1'];
-export const EFFORT_LABELS = Object.freeze({
-  none: t('opt_effort_none'),
-  low: t('opt_effort_low'),
-  medium: t('opt_effort_medium'),
-  high: t('opt_effort_high'),
-  xhigh: t('opt_effort_xhigh'),
-  max: t('opt_effort_max')
-});
 export const STORAGE_KEYS_TO_READ = [
   KEYS.API_KEY,
   KEYS.TARGET,
@@ -63,6 +55,8 @@ export const ui = {
   tabAdvanced: byId('tab-advanced'),
   panelGeneral: byId('panel-general'),
   panelAdvanced: byId('panel-advanced'),
+  uiLanguageSelect: byId('uiLanguageSelect'),
+  uiLanguageFeedback: byId('uiLanguageFeedback'),
   modelsLoadError: byId('modelsLoadError'),
   modelsLoadErrorText: byId('modelsLoadErrorText'),
   reloadModelsButton: byId('reloadModelsButton'),

@@ -27,7 +27,7 @@ function isRestrictedUrl(url) {
 }
 
 function pageError(code, message) {
-  return new PageAccessError(code, message || PAGE_ACCESS_ERRORS[code] || PAGE_ACCESS_ERRORS.NO_PAGE_ACCESS);
+  return new PageAccessError(code, message || t(PAGE_ACCESS_ERRORS[code] || PAGE_ACCESS_ERRORS.NO_PAGE_ACCESS));
 }
 
 function describeInjectionFailure(error, tab) {
@@ -220,11 +220,11 @@ function errorPayload(error) {
   if (error instanceof api.ApiError) {
     return { ...api.getErrorPayload(error), discardedBilling: error.discardedBilling };
   }
-  if (code === 'MISSING_API_KEY') message = PAGE_ACCESS_ERRORS.NO_API_KEY;
-  if (code === 'TAB_CLOSED') message = PAGE_ACCESS_ERRORS.TAB_CLOSED;
+  if (code === 'MISSING_API_KEY') message = t(PAGE_ACCESS_ERRORS.NO_API_KEY);
+  if (code === 'TAB_CLOSED') message = t(PAGE_ACCESS_ERRORS.TAB_CLOSED);
   // Chrome's raw messaging errors mean the page navigated or reloaded mid-request.
   if (/Receiving end does not exist|message (channel|port) closed/i.test(String(message))) {
-    return { code: 'PAGE_LOADING', message: PAGE_ACCESS_ERRORS.PAGE_LOADING, retryable: true, status: 0 };
+    return { code: 'PAGE_LOADING', message: t(PAGE_ACCESS_ERRORS.PAGE_LOADING), retryable: true, status: 0 };
   }
   return { code, message, retryable: false, status: 0 };
 }
@@ -263,11 +263,11 @@ async function captureVisibleTab(windowId) {
     chrome.tabs.captureVisibleTab(windowId, { format: 'png' }, (dataUrl) => {
       const lastError = chrome.runtime.lastError;
       if (lastError) {
-        reject(new PageAccessError('SCREENSHOT_FAILED', PAGE_ACCESS_ERRORS.SCREENSHOT_FAILED));
+        reject(pageError('SCREENSHOT_FAILED'));
         return;
       }
       if (typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image/png;base64,')) {
-        reject(new PageAccessError('SCREENSHOT_FAILED', PAGE_ACCESS_ERRORS.SCREENSHOT_FAILED));
+        reject(pageError('SCREENSHOT_FAILED'));
         return;
       }
       resolve(dataUrl);

@@ -5,7 +5,7 @@
   const parts = globalScope.DSHT.overlayParts = globalScope.DSHT.overlayParts || {};
 
   parts.createPanel = function createPanel(callbacks) {
-    const { el, onTrusted } = parts;
+    const { el, localizedEl, localizedAttribute, onTrusted } = parts;
     let panel, panelTitle, panelSubtitle, panelProgress, panelProgressFill;
     let panelActions, panelNote, panelDismiss;
     let renderedActions = [];
@@ -13,10 +13,10 @@
     function buildPanel(layer) {
       panel = el('section', 'dsht-panel dsht-hidden');
       panel.setAttribute('role', 'region');
-      panel.setAttribute('aria-label', t('content_page_panel_label'));
+      localizedAttribute(panel, 'aria-label', 'content_page_panel_label');
 
       const head = el('div', 'dsht-panel-head');
-      const logo = el('div', 'dsht-logo', t('content_translation_logo'));
+      const logo = localizedEl('div', 'dsht-logo', 'content_translation_logo');
       const copy = el('div', 'dsht-panel-copy');
       panelTitle = el('h2', 'dsht-panel-title', t('content_translation_loading'));
       panelSubtitle = el('div', 'dsht-panel-subtitle', '');
@@ -26,8 +26,8 @@
 
       panelDismiss = el('button', 'dsht-icon-button', '×');
       panelDismiss.type = 'button';
-      panelDismiss.setAttribute('aria-label', t('content_close_panel'));
-      panelDismiss.title = t('content_close_panel_keep_running');
+      localizedAttribute(panelDismiss, 'aria-label', 'content_close_panel');
+      localizedAttribute(panelDismiss, 'title', 'content_close_panel_keep_running');
       onTrusted(panelDismiss, 'click', () => callbacks.onPanelAction && callbacks.onPanelAction('dismiss'));
 
       head.appendChild(logo);
@@ -37,7 +37,7 @@
 
       const progress = el('div', 'dsht-progress');
       progress.setAttribute('role', 'progressbar');
-      progress.setAttribute('aria-label', t('content_translation_progress'));
+      localizedAttribute(progress, 'aria-label', 'content_translation_progress');
       progress.setAttribute('aria-valuemin', '0');
       progress.setAttribute('aria-valuemax', '100');
       panelProgressFill = el('div', 'dsht-progress-fill');

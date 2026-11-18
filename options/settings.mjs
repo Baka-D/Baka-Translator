@@ -1,6 +1,6 @@
 // Settings-page settings.
 import { t, i18n, CONFIRM_RESET_MS, FEEDBACK_CLEAR_MS, KEYS, MSG, TARGETS, languages, state, ui } from './context.mjs';
-import { formatCost, formatTokens, formatUpdatedAt, normalizeUsage, persist, sendMessage, setFeedback } from './utils.mjs';
+import { formatCost, formatTokens, formatUpdatedAt, normalizeUsage, persist, restoreFocus, sendMessage, setFeedback } from './utils.mjs';
 
 /* ---------- 使用量统计 ---------- */
 
@@ -120,6 +120,23 @@ export function populateTargetSelect() {
 export function renderDefaultSettings() {
   ui.defaultTargetSelect.value = state.targetLang;
   ui.defaultBilingualToggle.checked = state.bilingual;
+}
+
+export async function handleUiLanguageChange() {
+  const select = ui.uiLanguageSelect;
+  const focused = document.activeElement === select;
+  select.disabled = true;
+  ui.uiLanguageFeedback.hidden = true;
+  try {
+    await i18n.setPreference(select.value);
+  } catch (_error) {
+    select.value = i18n.preference;
+    ui.uiLanguageFeedback.hidden = false;
+    setFeedback(ui.uiLanguageFeedback, t('opt_ui_language_save_failed'), 'error');
+  } finally {
+    select.disabled = false;
+    if (focused) restoreFocus(select);
+  }
 }
 
 export function handleTargetChange() {

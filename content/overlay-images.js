@@ -5,18 +5,17 @@
   const parts = globalScope.DSHT.overlayParts = globalScope.DSHT.overlayParts || {};
 
   parts.createImages = function createImages(callbacks) {
-    const { el, onTrusted } = parts;
-    const EMPTY_MESSAGE = t('content_no_images_hint');
+    const { el, localizedEl, localizedAttribute, onTrusted } = parts;
     let imagePanel, imageTitle, imageSubtitle, imageList, imageEmpty, imageFoot;
     let renderedItems = [];
 
     function buildImagePanel(layer) {
       imagePanel = el('section', 'dsht-image-panel dsht-hidden');
       imagePanel.setAttribute('role', 'dialog');
-      imagePanel.setAttribute('aria-label', t('content_image_panel_label'));
+      localizedAttribute(imagePanel, 'aria-label', 'content_image_panel_label');
 
       const head = el('div', 'dsht-image-head');
-      const logo = el('div', 'dsht-logo', t('content_image_logo'));
+      const logo = localizedEl('div', 'dsht-logo', 'content_image_logo');
       const copy = el('div', 'dsht-panel-copy');
       imageTitle = el('h2', 'dsht-image-title', t('content_image_translation'));
       imageSubtitle = el('div', 'dsht-image-subtitle', '');
@@ -26,7 +25,7 @@
 
       const close = el('button', 'dsht-icon-button', '×');
       close.type = 'button';
-      close.setAttribute('aria-label', t('content_close_images'));
+      localizedAttribute(close, 'aria-label', 'content_close_images');
       onTrusted(close, 'click', () => callbacks.onImageClose && callbacks.onImageClose());
       head.appendChild(logo);
       head.appendChild(copy);
@@ -34,7 +33,7 @@
 
       imageList = el('div', 'dsht-image-list');
       renderedItems = [];
-      imageEmpty = el('div', 'dsht-image-empty dsht-hidden', EMPTY_MESSAGE);
+      imageEmpty = el('div', 'dsht-image-empty dsht-hidden');
       imageFoot = el('div', 'dsht-image-foot', t('content_image_privacy'));
 
       imagePanel.appendChild(head);
@@ -58,19 +57,25 @@
 
       const items = Array.isArray(model.items) ? model.items : [];
       imageEmpty.classList.toggle('dsht-hidden', items.length > 0);
-      imageEmpty.textContent = model.emptyMessage || EMPTY_MESSAGE;
+      imageEmpty.textContent = model.emptyMessage || t('content_no_images_hint');
 
       // A session keeps its image order. Leave completed rows attached while other
       // images progress, preserving expanded originals, selections and decoded thumbs.
       items.forEach((item, index) => {
         const previous = renderedItems[index];
         const keys = Object.keys(item);
-        if (previous && keys.length === Object.keys(previous.item).length &&
+        const locale = globalScope.DSHT.i18n.locale;
+        if (previous && previous.locale === locale && keys.length === Object.keys(previous.item).length &&
             keys.every((key) => item[key] === previous.item[key])) return;
         const row = buildImageItem(item, index);
-        if (previous) imageList.replaceChild(row, previous.row);
-        else imageList.appendChild(row);
-        renderedItems[index] = { item: { ...item }, row };
+        if (previous) {
+          if (item.original && item.original === previous.item.original && previous.row.querySelector('details')?.open) {
+            const details = row.querySelector('details');
+            if (details) details.open = true;
+          }
+          imageList.replaceChild(row, previous.row);
+        } else imageList.appendChild(row);
+        renderedItems[index] = { item: { ...item }, row, locale };
       });
       for (const extra of renderedItems.slice(items.length)) imageList.removeChild(extra.row);
       renderedItems.length = items.length;
@@ -102,13 +107,13 @@
       } else if (item.status === 'error') {
         copy.appendChild(el('p', 'dsht-image-error', item.error || t('content_image_translation_error')));
       } else if (!item.hasText) {
-        copy.appendChild(el('p', 'dsht-image-muted', t('content_image_no_text')));
+        copy.appendChild(localizedEl('p', 'dsht-image-muted', 'content_image_no_text'));
       } else {
         const translation = el('p', 'dsht-image-translation', item.translation || '');
         copy.appendChild(translation);
         if (item.original) {
           const details = el('details', 'dsht-image-original');
-          details.appendChild(el('summary', '', t('content_image_original')));
+          details.appendChild(localizedEl('summary', '', 'content_image_original'));
           const quote = el('blockquote', '', item.original);
           details.appendChild(quote);
           copy.appendChild(details);

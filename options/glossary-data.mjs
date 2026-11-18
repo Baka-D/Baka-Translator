@@ -4,10 +4,6 @@ import { i18n, languages, novelUtils, t } from './context.mjs';
 export const GLOSSARY_PREFIX = 'novelGlossary:';
 const META_PREFIX = 'novelMeta:';
 
-function targetLabel(code) {
-  return i18n.languageLabel(code);
-}
-
 function siteLabel(siteId) {
   const adapter = novelUtils && novelUtils.SITE_ADAPTERS
     ? novelUtils.SITE_ADAPTERS[siteId]
@@ -70,7 +66,9 @@ export function normalizeGlossaryRows(rows) {
       category: row.category,
       note: row.note,
       gender: row.gender,
-      aliases: row.aliases
+      aliases: Array.isArray(row.aliases) ? row.aliases.map((alias) => ({
+        source: alias?.source, target: String(alias?.target || '').trim() || target
+      })) : []
     });
     if (!normalized) {
       return { error: t('opt_glossary_row_invalid', [index + 1]), row: index };
@@ -104,7 +102,7 @@ export function describeGlossary(key, terms, allValues) {
     ...parsed,
     title: (meta && meta.title) || parsed.workId,
     siteName: siteLabel(parsed.siteId),
-    targetLabel: targetLabel(parsed.targetCode),
+    get targetLabel() { return i18n.languageLabel(this.targetCode); },
     meta,
     tidy: (allValues || {})[parsed.tidyKey] || null,
     terms: normalizedTerms

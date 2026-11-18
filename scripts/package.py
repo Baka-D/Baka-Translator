@@ -10,7 +10,7 @@ import sys
 import zipfile
 from pathlib import Path
 
-from localize import generate as generate_locales
+from localize import LOCALES, generate as generate_locales
 
 ROOT = Path(__file__).resolve().parent.parent
 DIST = ROOT / "dist"
@@ -26,7 +26,7 @@ INCLUDE_DIRS = (
     "profile",
     "preset",
 )
-INCLUDE_FILES = ("manifest.json", "README.md", "LICENSE")
+INCLUDE_FILES = ("manifest.json", "README.md", "LICENSE", *(f"locales/{name}" for name in LOCALES.values()))
 EXCLUDED_NAMES = {".DS_Store", "Thumbs.db"}
 
 

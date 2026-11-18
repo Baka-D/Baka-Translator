@@ -6,6 +6,11 @@
   modules['page-ui'] = function createModule(app) {
   const { SETTINGS_ERROR_CODES, page, imageJob, overlay } = app;
 
+  function pretranslationNote() {
+    const note = page.pretranslationNote;
+    return note?.key ? t(note.key, [note.detail]) : note || '';
+  }
+
   function buildPageInfo() {
     let source = page.source;
     if (!source) source = app.detectPageLanguage(false);
@@ -41,7 +46,7 @@
       pretranslateEnabled: page.pretranslateEnabled,
       presetId: page.presetId || '',
       pretranslationStatus: page.pretranslationStatus || '',
-      pretranslationNote: page.pretranslationNote || '',
+      pretranslationNote: pretranslationNote(),
       pretranslationScope: page.pretranslationScope === 'current' ? 'current' : 'next',
       pretranslationProgress: { stage: '', done: 0, total: 0, ...page.pretranslationProgress },
       cachedPretranslation: page.cachedPretranslation,
@@ -175,7 +180,7 @@
       }
       if (page.polishError) notes.push(t('content_draft_kept_detail', [page.polishError]));
       if (pretranslation.active) notes.push(`${pretranslation.title} · ${pretranslation.detail}`);
-      else if (page.pretranslationNote) notes.push(page.pretranslationNote);
+      else if (page.pretranslationNote) notes.push(pretranslationNote());
       if (page.truncated) notes.push(t('content_page_truncated_done'));
       overlay.renderPanel({
         visible: true,
@@ -195,7 +200,7 @@
       const notes = [];
       if (page.polishError) notes.push(t('content_draft_kept_detail', [page.polishError]));
       if (pretranslation.active) notes.push(`${pretranslation.title} · ${pretranslation.detail}`);
-      else if (page.pretranslationNote) notes.push(page.pretranslationNote);
+      else if (page.pretranslationNote) notes.push(pretranslationNote());
       if (page.truncated) notes.push(t('content_page_truncated_done'));
       const actions = finishedActions();
       if (!page.novelMode) actions.push({ id: 'retry', label: t('content_retry'), variant: 'ghost' });

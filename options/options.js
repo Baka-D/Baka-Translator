@@ -1,15 +1,15 @@
 // Settings-page options.
 import { t, i18n, FEEDBACK_CLEAR_MS, KEYS, languages, modelsTools, novelUtils, visionTools, state, ui } from './context.mjs';
 import { handleDeleteProviderClick, handleSaveCustomProvider } from './custom-provider.mjs';
-import { handleClearKeyClick, handleSaveKey, handleTestConnection, handleToggleKeyVisibility } from './keys.mjs';
+import { handleClearKeyClick, handleSaveKey, handleTestConnection, handleToggleKeyVisibility, resetClearConfirm, setKeyVisibility } from './keys.mjs';
 import { handleAddModel, handleFetchModels } from './provider-models.mjs';
 import { renderProviders, startAddProvider } from './providers.mjs';
 import { applyCustomProviders, applyModelSelection, applyPolishProvider, applyResolvedModel, applyTranslationProvider, followStoredModels, loadRegistry, normalizePolishSelection, persistModels, renderModelArea } from './model-selection.mjs';
 import { polishInheritsModel, polishModel, providerNameById, translationModel } from './models.mjs';
-import { handlePresetChange, handleResetPrompts, handleSavePrompts, loadPresetIndex } from './presets.mjs';
-import { handleBilingualChange, handleResetUsageClick, handleTargetChange, populateTargetSelect, renderDefaultSettings, renderUsage } from './settings.mjs';
+import { disarmReset, ensurePreset, handlePresetChange, handleResetPrompts, handleSavePrompts, loadPresetIndex, renderPromptLabels } from './presets.mjs';
+import { handleBilingualChange, handleResetUsageClick, handleTargetChange, handleUiLanguageChange, populateTargetSelect, renderDefaultSettings, renderUsage, resetResetUsageConfirm } from './settings.mjs';
 import { handleAddSite, renderSiteSettings } from './sites.mjs';
-import { initGlossaries, wireGlossaryEvents } from './glossaries.mjs';
+import { initGlossaries, refreshGlossaryLanguage, wireGlossaryEvents } from './glossaries.mjs';
 import { loadStoredData, persistDefaultsIfMissing, readConfigSnapshot, resolvePreset } from './storage.mjs';
 import { effortLabel, getVersion, isObject, normalizeProviderKeys, normalizeUsage, persist, restoreFocus, setFeedback } from './utils.mjs';
 
@@ -349,7 +349,38 @@ export function renderNovelSupportNote() {
   ui.novelSupportNote.textContent = t('opt_novel_support', [sites]);
 }
 
+async function refreshOptionsLanguage() {
+  // A confirmation must still describe its action after the static button labels change.
+  resetClearConfirm();
+  resetResetUsageConfirm();
+  disarmReset();
+  state.confirmMoveProvider = '';
+  state.confirmDeleteProvider = '';
+  for (const message of document.querySelectorAll('.feedback')) setFeedback(message, '');
+  ui.uiLanguageFeedback.hidden = true;
+  setKeyVisibility(ui.apiKeyInput.type === 'text');
+  populateTargetSelect();
+  renderDefaultSettings();
+  renderNovelSupportNote();
+  renderUsage();
+  refreshGlossaryLanguage();
+
+  // Registry and preset files can supply either localized message keys or explicit names.
+  state.presetCache.clear();
+  state.presetLoadToken++;
+  await Promise.all([loadRegistry(), loadPresetIndex()]);
+  applyResolvedModel();
+  ui.presetSelect.value = state.presetId;
+  renderSiteSettings();
+  const presetId = state.presetId;
+  const preset = await ensurePreset(presetId);
+  if (state.presetId === presetId) renderPromptLabels(preset);
+}
+
 export async function init() {
+  await i18n.ready;
+  let locale = i18n.locale;
+  ui.uiLanguageSelect.value = i18n.preference;
   populateTargetSelect();
   showMeta();
   renderNovelSupportNote();
@@ -369,6 +400,17 @@ export async function init() {
   await resolvePreset();
   await persistDefaultsIfMissing();
   renderSiteSettings();
+
+  const updateLanguage = () => {
+    ui.uiLanguageSelect.value = i18n.preference;
+    if (locale === i18n.locale) return;
+    locale = i18n.locale;
+    void refreshOptionsLanguage();
+  };
+  i18n.onChange(updateLanguage);
+  updateLanguage();
+  ui.uiLanguageSelect.addEventListener('change', handleUiLanguageChange);
+  ui.uiLanguageSelect.disabled = false;
 }
 
 void init();

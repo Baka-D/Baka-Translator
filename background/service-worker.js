@@ -32,6 +32,7 @@ importScripts(
 
 const {
   config,
+  i18n,
   languages,
   api,
   textUtils,
@@ -41,7 +42,7 @@ const {
   billing: billingUtils,
   presets: presetUtils
 } = globalThis.DSHT;
-const { t } = globalThis.DSHT.i18n;
+const { t } = i18n;
 const MSG = config.MSG;
 const LIMITS = config.LIMITS;
 
@@ -62,7 +63,7 @@ if (chrome.storage.onChanged) {
     const keys = config.STORAGE_KEYS;
     if ([keys.VISION_CAPABILITIES, keys.MODEL_ID, keys.TRANSLATION_MODEL_ID, keys.CUSTOM_PROVIDER,
       keys.CUSTOM_PROVIDERS, keys.USER_MODELS].some((key) => changes?.[key])) {
-      void syncVisionContextMenu();
+      void i18n.ready.then(syncVisionContextMenu);
     }
   });
 }
@@ -82,16 +83,14 @@ const MENU_IDS = Object.freeze({
 });
 
 const PAGE_ACCESS_ERRORS = Object.freeze({
-  UNSUPPORTED_PAGE:
-    t('bg_page_restricted'),
-  FILE_ACCESS_DISABLED:
-    t('bg_file_access_disabled'),
-  NO_PAGE_ACCESS: t('bg_page_access_failed'),
-  TAB_CLOSED: t('bg_tab_closed'),
-  NO_API_KEY: t('bg_current_model_missing_key'),
-  MODEL_CONFIG_ERROR: t('bg_model_config_unreadable'),
-  SCREENSHOT_FAILED: t('bg_screenshot_failed'),
-  PAGE_LOADING: t('bg_page_loading')
+  UNSUPPORTED_PAGE: 'bg_page_restricted',
+  FILE_ACCESS_DISABLED: 'bg_file_access_disabled',
+  NO_PAGE_ACCESS: 'bg_page_access_failed',
+  TAB_CLOSED: 'bg_tab_closed',
+  NO_API_KEY: 'bg_current_model_missing_key',
+  MODEL_CONFIG_ERROR: 'bg_model_config_unreadable',
+  SCREENSHOT_FAILED: 'bg_screenshot_failed',
+  PAGE_LOADING: 'bg_page_loading'
 });
 
 class PageAccessError extends Error {
@@ -116,6 +115,7 @@ importScripts(
 );
 
 async function handleMessage(message, sender) {
+  await i18n.ready;
   switch (message.type) {
     case MSG.GET_CONFIG:
       return getConfigSnapshot();
@@ -234,7 +234,7 @@ async function handleMessage(message, sender) {
         setBadge(
           sender.tab.id,
           String(message.status || 'idle'),
-          String(message.targetLabel || '')
+          languages.getTargetLanguage(message.targetCode)?.label || String(message.targetLabel || '')
         );
       }
       return { ok: true };
@@ -267,11 +267,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-  void handleContextMenuClick(info, tab);
+  void i18n.ready.then(() => handleContextMenuClick(info, tab));
 });
 
 chrome.commands.onCommand.addListener((command, tab) => {
-  void handleCommand(command, tab);
+  void i18n.ready.then(() => handleCommand(command, tab));
 });
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
@@ -280,18 +280,29 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
   }
 });
 
-function runBackgroundSetup() {
-  initializeStorage().catch(() => {});
-  setupContextMenus().catch(() => {});
+// Menu removal and creation must finish in order across startup and language changes.
+let menuQueue = Promise.resolve();
+function refreshContextMenus() {
+  menuQueue = menuQueue.then(async () => {
+    await i18n.ready;
+    await setupContextMenus();
+  }).catch(() => {});
 }
 
-chrome.runtime.onInstalled.addListener(() => {
-  runBackgroundSetup();
+function runBackgroundSetup() {
+  initializeStorage().catch(() => {});
+  refreshContextMenus();
+}
+
+i18n.onChange(() => {
+  registryPromise = null;
+  presetIndexPromise = null;
+  presetCache.clear();
+  refreshContextMenus();
 });
 
-chrome.runtime.onStartup.addListener(() => {
-  setupContextMenus().catch(() => {});
-});
+chrome.runtime.onInstalled.addListener(runBackgroundSetup);
+chrome.runtime.onStartup.addListener(refreshContextMenus);
 
 // Ensure menus and defaults exist after a manual extension reload / worker wake.
 runBackgroundSetup();

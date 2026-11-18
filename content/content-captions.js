@@ -219,7 +219,7 @@
       }
       try {
         anchor.appendChild(caption);
-        page.captions.add(caption);
+        page.captions.set(caption, record.original);
         record.captioned = true;
       } catch (_error) {
         // The page may have removed the anchor.
@@ -228,7 +228,7 @@
   }
 
   function removeBilingualCaptions() {
-    for (const caption of page.captions) {
+    for (const caption of page.captions.keys()) {
       try {
         if (caption && caption.isConnected) caption.remove();
       } catch (_error) {

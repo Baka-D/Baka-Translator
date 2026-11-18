@@ -1,9 +1,10 @@
 /** Extension-origin renderer. It never exchanges web messages with its parent. */
-(function showImageResults(globalScope) {
+(async function showImageResults(globalScope) {
   'use strict';
   const id = location.hash.slice(1);
   if (!/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i.test(id)) return;
-  const parts = globalScope.DSHT.overlayParts;
+  const { i18n, overlayParts: parts } = globalScope.DSHT;
+  await i18n.ready;
   const host = document.createElement('div');
   host.id = 'image-results';
   const shadow = host.attachShadow({ mode: 'closed' });
@@ -19,16 +20,22 @@
   document.body.appendChild(host);
   let port = null;
   let heartbeat = null;
+  let model = null;
   const images = parts.createImages({ onImageClose() {
     if (port) {
       try { port.postMessage({ type: 'close' }); } catch (_error) { clear(); }
     }
   } });
   images.build(layer);
+  i18n.onChange(() => {
+    i18n.localizeDocument(shadow);
+    if (model) images.render(model);
+  });
 
   function clear() {
     clearInterval(heartbeat);
     heartbeat = null;
+    model = null;
     images.hide();
     const previous = port;
     port = null;
@@ -41,7 +48,10 @@
     port = chrome.runtime.connect({ name: 'dsht:image-panel:' + id });
     port.onDisconnect.addListener(clear);
     port.onMessage.addListener((message) => {
-      if (message?.type === 'model') images.render(message.model);
+      if (message?.type === 'model') {
+        model = message.model;
+        images.render(model);
+      }
     });
     // Port traffic keeps the worker alive only while this result window is open.
     heartbeat = setInterval(() => {

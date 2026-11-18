@@ -117,6 +117,7 @@
       removeFrame();
       layer = nextLayer;
       if (session) schedule(session);
-    }, render, hide, reattach, ready };
+    }, render, hide, reattach, ready,
+    refreshLanguage() { if (frame) frame.title = t('content_image_panel_label'); } };
   };
 })(globalThis);

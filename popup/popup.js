@@ -8,7 +8,13 @@
     if (fallback) fallback.textContent = t('pop_resources_failed');
     return;
   }
-  import('./popup-main.mjs').then(({ init }) => init()).catch(() => {
+  async function start() {
+    await root.i18n.ready;
+    root.i18n.onChange(() => window.location.reload());
+    const { init } = await import('./popup-main.mjs');
+    await init();
+  }
+  start().catch(() => {
     if (fallback) fallback.textContent = t('pop_init_failed');
   });
 })();

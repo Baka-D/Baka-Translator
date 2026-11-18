@@ -59,7 +59,7 @@ function harness() {
     translatedDocuments: new WeakSet([document]), targetCode: 'zh', glossary: [],
     dynamicQueue: new Set(), dynamicNodeCount: 0, dynamicCharCount: 0,
     translatedNodes: new Map(), initialTranslations: new Map(), translationMemory: new Map(),
-    captions: new Set(), observers: []
+    captions: new Map(), observers: []
   };
   let observer, nextTimer = 0;
   const context = createLocalizedContext({

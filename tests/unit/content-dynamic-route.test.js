@@ -43,7 +43,7 @@ function harness(count = 1) {
     progress: { done: 1, total: 1, failed: 0 },
     dynamicQueue: new Set(nodes), dynamicNodeCount: 0, dynamicCharCount: 0,
     translatedNodes: new Map(), initialTranslations: new Map(),
-    translationMemory: new Map(), captions: new Set(),
+    translationMemory: new Map(), captions: new Map(),
     observers: [{ disconnect() { disconnected = true; } }]
   };
   const app = {

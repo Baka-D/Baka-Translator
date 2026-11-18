@@ -38,6 +38,7 @@
 
       host = document.createElement(HOST_TAG);
       host.id = HOST_ID;
+      host.lang = globalScope.DSHT.i18n.locale;
       host.setAttribute('data-dsht-ui', 'overlay');
       setImportant(host, 'position', 'fixed');
       setImportant(host, 'inset', '0');
@@ -146,11 +147,19 @@
       images.render(model);
     }
 
+    function refreshLanguage(direction) {
+      if (!shadow) return;
+      host.lang = globalScope.DSHT.i18n.locale;
+      globalScope.DSHT.i18n.localizeDocument(shadow);
+      bubble.refreshLanguage(direction);
+      images.refreshLanguage();
+    }
+
     return Object.freeze({
       renderPanel, hidePanel: panel.hide,
       renderBubble, hideBubble: bubble.hide, positionBubble: bubble.position,
       renderImagePanel, hideImagePanel: images.hide, waitImagePanel: images.ready,
-      setCaptureMode, showToast
+      setCaptureMode, showToast, refreshLanguage
     });
   }
 

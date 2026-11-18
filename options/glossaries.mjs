@@ -132,9 +132,7 @@ function renderGlossaryEditor() {
   const entry = activeGlossary();
   if (!entry || !ui.glossaryEditor) return;
   openedEntry = entry;
-  resetClearButton();
   ui.glossaryEditor.hidden = false;
-  ui.glossaryEditorTitle.textContent = `${entry.title} · ${entry.siteName} · ${entry.targetLabel}`;
   if (ui.glossaryTitleInput) ui.glossaryTitleInput.value = entry.title;
   syncTitleButtons();
   state.glossaryOpened = entry.terms;
@@ -142,8 +140,21 @@ function renderGlossaryEditor() {
   state.glossaryDraft = entry.terms.length > 0 ? entry.terms.map((term) => ({ ...term })) : [{}];
   // Kept index-aligned with the draft so each row knows whether it was edited.
   state.glossarySaved = entry.terms.length > 0 ? entry.terms.slice() : [null];
+  renderGlossaryPage(entry);
+}
+
+function renderGlossaryPage(entry) {
+  resetClearButton();
+  ui.glossaryEditorTitle.textContent = `${entry.title} · ${entry.siteName} · ${entry.targetLabel}`;
   renderTidyUndo(entry);
   showGlossaryPage(state.glossaryPage);
+}
+
+export function refreshGlossaryLanguage() {
+  renderGlossaryList();
+  if (!openedEntry || ui.glossaryEditor.hidden) return;
+  syncGlossaryDraft();
+  renderGlossaryPage(openedEntry);
 }
 
 function syncTitleButtons() {
