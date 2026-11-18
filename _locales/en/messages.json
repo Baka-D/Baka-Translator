@@ -3251,6 +3251,15 @@
   "opt_translation_summary_unavailable": {
     "message": "Translation model: unavailable"
   },
+  "opt_ui_language": {
+    "message": "Interface language"
+  },
+  "opt_ui_language_auto": {
+    "message": "Follow system language"
+  },
+  "opt_ui_language_save_failed": {
+    "message": "Could not save the interface language. Try again."
+  },
   "opt_unknown": {
     "message": "Unknown"
   },

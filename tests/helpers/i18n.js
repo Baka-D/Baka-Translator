@@ -5,16 +5,18 @@ const path = require('node:path');
 const vm = require('node:vm');
 const catalogs = {
   zh_CN: require('../../locales/zh-cn.json'),
-  en: require('../../locales/en.json')
+  en: require('../../locales/en.json'),
+  ko: require('../../locales/ko.json')
 };
 const filename = path.resolve(__dirname, '../../shared/i18n.js');
 const source = fs.readFileSync(filename, 'utf8');
 
 /** Browser locale service for isolated tests; application code remains the real helper. */
 function createChromeI18n(locale = 'zh_CN') {
-  const language = /^en(?:[-_]|$)/i.test(locale) ? 'en' : 'zh_CN';
+  const primary = locale.toLowerCase().split(/[-_]/)[0];
+  const language = Object.hasOwn(catalogs, primary) ? primary : 'zh_CN';
   return {
-    getUILanguage: () => language.replace('_', '-'),
+    getUILanguage: () => locale.replaceAll('_', '-'),
     getMessage(key, substitutions = []) {
       const values = Array.isArray(substitutions) ? substitutions : [substitutions];
       const message = catalogs[language][key];

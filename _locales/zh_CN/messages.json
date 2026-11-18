@@ -3251,6 +3251,15 @@
   "opt_translation_summary_unavailable": {
     "message": "翻译模型：已失效"
   },
+  "opt_ui_language": {
+    "message": "界面语言"
+  },
+  "opt_ui_language_auto": {
+    "message": "跟随系统语言"
+  },
+  "opt_ui_language_save_failed": {
+    "message": "保存界面语言失败，请重试。"
+  },
   "opt_unknown": {
     "message": "未知"
   },

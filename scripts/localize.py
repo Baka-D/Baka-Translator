@@ -1,4 +1,4 @@
-"""Generate native Chromium locale files from the Chinese and English UI catalogs."""
+"""Generate native Chromium locale files from the UI catalogs."""
 from __future__ import annotations
 
 import argparse
@@ -7,7 +7,7 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-LOCALES = {"zh_CN": "zh-cn.json", "en": "en.json"}
+LOCALES = {"zh_CN": "zh-cn.json", "en": "en.json", "ko": "ko.json"}
 
 
 def outputs() -> dict[Path, str]:
@@ -19,10 +19,11 @@ def outputs() -> dict[Path, str]:
         if not isinstance(messages, dict):
             raise ValueError(f"Locale catalog must be an object: {LOCALES[locale]}")
     keys = set(source["zh_CN"])
-    if keys != set(source["en"]):
-        missing = sorted(keys - set(source["en"]))
-        extra = sorted(set(source["en"]) - keys)
-        raise ValueError(f"Message keys differ: en.json missing {missing}, extra {extra}")
+    for locale, messages in source.items():
+        if keys != set(messages):
+            missing = sorted(keys - set(messages))
+            extra = sorted(set(messages) - keys)
+            raise ValueError(f"Message keys differ: {LOCALES[locale]} missing {missing}, extra {extra}")
     result = {locale: {} for locale in LOCALES}
     for key in sorted(keys):
         if not re.fullmatch(r"[a-z][a-z0-9_]*", key):
