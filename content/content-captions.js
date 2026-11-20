@@ -187,6 +187,8 @@
       }
       caption.setAttribute(BILINGUAL_ATTR, '1');
       caption.setAttribute('role', 'note');
+      const source = page.source?.code;
+      caption.lang = app.originalReadingLanguage?.(anchor) ?? (source && source !== 'unknown' ? source : '');
       caption.textContent = t('content_original_caption', [record.original]);
       const styles = {
         display: 'block',

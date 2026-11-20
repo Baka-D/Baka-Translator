@@ -1,29 +1,72 @@
-/** Detect partial Han coverage in page fonts and repair the translated reading area. */
+/** Repair partial font coverage in the translated reading area. */
 (function registerContentModule(globalScope) {
   'use strict';
   const modules = globalScope.DSHT.contentModules ||= {};
+
+  // CSS font-family takes family names. FontFace local() can also need the
+  // regular face's full or PostScript name (e.g. YuGothic-Regular on Windows).
+  function localStack(...faces) {
+    return {
+      family: faces.map(([family]) => `"${family}"`).concat('sans-serif').join(', '),
+      source: faces.flat().map((name) => `local("${name}")`).join(', ')
+    };
+  }
+
+  // Regional Noto CJK faces cover all three scripts. Prefer the target region.
+  const notoSC = ['Noto Sans CJK SC', 'NotoSansCJKsc-Regular'];
+  const notoJP = ['Noto Sans CJK JP', 'NotoSansCJKjp-Regular'];
+  const notoKR = ['Noto Sans CJK KR', 'NotoSansCJKkr-Regular'];
+  const notoTC = ['Noto Sans CJK TC', 'NotoSansCJKtc-Regular'];
+  const notoHK = ['Noto Sans CJK HK', 'NotoSansCJKhk-Regular'];
+  const western = localStack(
+    ['Segoe UI', 'SegoeUI'], ['Helvetica Neue', 'HelveticaNeue'], ['Arial', 'ArialMT'],
+    ['Roboto', 'Roboto-Regular'], ['Noto Sans', 'NotoSans-Regular'],
+    ['Liberation Sans', 'LiberationSans'], ['DejaVu Sans', 'DejaVuSans']
+  );
+  const profiles = {
+    zh: {
+      lang: 'zh-Hans', letters: /\p{Script=Han}/gu, sample: '中日',
+      stack: localStack(
+        ['Microsoft YaHei', 'MicrosoftYaHei'], ['PingFang SC', 'PingFangSC-Regular'], notoSC,
+        ['Noto Sans SC', 'NotoSansSC-Regular'], ['Source Han Sans SC', 'SourceHanSansSC-Regular'],
+        ['WenQuanYi Micro Hei', 'WenQuanYiMicroHei'], ['Droid Sans Fallback', 'DroidSansFallback'],
+        ['SimSun'], ['Microsoft JhengHei', 'MicrosoftJhengHei'], notoTC, notoHK, notoJP, notoKR
+      )
+    },
+    ja: {
+      lang: 'ja', letters: /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}ーｰ]/gu, sample: '日あア',
+      stack: localStack(
+        ['Yu Gothic', 'YuGothic-Regular'], ['Hiragino Sans', 'Hiragino Sans W3'], ['Meiryo'], notoJP,
+        ['Noto Sans JP', 'NotoSansJP-Regular'], ['Source Han Sans', 'SourceHanSans-Regular'],
+        ['Hiragino Kaku Gothic ProN', 'HiraKakuProN-W3'], ['MS PGothic', 'MS-PGothic'], notoSC, notoKR, notoTC, notoHK
+      )
+    },
+    ko: {
+      lang: 'ko', letters: /[\p{Script=Hangul}\p{Script=Han}]/gu, sample: '한글',
+      stack: localStack(
+        ['Malgun Gothic', 'MalgunGothic'], ['Apple SD Gothic Neo', 'AppleSDGothicNeo-Regular'], notoKR,
+        ['Noto Sans KR', 'NotoSansKR-Regular'], ['Source Han Sans K', 'SourceHanSansK-Regular'],
+        ['NanumGothic'], notoSC, notoJP, notoTC, notoHK
+      )
+    },
+    en: { lang: 'en', letters: /\p{Script=Latin}/gu, sample: 'Aa', stack: western },
+    ru: { lang: 'ru', letters: /\p{Script=Cyrillic}/gu, sample: 'Аа', stack: western }
+  };
+
   modules.font = function createModule(app) {
-    const chineseFonts = [
-      'Microsoft YaHei', 'PingFang SC', 'Noto Sans CJK SC', 'Noto Sans SC',
-      'Source Han Sans SC', 'WenQuanYi Micro Hei', 'Droid Sans Fallback', 'SimSun'
-    ];
-    const fontFamily = chineseFonts.map((name) => `"${name}"`).concat('sans-serif').join(', ');
-    // CSS local() can require an individual face's full or PostScript name.
-    const probeSource = [...chineseFonts, 'PingFangSC-Regular', 'NotoSansCJKsc-Regular',
-      'NotoSansSC-Regular', 'SourceHanSansSC-Regular'].map((font) => `local("${font}")`).join(', ');
     const probes = new Map();
     const wrappers = new Map();
     const readingRoots = new Set();
+    const originalLanguages = new Map();
     let readingSheet = null;
     let readingMarker = '';
 
-    // A CJK glyph usually has the same advance in two different fonts. Enlarge a
-    // local Chinese face *only on the measuring canvas* so fallback is observable.
-    function getProbe(doc) {
+    // Enlarge only the measuring face so fallback is visible even for equal-width glyphs.
+    function getProbe(doc, stack) {
       if (!probes.has(doc)) {
         const view = doc.defaultView;
         const name = `dsht-measure-${view.crypto.getRandomValues(new Uint32Array(2)).join('-')}`;
-        const face = new view.FontFace(name, probeSource, { sizeAdjust: '300%' });
+        const face = new view.FontFace(name, stack.source, { sizeAdjust: '300%' });
         const ready = face.load().then(() => {
           if (probes.get(doc)?.face !== face) return null;
           doc.fonts.add(face);
@@ -34,9 +77,8 @@
       return probes.get(doc).ready;
     }
 
-    function hasMixedCoverage(probe, style, text, lang) {
+    function hasMixedCoverage(probe, style, glyphs, lang, profile) {
       if (!probe.ctx) return false;
-      const glyphs = Array.from(new Set(text.match(/\p{Script=Han}/gu))).join('');
       const { ctx, name } = probe;
       ctx.canvas.lang = lang;
       if ('lang' in ctx) ctx.lang = lang || 'inherit';
@@ -44,16 +86,15 @@
         ctx.font = `${style.fontStyle} ${style.fontWeight} 20px ${families}`;
         return ctx.measureText(sample).width;
       };
-      // Some stacks put a Latin-only face ahead of a perfectly good CJK face.
-      // Only assess the first family that actually supplies Chinese characters.
-      const reference = '中日' + glyphs;
+      // Skip families that contribute nothing in the target script.
+      const reference = profile.sample + glyphs;
       const probeWidth = measure(name, reference);
       for (const family of style.fontFamily.match(/(?:[^,"']|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')+/g) || []) {
         const candidate = family.trim();
         if (!candidate) continue;
         const withProbe = `${candidate}, ${name}`;
         if (Math.abs(measure(withProbe, reference) - probeWidth) < 0.1) continue;
-        return Math.abs(measure(withProbe, glyphs) - measure(`${candidate}, ${fontFamily}`, glyphs)) > 0.1;
+        return Math.abs(measure(withProbe, glyphs) - measure(`${candidate}, ${profile.stack.family}`, glyphs)) > 0.1;
       }
       return false;
     }
@@ -92,6 +133,12 @@
         document.adoptedStyleSheets = document.adoptedStyleSheets.filter((sheet) => sheet !== readingSheet);
         for (const root of readingRoots) root.removeAttribute(readingMarker);
         readingRoots.clear();
+        for (const [element, { original, applied }] of originalLanguages) {
+          if (element.getAttribute('lang') !== applied) continue;
+          if (original === null) element.removeAttribute('lang');
+          else element.setAttribute('lang', original);
+        }
+        originalLanguages.clear();
         readingSheet = null;
       }
     }
@@ -100,14 +147,36 @@
       if (app.page.translatedRoute !== app.currentRoute()) clearTranslatedFonts();
     }
 
-    function markReadingRoot(root) {
+    function originalReadingLanguage(element) {
+      // Dynamic captions can be created after the reading roots have been marked.
+      for (let owner = element; owner; owner = owner.parentElement || owner.getRootNode().host) {
+        const current = owner.getAttribute('lang');
+        const record = originalLanguages.get(owner);
+        const original = record && current === record.applied ? record.original : current;
+        if (original !== null) return original;
+      }
+      return null;
+    }
+
+    function markReadingLanguage(element, lang) {
+      if (originalLanguages.has(element)) return;
+      originalLanguages.set(element, { original: element.getAttribute('lang'), applied: lang });
+      element.setAttribute('lang', lang);
+    }
+
+    function markReadingRoot(root, lang) {
       if (readingRoots.has(root)) return;
       root.setAttribute(readingMarker, '');
       readingRoots.add(root);
+      markReadingLanguage(root, lang);
+      for (const child of root.querySelectorAll('[lang]')) {
+        if (!child.closest(`[${app.BILINGUAL_ATTR}]`)) markReadingLanguage(child, lang);
+      }
     }
 
     async function updateTranslatedFont(node, translation) {
-      if (app.page.targetCode !== 'zh' || !/\p{Script=Han}/u.test(translation)) {
+      const profile = profiles[app.page.targetCode];
+      if (!profile || translation.search(profile.letters) < 0) {
         releaseTranslatedFont(node);
         return;
       }
@@ -117,12 +186,15 @@
         const root = node.parentElement?.closest(selector);
         if (!root) return;
         if (readingSheet) {
-          markReadingRoot(root);
+          markReadingRoot(root, profile.lang);
+          for (let child = node.parentElement; child !== root; child = child.parentElement) {
+            if (child.hasAttribute('lang')) markReadingLanguage(child, profile.lang);
+          }
           return;
         }
       }
       const runId = app.page.runId;
-      const probe = await getProbe(doc);
+      const probe = await getProbe(doc, profile.stack);
       const isCurrent = () => runId === app.page.runId && node.isConnected &&
         node.nodeValue === translation && app.page.translatedRoute === app.currentRoute();
       if (!probe || !isCurrent()) return;
@@ -140,24 +212,25 @@
         if (!isCurrent() || (selector && readingSheet)) return;
       }
       const lang = parent.closest('[lang]')?.lang || doc.documentElement.lang;
-      if (!hasMixedCoverage(probe, style, translation, lang)) {
+      const glyphs = [...new Set(translation.normalize('NFC').match(profile.letters))].join('');
+      if (!hasMixedCoverage(probe, style, glyphs, lang, profile)) {
         releaseTranslatedFont(node);
         return;
       }
       if (selector) {
         const sheet = new CSSStyleSheet();
         readingMarker = `data-${probe.name}`;
-        sheet.replaceSync(`[${readingMarker}], [${readingMarker}] * { font-family: ${fontFamily} !important; }`);
+        sheet.replaceSync(`[${readingMarker}], [${readingMarker}] * { font-family: ${profile.stack.family} !important; }`);
         doc.adoptedStyleSheets = [...doc.adoptedStyleSheets, sheet];
         readingSheet = sheet;
-        for (const root of doc.querySelectorAll(selector)) markReadingRoot(root);
+        for (const root of doc.querySelectorAll(selector)) markReadingRoot(root, profile.lang);
         globalScope.navigation?.addEventListener('currententrychange', checkReadingRoute);
       } else if (!wrapper) {
         const span = doc.createElement('span');
-        span.lang = 'zh-Hans';
+        span.lang = profile.lang;
         span.style.setProperty('all', 'inherit', 'important');
         span.style.setProperty('display', 'contents', 'important');
-        span.style.setProperty('font-family', fontFamily, 'important');
+        span.style.setProperty('font-family', profile.stack.family, 'important');
         parent.insertBefore(span, node);
         span.append(node);
         wrappers.set(node, span);
@@ -167,6 +240,7 @@
     // Styling is best-effort on documents with restricted font or canvas access.
     return {
       applyTranslatedFont: (node, value) => { void updateTranslatedFont(node, value).catch(() => {}); },
+      originalReadingLanguage,
       releaseTranslatedFont,
       clearTranslatedFonts
     };
