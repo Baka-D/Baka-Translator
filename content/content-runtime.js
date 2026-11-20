@@ -8,6 +8,17 @@
 
   // Translations made under other values of these must not be reused.
   const ENGINE_KEYS = config.TRANSLATION_ENGINE_KEYS;
+  let liveFontRepair;
+
+  function bindFontRepairChanges() {
+    const key = config.STORAGE_KEYS.SITE_SETTINGS;
+    chrome.storage.onChanged.addListener((changes, area) => {
+      if (area !== 'local' || !changes[key]) return;
+      const site = changes[key].newValue?.[location.hostname.toLowerCase()];
+      liveFontRepair = site?.repairFonts !== false;
+      app.setFontRepairEnabled(liveFontRepair);
+    });
+  }
 
   function readSettings() {
     return new Promise((resolve) => {
@@ -53,13 +64,12 @@
   function siteFeatures(settings) {
     const all = settings && settings.siteSettings ? settings.siteSettings : {};
     const raw = all[location.hostname.toLowerCase()];
-    const presetId = activePresetId(settings);
-    if (typeof raw === 'boolean') return { polish: raw, pretranslate: false, presetId };
-    if (!raw || typeof raw !== 'object') return { polish: false, pretranslate: false, presetId };
     return {
-      polish: raw.polish === true,
-      pretranslate: raw.pretranslate === true,
-      presetId
+      polish: typeof raw === 'boolean' ? raw : raw?.polish === true,
+      pretranslate: raw?.pretranslate === true,
+      // A live change can arrive while the initial settings read is pending.
+      repairFonts: liveFontRepair ?? (raw?.repairFonts !== false),
+      presetId: activePresetId(settings)
     };
   }
 
@@ -210,6 +220,7 @@
 
   return {
     readSettings,
+    bindFontRepairChanges,
     translationKey,
     siteFeatures,
     contextEnabled,

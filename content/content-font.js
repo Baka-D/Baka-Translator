@@ -66,6 +66,7 @@
     const protectedChildren = `${protectedContent},[translate="no"],.notranslate`;
     const blocked = `:is(${protectedContent},${originalContent},[translate="no"]:not(html,body),.notranslate:not(html,body))`;
     const safeHost = `:not(:has(${protectedChildren})):not(:has(> :not(${inlineContent},${originalContent})))`;
+    let enabled = true;
     let pending = new WeakMap();
 
     // Enlarge only the measuring face so fallback is visible even for equal-width glyphs.
@@ -280,7 +281,7 @@
     async function updateTranslatedFont(node, translation) {
       const profile = profiles[app.page.targetCode];
       const parent = node.parentElement;
-      if (!parent || !profile || translation.search(profile.letters) < 0) {
+      if (!enabled || !parent || !profile || translation.search(profile.letters) < 0) {
         releaseTranslatedFont(node);
         return;
       }
@@ -292,7 +293,7 @@
       const ticket = {};
       pending.set(node, ticket);
       const runId = app.page.runId;
-      const isCurrent = () => pending.get(node) === ticket && app.page.runId === runId &&
+      const isCurrent = () => pending.get(node) === ticket && enabled && app.page.runId === runId &&
         node.isConnected && node.parentElement === parent && parent.getRootNode() === scope &&
         node.nodeValue === translation && app.page.translatedRoute === app.currentRoute() &&
         !app.isSkippedParent(parent, app.newFilterContext()) && !parent.closest(protectedContent) &&
@@ -344,10 +345,24 @@
     }
 
     function applyTranslatedFont(node, value) {
-      void updateTranslatedFont(node, value).catch(() => {});
+      if (enabled) void updateTranslatedFont(node, value).catch(() => {});
+    }
+
+    function setFontRepairEnabled(value) {
+      const next = value !== false;
+      if (enabled === next) return;
+      enabled = next;
+      clearTranslatedFonts();
+      if (enabled) {
+        for (const [node, record] of app.page.translatedNodes) {
+          if (node.isConnected && record.translated && node.nodeValue === record.translated) {
+            applyTranslatedFont(node, record.translated);
+          }
+        }
+      }
     }
 
     // Styling is best-effort on documents with restricted font or canvas access.
-    return { applyTranslatedFont, originalReadingLanguage, releaseTranslatedFont, clearTranslatedFonts };
+    return { applyTranslatedFont, originalReadingLanguage, releaseTranslatedFont, clearTranslatedFonts, setFontRepairEnabled };
   };
 })(globalThis);

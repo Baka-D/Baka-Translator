@@ -21,6 +21,7 @@ function siteValueFor(settings, host) {
 
 function siteFlagFor(settings, host, flag) {
   const value = siteValueFor(settings, host);
+  if (flag === 'repairFonts') return value?.repairFonts !== false;
   if (typeof value === 'boolean') return flag === 'polish' ? value : false;
   return Boolean(value && typeof value === 'object' && value[flag] === true);
 }
@@ -102,6 +103,10 @@ function renderSiteToggles() {
   if (ui.polishToggle) {
     ui.polishToggle.disabled = !usable || locked;
     ui.polishToggle.checked = usable ? siteFlagFor(state.siteSettings, state.host, 'polish') : false;
+  }
+  if (ui.repairFontsToggle) {
+    ui.repairFontsToggle.disabled = !usable || locked;
+    ui.repairFontsToggle.checked = usable && siteFlagFor(state.siteSettings, state.host, 'repairFonts');
   }
   if (ui.pretranslateToggle) {
     ui.pretranslateToggle.disabled = !chapterEligible || locked;

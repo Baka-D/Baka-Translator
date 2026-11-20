@@ -1576,6 +1576,12 @@
   "html_reload": {
     "message": "重新加载"
   },
+  "html_repair_fonts": {
+    "message": "自动修复缺字字体"
+  },
+  "html_repair_fonts_hint": {
+    "message": "仅在译文缺字时调整字体。关闭后，本站译文使用网站原字体。"
+  },
   "html_reset_usage": {
     "message": "清零使用量"
   },
@@ -3503,6 +3509,22 @@
   },
   "pop_protected_page": {
     "message": "此页面是浏览器内置页面或受保护页面，浏览器不允许扩展修改它，请在普通网页上使用。"
+  },
+  "pop_repair_fonts_off": {
+    "message": "$arg1$ 的译文已恢复使用网站原字体。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "pop_repair_fonts_on": {
+    "message": "已为 $arg1$ 开启缺字字体自动修复。",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
   },
   "pop_resources_failed": {
     "message": "扩展资源加载失败，请重新加载扩展后重试。"

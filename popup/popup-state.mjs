@@ -50,6 +50,7 @@ const ui = {
   imagesButton: byId('imagesButton'),
   polishToggle: byId('polishToggle'),
   pretranslateToggle: byId('pretranslateToggle'),
+  repairFontsToggle: byId('repairFontsToggle'),
   sitePresetSelect: byId('sitePresetSelect'),
   polishHint: byId('polishHint'),
   costItem: byId('costItem'),

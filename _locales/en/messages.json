@@ -1576,6 +1576,12 @@
   "html_reload": {
     "message": "Reload"
   },
+  "html_repair_fonts": {
+    "message": "Fix missing glyphs"
+  },
+  "html_repair_fonts_hint": {
+    "message": "Automatically adjust fonts when translated characters are missing. Turn this off to use the site’s original fonts."
+  },
   "html_reset_usage": {
     "message": "Reset usage"
   },
@@ -3503,6 +3509,22 @@
   },
   "pop_protected_page": {
     "message": "The browser does not allow extensions to modify this internal or protected page. Open a regular web page."
+  },
+  "pop_repair_fonts_off": {
+    "message": "Translations on $arg1$ now use the site’s original fonts.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
+  },
+  "pop_repair_fonts_on": {
+    "message": "Missing glyphs in translations on $arg1$ will be fixed automatically.",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      }
+    }
   },
   "pop_resources_failed": {
     "message": "Extension resources could not load. Reload the extension and try again."

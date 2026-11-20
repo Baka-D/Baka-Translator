@@ -157,10 +157,9 @@
 }
 
 .settings-row-switches {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, auto));
+  gap: 8px;
   margin-top: 2px;
-  align-items: start;
 }
 
 .field-switch {

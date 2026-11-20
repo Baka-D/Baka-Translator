@@ -205,6 +205,7 @@
   });
 
   app.bindBubbleListeners();
+  app.bindFontRepairChanges();
   app.bindImageCapabilityChanges();
   if (novelUtils) setTimeout(() => { void i18n.ready.then(() => app.maybeAutoApplyPretranslation()); }, 450);
 })();

@@ -51,7 +51,7 @@ function wireEvents() {
     render();
   });
 
-  const bindSiteToggle = (toggle, flag) => {
+  const bindSiteToggle = (toggle, flag, onMessage, offMessage) => {
     if (!toggle) return;
     toggle.addEventListener('change', () => {
       const host = state.host;
@@ -72,25 +72,16 @@ function wireEvents() {
             tone: 'warning',
             message: t('pop_polish_missing_key')
           };
-        } else if (flag === 'polish') {
-          state.pageMessage = {
-            tone: 'info',
-            message: enabled ? t('pop_polish_on') : t('pop_polish_off')
-          };
         } else {
-          state.pageMessage = {
-            tone: 'info',
-            message: enabled
-              ? t('pop_pretranslate_on')
-              : t('pop_pretranslate_off')
-          };
+          state.pageMessage = { tone: 'info', message: t(enabled ? onMessage : offMessage, [host]) };
         }
         render();
       })();
     });
   };
-  bindSiteToggle(ui.polishToggle, 'polish');
-  bindSiteToggle(ui.pretranslateToggle, 'pretranslate');
+  bindSiteToggle(ui.polishToggle, 'polish', 'pop_polish_on', 'pop_polish_off');
+  bindSiteToggle(ui.pretranslateToggle, 'pretranslate', 'pop_pretranslate_on', 'pop_pretranslate_off');
+  bindSiteToggle(ui.repairFontsToggle, 'repairFonts', 'pop_repair_fonts_on', 'pop_repair_fonts_off');
 
   if (ui.sitePresetSelect) {
     ui.sitePresetSelect.addEventListener('change', () => {

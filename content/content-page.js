@@ -306,6 +306,7 @@
       if (runId !== page.runId) return { started: false, reason: 'cancelled' };
       app.assertPageRoute();
       const features = app.siteFeatures(settings);
+      app.setFontRepairEnabled?.(features.repairFonts);
       page.proofreadEnabled = features.polish;
       page.pretranslateEnabled = features.pretranslate;
       page.presetId = features.presetId || '';
