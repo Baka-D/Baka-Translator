@@ -72,6 +72,7 @@
             if (typeof app.hideRubyReadings === 'function') {
               app.hideRubyReadings(target.rubyReadings);
             }
+            app.applyTranslatedFont?.(target.node, value);
             target.applied = true;
             target.lastApplied = value;
             if (target.anchorRecord) target.anchorRecord.applied = true;
@@ -428,6 +429,7 @@
     }
     page.dynamicQueue.clear();
     app.restoreTranslatedNodes();
+    app.clearTranslatedFonts?.();
     if (typeof app.restoreRubyReadings === 'function') app.restoreRubyReadings();
     app.removeBilingualCaptions();
     page.status = 'idle';

@@ -39,6 +39,7 @@
         "content/overlay.js",
         "content/content-runtime.js",
         "content/content-ruby.js",
+        "content/content-font.js",
         "content/content-dom.js",
         "content/content-captions.js",
         "content/content-page-ui.js",

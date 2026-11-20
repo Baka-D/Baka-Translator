@@ -83,6 +83,7 @@
   /** Consent covers the page the user translated, not wherever an SPA goes next. */
   function leftTranslatedRoute() {
     if (currentRoute() === page.translatedRoute) return false;
+    app.clearTranslatedFonts?.();
     stopDynamicTranslation();
     overlay.showToast(t('content_route_changed_notice'), 'info');
     return true;

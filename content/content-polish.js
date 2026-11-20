@@ -31,6 +31,7 @@
             original: target.original,
             translated: value
           });
+          app.applyTranslatedFont?.(target.node, value);
         } catch (_error) {
           // Ignore nodes detached while polishing.
         }

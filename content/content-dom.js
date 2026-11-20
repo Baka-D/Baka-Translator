@@ -140,15 +140,16 @@
 
   function isCandidateTextNode(node, ctx, allowDetached) {
     if (!node || node.nodeType !== Node.TEXT_NODE) return false;
-    const parent = node.parentElement;
-    if (!parent) return false;
     const previous = page.translatedNodes.get(node);
     if (previous && node.nodeValue === previous.translated) return false;
     // SPAs reuse text nodes. A page-authored update becomes the new original.
     if (previous) {
       page.translatedNodes.delete(node);
+      app.releaseTranslatedFont?.(node);
       app.removeCaptionForNode(node);
     }
+    const parent = node.parentElement;
+    if (!parent) return false;
     if (!textUtils.isMeaningfulText(node.nodeValue)) return false;
     if (isSkippedParent(parent, ctx)) return false;
     // Parsed (not-yet-attached) documents have no layout; checkVisibility()
