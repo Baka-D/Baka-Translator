@@ -196,7 +196,7 @@
         padding: '6px 0 0',
         border: '0',
         'border-top': '1px dashed color-mix(in srgb, currentColor 25%, transparent)',
-        'font-family': 'inherit',
+        'font-family': 'var(--dsht-original-font, inherit)',
         'font-size': '0.82em',
         'font-style': 'normal',
         'font-weight': '400',

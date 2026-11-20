@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ja">
+<meta charset="utf-8">
+<title>Font repair regression checks</title>
+<style>
+  @font-face {
+    font-family: Uppercase;
+    src: local("Arial"), local("Liberation Sans");
+    unicode-range: U+0041-005A;
+  }
+  .copy { font: 20px Uppercase, "Times New Roman", serif; }
+  .edition[lang="en"] { display: none; }
+  .vertical:lang(ja) { writing-mode: vertical-rl; }
+  @layer site {
+    .icon::before { content: "A"; font-family: monospace; }
+  }
+</style>
+<p id="healthy" class="copy">hello world</p>
+<p id="mixed" class="copy">A new title</p>
+<p id="with-icon" class="copy icon">A new title</p>
+<section class="p-novel__body">
+  <p class="copy">new title</p>
+  <p class="copy uppercase">A</p>
+  <p class="edition" lang="en">English edition</p>
+  <p class="vertical">日本語版</p>
+  <span translate="no" lang="ru">Привет</span>
+</section>
+<output>Running</output>
+<script>globalThis.DSHT = { i18n: {} };</script>
+<script src="../../content/content-dom.js"></script>
+<script src="../../content/content-font.js"></script>
+<script>
+  // Open in Chromium with Arial or Liberation Sans installed.
+  async function verify() {
+    const healthy = document.getElementById('healthy');
+    const mixed = document.getElementById('mixed');
+    const reading = document.querySelector('section');
+    const novelText = reading.querySelector('.copy');
+    const family = (element) => getComputedStyle(element).fontFamily;
+    const authorFont = family(healthy);
+    const app = {
+      BILINGUAL_ATTR: 'data-dsht-original',
+      page: { targetCode: 'en', runId: 1, translatedRoute: location.href, translatedNodes: new Map() },
+      novelUtils: { SITE_ADAPTERS: { syosetu: { chapterRootSelectors: ['.p-novel__body'] } } },
+      currentRoute: () => location.href
+    };
+    Object.assign(app, DSHT.contentModules.dom(app));
+    const font = DSHT.contentModules.font(app);
+    const assert = (ok, message) => { if (!ok) throw new Error(message); };
+    async function expectRepaired(element) {
+      for (let i = 0; i < 100 && family(element) === authorFont; i++) {
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+      assert(family(element) !== authorFont, 'the mixed-font line should use the repair font');
+    }
+    await document.fonts.load('20px Uppercase', 'A');
+    const original = mixed.firstChild;
+    function translate(element) {
+      const node = element.firstChild;
+      app.page.translatedNodes.set(node, { translated: node.data });
+      font.applyTranslatedFont(node, node.data);
+    }
+    translate(healthy);
+    translate(mixed);
+    const iconHost = document.getElementById('with-icon');
+    const iconFont = getComputedStyle(iconHost, '::before').fontFamily;
+    translate(iconHost);
+    await expectRepaired(mixed);
+    assert(family(healthy) === authorFont && !healthy.children.length, 'lowercase uses one author face');
+    assert(mixed.firstChild === original, 'the site must retain its original direct Text child');
+    assert(getComputedStyle(iconHost, '::before').fontFamily === iconFont, 'a layered icon keeps its font');
+    mixed.replaceChild(original, original);
+    const added = document.createTextNode('New site content');
+    mixed.append(added);
+    await new Promise(resolve => setTimeout(resolve, 0));
+    assert(family(mixed) === authorFont, 'new untranslated text keeps its original font');
+    added.remove();
+    await expectRepaired(mixed);
+    font.clearTranslatedFonts();
+    assert(family(mixed) === authorFont, 'restore should recover the author font');
+
+    app.page.novel = { siteId: 'syosetu', isChapter: true };
+    translate(novelText);
+    translate(reading.querySelector('.uppercase'));
+    await expectRepaired(novelText);
+    assert(!reading.hasAttribute('lang'), 'the novel keeps its inherited language');
+    assert(getComputedStyle(reading.querySelector('.edition')).display === 'none', 'hidden edition stays hidden');
+    assert(getComputedStyle(reading.querySelector('.vertical')).writingMode === 'vertical-rl', 'Japanese stays vertical');
+    assert(reading.querySelector('[translate=no]').lang === 'ru', 'skipped text keeps its language');
+    document.body.append(novelText);
+    assert(family(novelText) === authorFont, 'a paragraph moved out of the novel keeps the site font');
+    font.clearTranslatedFonts();
+    assert(family(reading.querySelector('.uppercase')) === authorFont, 'novel font restores');
+  }
+  const result = document.querySelector('output');
+  verify().then(() => { result.textContent = 'PASS'; }, error => { result.textContent = 'FAIL ' + error; });
+</script>
+</html>
