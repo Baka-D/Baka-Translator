@@ -13,7 +13,7 @@
   const markers = Array.from({ length: 9 }, (_value, index) => `\uFFF0dsht${index + 1}\uFFF1`);
   const markerPattern = /\uFFF0dsht([1-9])\uFFF1/g;
   let invalidated = false;
-  const localeFiles = Object.freeze({ zh: 'zh-cn', en: 'en', ko: 'ko' });
+  const localeFiles = Object.freeze({ zh: 'zh_CN', en: 'en', ko: 'ko' });
   const storageKey = 'uiLanguage';
   const storage = globalScope.chrome?.storage;
   const catalogs = new Map();
@@ -29,10 +29,15 @@
   function loadCatalog(language) {
     if (language === 'auto') return Promise.resolve(null);
     if (!catalogs.has(language)) {
-      const url = globalScope.chrome.runtime.getURL(`locales/${localeFiles[language]}.json`);
-      const loading = fetch(url).then((response) => {
+      const url = globalScope.chrome.runtime.getURL(`_locales/${localeFiles[language]}/messages.json`);
+      const loading = fetch(url).then(async (response) => {
         if (!response.ok) throw new Error(`Cannot load locale: ${language}`);
-        return response.json();
+        const messages = Object.create(null);
+        // Undo scripts/localize.py's encoding once, before inserting any user text.
+        for (const [key, { message }] of Object.entries(await response.json())) {
+          messages[key] = message.replace(/\$\$|\$arg([1-9])\$/g, (_match, index) => index ? '$' + index : '$');
+        }
+        return messages;
       }).catch((error) => {
         catalogs.delete(language);
         throw error;

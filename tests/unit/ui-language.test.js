@@ -87,6 +87,37 @@ test('cold start reads the saved Korean UI, preserving literal user substitution
   assert.ok(message.includes('8'));
 });
 
+test('every manually selected native catalog renders the original text and placeholders', async () => {
+  const { i18n } = browser();
+  const values = ['$2', '$&', '$arg1$', '$$', '5', '6', '7', '8', '9'];
+  for (const [language, file] of [['en', 'en'], ['ko', 'ko'], ['zh', 'zh-cn']]) {
+    await i18n.setPreference(language);
+    const source = require(`../../locales/${file}.json`);
+    for (const [key, message] of Object.entries(source)) {
+      const expected = message.replace(/\$([1-9])/g, (_match, index) => values[Number(index) - 1]);
+      assert.equal(i18n.t(key, values), expected, `${language}/${key}`);
+    }
+  }
+});
+
+test('switching back reuses the decoded messages and preserves literal dollar signs', async () => {
+  const { i18n, context } = browser();
+  const reads = [];
+  context.fetch = async (url) => {
+    reads.push(new URL(url).pathname);
+    return { ok: true, json: async () => ({
+      price: { message: '$$0.01 | $$arg3$$ | $$$$ | $arg1$$arg2$ | $arg1$' }
+    }) };
+  };
+  await i18n.ready;
+  assert.deepEqual(reads, []);
+  await i18n.setPreference('ko');
+  await i18n.setPreference('auto');
+  await i18n.setPreference('ko');
+  assert.deepEqual(reads, ['/_locales/ko/messages.json']);
+  assert.equal(i18n.t('price', ['$2', '$&']), '$0.01 | $arg3$ | $$ | $2$& | $2');
+});
+
 for (const latest of ['en', 'auto']) {
   test(`a storage event selecting ${latest} supersedes an older initial read`, async () => {
     const firstRead = deferred();
@@ -103,7 +134,7 @@ test('out-of-order catalog reads publish only the latest stored preference', asy
   const korean = deferred();
   const english = deferred();
   const { i18n, changePreference } = browser({
-    catalogReads: { '/locales/ko.json': korean, '/locales/en.json': english }
+    catalogReads: { '/_locales/ko/messages.json': korean, '/_locales/en/messages.json': english }
   });
   await i18n.ready;
   const changes = [];
@@ -122,7 +153,7 @@ test('a pending ready waiter follows a newer language selection', async () => {
   const korean = deferred();
   const english = deferred();
   const { i18n, changePreference } = browser({
-    saved: 'ko', catalogReads: { '/locales/ko.json': korean, '/locales/en.json': english }
+    saved: 'ko', catalogReads: { '/_locales/ko/messages.json': korean, '/_locales/en/messages.json': english }
   });
   let ready = false;
   const initialized = i18n.ready.then(() => { ready = true; });
@@ -138,7 +169,7 @@ test('a pending ready waiter follows a newer language selection', async () => {
 
 test('manual selections persist in user order even when the first catalog loads last', async () => {
   const korean = deferred();
-  const { i18n, values } = browser({ catalogReads: { '/locales/ko.json': korean } });
+  const { i18n, values } = browser({ catalogReads: { '/_locales/ko/messages.json': korean } });
   await i18n.ready;
   const earlier = i18n.setPreference('ko');
   const latest = i18n.setPreference('en');

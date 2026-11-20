@@ -10,7 +10,7 @@ import sys
 import zipfile
 from pathlib import Path
 
-from localize import LOCALES, generate as generate_locales
+from localize import generate as generate_locales
 
 ROOT = Path(__file__).resolve().parent.parent
 DIST = ROOT / "dist"
@@ -26,7 +26,7 @@ INCLUDE_DIRS = (
     "profile",
     "preset",
 )
-INCLUDE_FILES = ("manifest.json", "README.md", "LICENSE", *(f"locales/{name}" for name in LOCALES.values()))
+INCLUDE_FILES = ("manifest.json", "README.md", "LICENSE")
 EXCLUDED_NAMES = {".DS_Store", "Thumbs.db"}
 
 
@@ -141,7 +141,15 @@ def main() -> int:
 
     with zipfile.ZipFile(target, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
         for path in iter_runtime_files():
-            archive.write(path, f"{top}/{path.relative_to(ROOT).as_posix()}")
+            relative = path.relative_to(ROOT)
+            entry = f"{top}/{relative.as_posix()}"
+            if relative.parts[0] == "_locales" and path.name == "messages.json":
+                data = json.loads(path.read_text(encoding="utf-8"))
+                compact = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
+                archive.writestr(zipfile.ZipInfo.from_file(path, entry), compact,
+                                 compress_type=archive.compression, compresslevel=archive.compresslevel)
+            else:
+                archive.write(path, entry)
 
     print(f"Built {target} ({target.stat().st_size / 1024:.1f} KiB)")
     print(f"Extract it, then load the '{top}' folder via Load unpacked in your browser:")
