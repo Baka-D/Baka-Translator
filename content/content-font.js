@@ -25,7 +25,7 @@
   );
   const profiles = {
     zh: {
-      lang: 'zh-Hans', letters: /\p{Script=Han}/gu, sample: '中日',
+      lang: 'zh-Hans', letters: /\p{Script=Han}/gu,
       stack: localStack(
         ['Microsoft YaHei', 'MicrosoftYaHei'], ['PingFang SC', 'PingFangSC-Regular'], notoSC,
         ['Noto Sans SC', 'NotoSansSC-Regular'], ['Source Han Sans SC', 'SourceHanSansSC-Regular'],
@@ -34,7 +34,7 @@
       )
     },
     ja: {
-      lang: 'ja', letters: /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}ーｰ]/gu, sample: '日あア',
+      lang: 'ja', letters: /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}ーｰ]/gu,
       stack: localStack(
         ['Yu Gothic', 'YuGothic-Regular'], ['Hiragino Sans', 'Hiragino Sans W3'], ['Meiryo'], notoJP,
         ['Noto Sans JP', 'NotoSansJP-Regular'], ['Source Han Sans', 'SourceHanSans-Regular'],
@@ -42,15 +42,15 @@
       )
     },
     ko: {
-      lang: 'ko', letters: /[\p{Script=Hangul}\p{Script=Han}]/gu, sample: '한글',
+      lang: 'ko', letters: /[\p{Script=Hangul}\p{Script=Han}]/gu,
       stack: localStack(
         ['Malgun Gothic', 'MalgunGothic'], ['Apple SD Gothic Neo', 'AppleSDGothicNeo-Regular'], notoKR,
         ['Noto Sans KR', 'NotoSansKR-Regular'], ['Source Han Sans K', 'SourceHanSansK-Regular'],
         ['NanumGothic'], notoSC, notoJP, notoTC, notoHK
       )
     },
-    en: { lang: 'en', letters: /\p{Script=Latin}/gu, sample: 'Aa', stack: western },
-    ru: { lang: 'ru', letters: /\p{Script=Cyrillic}/gu, sample: 'Аа', stack: western }
+    en: { lang: 'en', letters: /\p{Script=Latin}/gu, stack: western },
+    ru: { lang: 'ru', letters: /\p{Script=Cyrillic}/gu, stack: western }
   };
 
   modules.font = function createModule(app) {
@@ -86,15 +86,15 @@
         ctx.font = `${style.fontStyle} ${style.fontWeight} 20px ${families}`;
         return ctx.measureText(sample).width;
       };
-      // Skip families that contribute nothing in the target script.
-      const reference = profile.sample + glyphs;
-      const probeWidth = measure(name, reference);
+      // Skip families that contribute none of the actual translated letters.
+      const probeWidth = measure(name, glyphs);
       for (const family of style.fontFamily.match(/(?:[^,"']|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')+/g) || []) {
         const candidate = family.trim();
         if (!candidate) continue;
         const withProbe = `${candidate}, ${name}`;
-        if (Math.abs(measure(withProbe, reference) - probeWidth) < 0.1) continue;
-        return Math.abs(measure(withProbe, glyphs) - measure(`${candidate}, ${profile.stack.family}`, glyphs)) > 0.1;
+        const width = measure(withProbe, glyphs);
+        if (Math.abs(width - probeWidth) < 0.1) continue;
+        return Math.abs(width - measure(`${candidate}, ${profile.stack.family}`, glyphs)) > 0.1;
       }
       return false;
     }
