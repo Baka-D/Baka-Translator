@@ -79,22 +79,17 @@ export async function ensurePreset(presetId) {
   if (state.presetCache.has(presetId)) return state.presetCache.get(presetId);
   const meta = presetMeta(presetId) || { id: presetId, name: presetId, file: 'general.json' };
   const token = ++state.presetLoadToken;
-  let preset = null;
+  const fallback = { id: presetId, name: meta.name, description: '', translationPrompt: '', polishPrompt: '' };
   try {
     const response = await fetch(chrome.runtime.getURL(`preset/${meta.file}`), { cache: 'no-store' });
     if (!response || !response.ok) throw new Error('PRESET_FETCH_FAILED');
     const raw = await response.json();
-    preset = presetsTools
-      ? presetsTools.normalizePreset(raw, presetId)
-      : { id: presetId, name: meta.name, description: '', translationPrompt: '', polishPrompt: '' };
+    const preset = presetsTools ? presetsTools.normalizePreset(raw, presetId) : fallback;
+    if (token === state.presetLoadToken) state.presetCache.set(presetId, preset);
+    return preset;
   } catch (_error) {
-    preset = presetsTools
-      ? presetsTools.normalizePreset({ id: presetId, name: meta.name }, presetId)
-      : { id: presetId, name: meta.name, description: '', translationPrompt: '', polishPrompt: '' };
+    return fallback;
   }
-  if (token !== state.presetLoadToken) return preset;
-  state.presetCache.set(presetId, preset);
-  return preset;
 }
 
 export function renderPromptPlaceholders() {
@@ -166,7 +161,10 @@ export function handlePresetChange() {
 
 export async function handleSavePrompts() {
   if (!ui.translationPromptInput) return;
-  const preset = await ensurePreset(state.presetId);
+  disarmReset();
+  const presetId = state.presetId;
+  const preset = await ensurePreset(presetId);
+  if (state.presetId !== presetId) return;
   const translationPrompt = ui.translationPromptInput.value.trim();
   const polishPrompt = ui.polishPromptInput.value.trim();
   if (!translationPrompt) {
@@ -185,11 +183,12 @@ export async function handleSavePrompts() {
   const entry = {};
   if (translationPrompt !== preset.translationPrompt) entry.translationPrompt = translationPrompt;
   if (polishPrompt !== preset.polishPrompt) entry.polishPrompt = polishPrompt;
-  if (Object.keys(entry).length > 0) overrides[state.presetId] = entry;
-  else delete overrides[state.presetId];
+  if (Object.keys(entry).length > 0) overrides[presetId] = entry;
+  else delete overrides[presetId];
   try {
     await persist({ [KEYS.PROMPT_OVERRIDES]: overrides });
     state.promptOverrides = overrides;
+    if (state.presetId !== presetId) return;
     rememberPrompts();
     if (ui.promptStatus) {
       ui.promptStatus.textContent =
@@ -224,13 +223,15 @@ export async function handleResetPrompts() {
     return;
   }
   disarmReset();
-  const preset = await ensurePreset(state.presetId);
-  if (!preset) return;
+  const presetId = state.presetId;
+  const preset = await ensurePreset(presetId);
+  if (state.presetId !== presetId || !preset) return;
   const overrides = isObject(state.promptOverrides) ? Object.assign({}, state.promptOverrides) : {};
-  delete overrides[state.presetId];
+  delete overrides[presetId];
   try {
     await persist({ [KEYS.PROMPT_OVERRIDES]: overrides });
     state.promptOverrides = overrides;
+    if (state.presetId !== presetId) return;
     if (ui.translationPromptInput) ui.translationPromptInput.value = preset.translationPrompt || '';
     if (ui.polishPromptInput) ui.polishPromptInput.value = preset.polishPrompt || '';
     if (ui.translationPromptInput) rememberPrompts();

@@ -3664,13 +3664,13 @@
     "message": "自定义 OpenAI 兼容接口"
   },
   "shared_custom_endpoint": {
-    "message": "请先在高级设置中填写自定义接口地址。"
+    "message": "请在「常规 → 服务商」中填写自定义接口地址。"
   },
   "shared_custom_missing": {
     "message": "所选的自定义服务商或模型已不存在，请在设置页重新添加，或改选其他模型。"
   },
   "shared_custom_model": {
-    "message": "请先在高级设置中填写自定义模型名称。"
+    "message": "请在「常规 → 服务商」中填写自定义模型名称。"
   },
   "shared_endpoint_missing": {
     "message": "模型 $arg1$ 缺少接口地址。",

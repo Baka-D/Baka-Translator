@@ -158,15 +158,13 @@ export function refreshGlossaryLanguage() {
 }
 
 function syncTitleButtons() {
-  const entry = activeGlossary();
-  const changed = Boolean(entry) && ui.glossaryTitleInput.value.trim() !== entry.title;
+  const changed = Boolean(openedEntry) && ui.glossaryTitleInput.value.trim() !== openedEntry.title;
   ui.glossaryTitleSaveButton.hidden = !changed;
   ui.glossaryTitleCancelButton.hidden = !changed;
 }
 
 function revertTitle() {
-  const entry = activeGlossary();
-  if (entry) ui.glossaryTitleInput.value = entry.title;
+  if (openedEntry) ui.glossaryTitleInput.value = openedEntry.title;
   syncTitleButtons();
   ui.glossaryTitleInput.focus();
 }
@@ -180,9 +178,11 @@ function wireTitleField() {
   if (!ui.glossaryTitleInput) return;
   ui.glossaryTitleInput.addEventListener('input', syncTitleButtons);
   ui.glossaryTitleInput.addEventListener('keydown', (event) => {
-    if (ui.glossaryTitleSaveButton.hidden) return;
-    if (event.key === 'Enter') void saveTitle();
-    else if (event.key === 'Escape') revertTitle();
+    if (ui.glossaryTitleSaveButton.hidden || event.isComposing) return;
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      void saveTitle();
+    } else if (event.key === 'Escape') revertTitle();
   });
   ui.glossaryTitleSaveButton.addEventListener('click', () => { void saveTitle(); });
   ui.glossaryTitleCancelButton.addEventListener('click', revertTitle);
@@ -279,9 +279,8 @@ function syncGlossaryDraft() {
 
 /** Edits not in storage yet: changed, added or deleted rows, or a new work title. */
 function hasUnsavedGlossaryEdits() {
-  const entry = activeGlossary();
-  if (!entry) return false;
-  if (ui.glossaryTitleInput && ui.glossaryTitleInput.value.trim() !== entry.title) return true;
+  if (!openedEntry) return false;
+  if (ui.glossaryTitleInput && ui.glossaryTitleInput.value.trim() !== openedEntry.title) return true;
   syncGlossaryDraft();
   const blank = termRowKey(null);
   const draft = state.glossaryDraft.map(termRowKey).filter((key) => key !== blank);
@@ -323,7 +322,7 @@ async function saveGlossary(rowIndex) {
   const rawTitle = ui.glossaryTitleInput ? ui.glossaryTitleInput.value.trim() : entry.title;
   const title = (rawTitle || entry.title || entry.workId).slice(0, 200);
   const finish = beginGlossaryOperation();
-  let saved = false;
+  let failure;
   setFeedback(ui.glossaryFeedback, t('opt_glossary_saving'), '');
   try {
     const result = await editGlossary(entry, 'save', {
@@ -336,21 +335,22 @@ async function saveGlossary(rowIndex) {
     await loadGlossaries();
     renderGlossaryList();
     renderGlossaryEditor();
-    saved = true;
-    return true;
   } catch (error) {
     if (error.code === 'GLOSSARY_CHANGED') {
       // Reopening must see the newer tidy, while the unsaved draft stays visible for copying.
       await loadGlossaries().catch(() => {});
       renderGlossaryList();
-      showSaveError(error.message, rowIndex);
-    } else {
-      showSaveError(t('opt_glossary_save_failed'), rowIndex);
     }
+    failure = error.code === 'GLOSSARY_CHANGED' ? error.message : t('opt_glossary_save_failed');
   } finally {
     finish();
-    if (saved && Number.isInteger(rowIndex)) focusRowControl(rowIndex, 'delete');
   }
+  if (failure) {
+    showSaveError(failure, rowIndex);
+    return;
+  }
+  if (Number.isInteger(rowIndex)) focusRowControl(rowIndex, 'delete');
+  return true;
 }
 
 async function clearGlossary() {
@@ -441,6 +441,7 @@ export function wireGlossaryEvents() {
         try {
           await loadGlossaries();
           renderGlossaryList();
+          if (openedEntry && !hasUnsavedGlossaryEdits()) renderGlossaryEditor();
           setFeedback(ui.glossaryFeedback, t('opt_glossary_refreshed'), 'success', FEEDBACK_CLEAR_MS);
         } catch (_error) {
           setFeedback(ui.glossaryFeedback, t('opt_glossary_load_failed'), 'error');

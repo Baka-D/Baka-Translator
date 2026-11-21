@@ -1806,7 +1806,7 @@
     }
   },
   "opt_discovery_fetched": {
-    "message": "모델 $arg1$개를 가져와 $arg2$개를 추가했습니다. 고급 → 모델 동작에서 선택할 수 있습니다. $arg3$",
+    "message": "모델 $arg1$개를 가져와 $arg2$개를 추가했습니다. 고급 → 모델 설정에서 선택할 수 있습니다. $arg3$",
     "placeholders": {
       "arg1": {
         "content": "$1"
@@ -1840,7 +1840,7 @@
     "message": "모델을 추가하지 못했습니다. 다시 시도하세요."
   },
   "opt_discovery_model_added": {
-    "message": "모델을 추가했습니다: $arg1$. 고급 → 모델 동작에서 선택할 수 있습니다.",
+    "message": "모델을 추가했습니다: $arg1$. 고급 → 모델 설정에서 선택할 수 있습니다.",
     "placeholders": {
       "arg1": {
         "content": "$1"
@@ -1851,7 +1851,7 @@
     "message": "이 제공업체에 이미 같은 모델이 있습니다."
   },
   "opt_discovery_model_in_use": {
-    "message": "현재 사용 중인 모델입니다: $arg1$. 먼저 고급 → 모델 동작에서 다른 모델로 전환하세요.",
+    "message": "현재 사용 중인 모델입니다: $arg1$. 먼저 고급 → 모델 설정에서 다른 모델로 전환하세요.",
     "placeholders": {
       "arg1": {
         "content": "$1"
@@ -2314,13 +2314,13 @@
     "message": "정리 작업을 취소하는 중…"
   },
   "opt_keep_original_off": {
-    "message": "기본 설정에서 ‘원문 유지’를 껐습니다."
+    "message": "기본 설정에서 ‘원문 함께 표시’를 껐습니다."
   },
   "opt_keep_original_on": {
-    "message": "기본 설정에서 ‘원문 유지’를 켰습니다."
+    "message": "기본 설정에서 ‘원문 함께 표시’를 켰습니다."
   },
   "opt_keep_original_save_failed": {
-    "message": "‘원문 유지’ 설정을 저장하지 못했습니다. 다시 시도하세요."
+    "message": "‘원문 함께 표시’ 설정을 저장하지 못했습니다. 다시 시도하세요."
   },
   "opt_key_clear": {
     "message": "API 키 삭제"
@@ -2935,7 +2935,7 @@
     "message": "HTTP는 localhost와 127.0.0.1에서만 지원합니다. 다른 호스트에서는 HTTPS를 사용하세요."
   },
   "opt_provider_in_use": {
-    "message": "$arg2$에 $arg1$ 제공업체를 사용하고 있습니다. 먼저 고급 → 모델 동작에서 다른 제공업체로 전환하세요.",
+    "message": "$arg2$에 $arg1$ 제공업체를 사용하고 있습니다. 먼저 고급 → 모델 설정에서 다른 제공업체로 전환하세요.",
     "placeholders": {
       "arg1": {
         "content": "$1"
@@ -3664,13 +3664,13 @@
     "message": "사용자 지정 OpenAI 호환 API"
   },
   "shared_custom_endpoint": {
-    "message": "먼저 고급 설정에서 사용자 지정 API URL을 입력하세요."
+    "message": "‘일반 → 제공업체’에서 사용자 지정 API URL을 입력하세요."
   },
   "shared_custom_missing": {
     "message": "선택한 사용자 지정 제공업체 또는 모델이 더 이상 존재하지 않습니다. 설정에서 다시 추가하거나 다른 모델을 선택하세요."
   },
   "shared_custom_model": {
-    "message": "먼저 고급 설정에서 사용자 지정 모델 이름을 입력하세요."
+    "message": "‘일반 → 제공업체’에서 사용자 지정 모델 이름을 입력하세요."
   },
   "shared_endpoint_missing": {
     "message": "‘$arg1$’ 모델의 API URL이 없습니다.",

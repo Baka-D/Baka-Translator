@@ -53,11 +53,12 @@ export function termRowKey(term) {
   const values = term || {};
   const text = (value) => String(value || '').trim();
   const target = text(values.target);
+  const category = text(values.category) || 'term';
   return JSON.stringify([
     text(values.source),
     target,
-    text(values.category) || 'term',
-    text(values.gender),
+    category,
+    novelUtils.isCharacterCategory(category) ? text(values.gender) : '',
     text(values.note),
     (values.aliases || [])
       .filter((alias) => text(alias.source))

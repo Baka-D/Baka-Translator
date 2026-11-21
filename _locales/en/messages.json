@@ -3664,13 +3664,13 @@
     "message": "Custom OpenAI-compatible API"
   },
   "shared_custom_endpoint": {
-    "message": "Enter the custom API URL in advanced settings first."
+    "message": "Enter the custom API URL under General → Provider."
   },
   "shared_custom_missing": {
     "message": "The selected custom provider or model no longer exists. Add it again in settings or select another model."
   },
   "shared_custom_model": {
-    "message": "Enter the custom model name in advanced settings first."
+    "message": "Enter the custom model name under General → Provider."
   },
   "shared_endpoint_missing": {
     "message": "Model $arg1$ has no API URL.",
