@@ -93,6 +93,15 @@ export function applyCustomProviders() {
     )
     : state.baseRegistry;
   if (visionTools) state.registry = visionTools.applyToRegistry(state.registry, state.visionCapabilities);
+  if (state.staleModelId && modelsTools?.getModel(state.registry, state.staleModelId)) {
+    state.modelId = state.staleModelId;
+    state.staleModelId = '';
+    if ([t('opt_custom_selection_missing'), t('opt_selection_missing')].includes(ui.behaviorFeedback?.textContent)) {
+      setFeedback(ui.behaviorFeedback, '');
+    }
+    normalizeTranslationSelection();
+    normalizePolishSelection();
+  }
 }
 
 export function snapshotFallbackModelId(purpose) {
@@ -127,7 +136,7 @@ export function normalizeTranslationSelection() {
   if (!model) model = modelsTools.getModel(state.registry, state.registry.defaultModelId);
   if (!model) return null;
   state.modelId = model.id;
-  if (!model.effortLevels.includes(state.effortLevel)) {
+  if (!state.staleModelId && !model.effortLevels.includes(state.effortLevel)) {
     state.effortLevel = model.defaultEffort;
   }
   return model;
@@ -142,7 +151,8 @@ export function normalizePolishSelection() {
   }
   const model = polishModel();
   if (!model) return null;
-  if (state.polishEffortRaw && !model.effortLevels.includes(state.polishEffortRaw)) {
+  if (!(polishInheritsModel() && state.staleModelId) &&
+      state.polishEffortRaw && !model.effortLevels.includes(state.polishEffortRaw)) {
     state.polishEffortRaw = '';
   }
   return model;
@@ -169,7 +179,7 @@ export function persistModels(purpose) {
 /** Follow another options tab, so a later save here cannot write back this page's old picks. */
 export function followStoredModels(changes) {
   const keys = [KEYS.TRANSLATION_MODEL_ID, KEYS.TRANSLATION_EFFORT, KEYS.POLISH_MODEL_ID, KEYS.POLISH_EFFORT];
-  if (!keys.some((key) => changes[key])) return;
+  if (!keys.some((key) => changes[key])) return false;
   const stored = (key, current) => {
     const value = changes[key]?.newValue;
     return typeof value === 'string' ? value.trim() : current;
@@ -181,6 +191,7 @@ export function followStoredModels(changes) {
   state.polishModelIdRaw = stored(KEYS.POLISH_MODEL_ID, state.polishModelIdRaw);
   state.polishEffortRaw = stored(KEYS.POLISH_EFFORT, state.polishEffortRaw);
   if (state.registry) applyResolvedModel();
+  return Boolean(state.registry);
 }
 
 export function renderModelArea() {

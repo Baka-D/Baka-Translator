@@ -1,7 +1,7 @@
 // Settings-page options.
 import { t, i18n, FEEDBACK_CLEAR_MS, KEYS, languages, modelsTools, novelUtils, visionTools, state, ui } from './context.mjs';
 import { handleDeleteProviderClick, handleSaveCustomProvider } from './custom-provider.mjs';
-import { handleClearKeyClick, handleSaveKey, handleTestConnection, handleToggleKeyVisibility, resetClearConfirm, setKeyVisibility } from './keys.mjs';
+import { handleClearKeyClick, handleSaveKey, handleTestConnection, handleToggleKeyVisibility, resetClearConfirm, setKeyBusy, setKeyVisibility } from './keys.mjs';
 import { handleAddModel, handleFetchModels } from './provider-models.mjs';
 import { renderProviders, startAddProvider } from './providers.mjs';
 import { applyCustomProviders, applyModelSelection, applyPolishProvider, applyResolvedModel, applyTranslationProvider, followStoredModels, loadRegistry, normalizePolishSelection, persistModels, renderModelArea } from './model-selection.mjs';
@@ -235,8 +235,9 @@ export function wireEvents() {
   if (ui.reloadModelsButton) {
     ui.reloadModelsButton.addEventListener('click', () => {
       void (async () => {
+        if (state.busy || state.customBusy) return;
         const button = ui.reloadModelsButton;
-        button.disabled = true;
+        setKeyBusy(true);
         button.setAttribute('aria-busy', 'true');
         button.textContent = t('opt_loading');
         try {
@@ -244,7 +245,7 @@ export function wireEvents() {
           applyResolvedModel();
           await resolvePreset();
         } finally {
-          button.disabled = false;
+          setKeyBusy(false);
           button.removeAttribute('aria-busy');
           button.textContent = t('opt_reload');
           // A successful reload hides the notice holding the button.
@@ -280,33 +281,30 @@ export function wireEvents() {
         const legacy = changes[KEYS.API_KEY].newValue;
         state.legacyApiKey = typeof legacy === 'string' ? legacy.trim() : '';
       }
-      if (
-        Object.prototype.hasOwnProperty.call(changes, KEYS.PROVIDER_KEYS) &&
-        changes[KEYS.PROVIDER_KEYS]
-      ) {
+      const keysChanged = Boolean(changes[KEYS.PROVIDER_KEYS]);
+      const registryChanged = changes[KEYS.CUSTOM_PROVIDERS] || changes[KEYS.USER_MODELS] ||
+        (changes[KEYS.VISION_CAPABILITIES] && visionTools);
+      if (keysChanged) {
         state.providerKeys = normalizeProviderKeys(changes[KEYS.PROVIDER_KEYS].newValue);
         if (!state.providerKeys.deepseek && state.legacyApiKey) {
           state.providerKeys.deepseek = state.legacyApiKey;
         }
-        renderProviders();
       }
       if (Object.prototype.hasOwnProperty.call(changes, KEYS.CUSTOM_PROVIDERS) && changes[KEYS.CUSTOM_PROVIDERS]) {
         state.customProviders = modelsTools.normalizeCustomProviders(changes[KEYS.CUSTOM_PROVIDERS].newValue);
-        applyCustomProviders();
-        renderModelArea();
       }
       if (Object.prototype.hasOwnProperty.call(changes, KEYS.USER_MODELS) && changes[KEYS.USER_MODELS]) {
         state.userModels = modelsTools.normalizeUserModels(changes[KEYS.USER_MODELS].newValue);
-        applyCustomProviders();
-        renderModelArea();
       }
       if (changes[KEYS.VISION_CAPABILITIES] && visionTools) {
         state.visionCapabilities = visionTools.normalizeCache(changes[KEYS.VISION_CAPABILITIES].newValue);
-        applyCustomProviders();
-        renderModelArea();
       }
-      // After the branches above: another tab's pick may be a model they just registered.
-      followStoredModels(changes);
+      if (registryChanged) applyCustomProviders();
+      // Another tab's pick may be a model they just registered.
+      if (!followStoredModels(changes)) {
+        if (registryChanged) applyResolvedModel();
+        else if (keysChanged) renderProviders();
+      }
       if (changes[KEYS.PROMPT_OVERRIDES]) {
         // The editor stays as it is: reloading it would wipe unsaved typing.
         // shortcut: this tab's next save still wins for the preset it has open, warn if that bites.

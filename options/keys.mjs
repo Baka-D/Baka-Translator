@@ -1,8 +1,9 @@
 // Settings-page API Key controls for the provider shown in the detail panel.
 import { CONFIRM_RESET_MS, FEEDBACK_CLEAR_MS, KEYS, KEY_MAX_LENGTH, KEY_MIN_LENGTH, MSG, state, ui, t } from './context.mjs';
 import { isCustomProvider, providerKeyFor } from './models.mjs';
-import { getProvider, keyRequired, providerDisplayName, renderProviders, selectedProvider } from './providers.mjs';
-import { maskKey, persist, restoreFocus, sendMessage, setFeedback } from './utils.mjs';
+import { getProvider, keyRequired, providerDisplayName, providerInStorageMatches, providerPanelMatches, renderProviders, selectedProvider } from './providers.mjs';
+import { maskKey, normalizeProviderKeys, persist, restoreFocus, sendMessage, setFeedback } from './utils.mjs';
+import { withStorageLock } from '../shared/storage-lock.mjs';
 
 /* ---------- 当前服务商的 API Key ---------- */
 
@@ -20,6 +21,7 @@ export function renderKeyPanel(provider) {
     if (ui.testConnectionButton) ui.testConnectionButton.disabled = true;
     return;
   }
+  const busy = state.busy || state.customBusy;
   const key = providerKeyFor(provider.id);
   const required = keyRequired(provider);
   const name = providerName(provider);
@@ -43,19 +45,19 @@ export function renderKeyPanel(provider) {
 
   ui.saveKeyButton.textContent = key ? t('opt_key_replace') : t('opt_key_save');
   ui.saveKeyButton.setAttribute('aria-label', t(key ? 'opt_key_replace_named' : 'opt_key_save_named', [name]));
-  ui.saveKeyButton.disabled = state.busy;
+  ui.saveKeyButton.disabled = busy;
   ui.clearKeyButton.hidden = !key;
-  ui.clearKeyButton.disabled = state.busy;
+  ui.clearKeyButton.disabled = busy;
   if (state.confirmClear !== provider.id) {
     ui.clearKeyButton.classList.remove('is-confirming');
     ui.clearKeyButton.textContent = t('opt_key_clear');
     ui.clearKeyButton.setAttribute('aria-label', t('opt_key_clear_named', [name]));
   }
-  ui.apiKeyInput.disabled = state.busy;
-  ui.toggleKeyVisibility.disabled = state.busy;
+  ui.apiKeyInput.disabled = busy;
+  ui.toggleKeyVisibility.disabled = busy;
   if (ui.testConnectionButton) {
     ui.testConnectionButton.setAttribute('aria-label', t('opt_key_test_named', [name]));
-    ui.testConnectionButton.disabled = state.busy || (isCustomProvider(provider) && !provider.endpoint);
+    ui.testConnectionButton.disabled = busy || (isCustomProvider(provider) && !provider.endpoint);
   }
 }
 
@@ -72,8 +74,11 @@ export function validateProviderKey(provider, raw) {
   }
   if (key.length > KEY_MAX_LENGTH) return { ok: false, message: t('opt_key_too_long') };
   if (isCustomProvider(provider)) {
-    if (/\s/.test(key) || /[\r\n]/.test(key)) {
+    if (/\s/.test(key)) {
       return { ok: false, message: t('opt_key_no_whitespace') };
+    }
+    if (!/^[\x21-\x7e]+$/.test(key)) {
+      return { ok: false, message: t('opt_key_invalid_characters') };
     }
     return { ok: true, key };
   }
@@ -101,11 +106,26 @@ export function setKeyBusy(busy) {
   busyFocus = null;
 }
 
+function persistProviderKey(provider, key) {
+  return withStorageLock(KEYS.CUSTOM_PROVIDERS, async () => {
+    const values = await chrome.storage.local.get([KEYS.PROVIDER_KEYS, KEYS.CUSTOM_PROVIDERS, KEYS.CUSTOM_PROVIDER]);
+    if (!providerInStorageMatches(provider, values)) return false;
+    const nextKeys = normalizeProviderKeys(values[KEYS.PROVIDER_KEYS] ?? state.providerKeys);
+    if (key) nextKeys[provider.id] = key;
+    else delete nextKeys[provider.id];
+    const update = { [KEYS.PROVIDER_KEYS]: nextKeys };
+    if (provider.id === 'deepseek') update[KEYS.API_KEY] = key;
+    await persist(update);
+    if (provider.id === 'deepseek') state.legacyApiKey = key;
+    state.providerKeys = nextKeys;
+    return true;
+  });
+}
+
 export async function handleSaveKey() {
-  if (state.busy) return;
+  if (state.busy || state.customBusy) return;
   const provider = selectedProvider();
   if (!provider) return;
-  const providerIdValue = provider.id;
   const validation = validateProviderKey(provider, ui.apiKeyInput.value);
   if (!validation.ok) {
     setFeedback(ui.keyFeedback, validation.message, 'error');
@@ -113,21 +133,17 @@ export async function handleSaveKey() {
     return;
   }
 
+  resetClearConfirm();
   setKeyBusy(true);
   setFeedback(ui.keyFeedback, t('opt_key_saving'), 'muted');
   try {
-    const nextKeys = Object.assign({}, state.providerKeys);
-    nextKeys[providerIdValue] = validation.key;
-    const update = { [KEYS.PROVIDER_KEYS]: nextKeys };
-    if (providerIdValue === 'deepseek') update[KEYS.API_KEY] = validation.key;
-    await persist(update);
-    state.providerKeys = nextKeys;
-    if (providerIdValue === 'deepseek') state.legacyApiKey = validation.key;
+    if (!await persistProviderKey(provider, validation.key)) throw new Error('PROVIDER_CHANGED');
+    if (!providerPanelMatches(provider)) return;
     ui.apiKeyInput.value = '';
     setKeyVisibility(false);
     setFeedback(ui.keyFeedback, t('opt_key_saved_named', [providerName(provider)]), 'success', FEEDBACK_CLEAR_MS);
   } catch (_error) {
-    setFeedback(ui.keyFeedback, t('opt_key_save_failed'), 'error');
+    if (providerPanelMatches(provider)) setFeedback(ui.keyFeedback, t('opt_key_save_failed'), 'error');
   } finally {
     setKeyBusy(false);
   }
@@ -159,30 +175,25 @@ export function resetClearConfirm() {
 
 export async function clearKey(providerIdValue) {
   const provider = getProvider(providerIdValue);
+  if (!provider || state.busy || state.customBusy) return;
   resetClearConfirm();
   setKeyBusy(true);
   let cleared = false;
   try {
-    const nextKeys = Object.assign({}, state.providerKeys);
-    delete nextKeys[providerIdValue];
-    const update = { [KEYS.PROVIDER_KEYS]: nextKeys };
-    if (providerIdValue === 'deepseek') update[KEYS.API_KEY] = '';
-    await persist(update);
-    state.providerKeys = nextKeys;
-    if (providerIdValue === 'deepseek') state.legacyApiKey = '';
-    cleared = true;
+    cleared = await persistProviderKey(provider, '');
+    if (!cleared) throw new Error('PROVIDER_CHANGED');
   } catch (_error) {
-    setFeedback(ui.keyFeedback, t('opt_key_clear_failed'), 'error');
+    if (providerPanelMatches(provider)) setFeedback(ui.keyFeedback, t('opt_key_clear_failed'), 'error');
   } finally {
     setKeyBusy(false);
   }
-  if (!cleared) return;
+  if (!cleared || !providerPanelMatches(provider)) return;
   setFeedback(ui.keyFeedback, t('opt_key_cleared_named', [providerName(provider)]), 'success', FEEDBACK_CLEAR_MS);
   ui.saveKeyButton.focus();
 }
 
 export function handleClearKeyClick() {
-  if (state.busy) return;
+  if (state.busy || state.customBusy) return;
   const provider = selectedProvider();
   if (!provider || !providerKeyFor(provider.id)) return;
   if (state.confirmClear !== provider.id) {
@@ -218,7 +229,7 @@ export function testErrorMessage(error, provider) {
 }
 
 export async function handleTestConnection() {
-  if (state.busy) return;
+  if (state.busy || state.customBusy) return;
   const provider = selectedProvider();
   if (!provider) return;
   if (keyRequired(provider) && !providerKeyFor(provider.id)) {
@@ -237,6 +248,7 @@ export async function handleTestConnection() {
   setFeedback(ui.keyFeedback, t('opt_key_testing_named', [providerName(provider)]), 'muted');
   const response = await sendMessage({ type: MSG.TEST_CONNECTION, providerId: provider.id });
   setKeyBusy(false);
+  if (!providerPanelMatches(provider)) return;
 
   if (!response || response.ok === false) {
     const error =

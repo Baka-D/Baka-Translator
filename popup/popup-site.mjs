@@ -1,5 +1,6 @@
 /** Per-site settings, presets, novel availability, and page costs. */
 import { t, i18n, config, billingTools, novelUtils, presetsTools, KEYS, ui, state } from './popup-state.mjs';
+import { patchSiteSettings, updateSiteSettings } from '../shared/site-settings.mjs';
 
 /* ---------- 本站润色与页面费用 ---------- */
 
@@ -153,36 +154,12 @@ async function readSiteSettings() {
   }
 }
 
-// Every update replaces the whole map, so reads must wait for earlier writes.
-let siteSaveQueue = Promise.resolve();
-
-function saveSiteFlag(host, patch, removeKeys) {
-  const saved = siteSaveQueue.then(() => writeSiteFlag(host, patch, removeKeys));
-  siteSaveQueue = saved.catch(() => false);
-  return saved;
-}
-
-async function writeSiteFlag(host, patch, removeKeys) {
+async function saveSiteFlag(host, patch, removeKeys) {
   if (!host) return false;
   try {
-    const values = await chrome.storage.local.get([KEYS.SITE_SETTINGS]);
-    const stored = values[KEYS.SITE_SETTINGS];
-    const all =
-      stored && typeof stored === 'object' && !Array.isArray(stored)
-        ? Object.assign({}, stored)
-        : {};
-    const currentValue = all[host];
-    const current =
-      currentValue && typeof currentValue === 'object' && !Array.isArray(currentValue)
-        ? currentValue
-        : typeof currentValue === 'boolean'
-          ? { polish: currentValue }
-          : {};
-    const next = Object.assign({ polish: false, pretranslate: false }, current, patch || {});
-    for (const key of removeKeys || []) delete next[key];
-    all[host] = next;
-    await chrome.storage.local.set({ [KEYS.SITE_SETTINGS]: all });
-    state.siteSettings = all;
+    const { settings } = await updateSiteSettings(KEYS.SITE_SETTINGS, host,
+      (previous) => patchSiteSettings(previous, patch, removeKeys));
+    state.siteSettings = settings;
     return true;
   } catch (_error) {
     return false;

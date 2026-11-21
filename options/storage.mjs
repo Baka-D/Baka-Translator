@@ -119,11 +119,11 @@ export async function loadStoredData() {
 
 export async function persistDefaultsIfMissing() {
   const updates = {};
-  if (!state.storedTranslationModel && state.registry) {
+  if (!state.storedTranslationModel && state.registry && !state.staleModelId) {
     updates[KEYS.TRANSLATION_MODEL_ID] = state.modelId;
     updates[KEYS.MODEL_ID] = state.modelId;
   }
-  if (!state.storedTranslationEffort && state.registry) {
+  if (!state.storedTranslationEffort && state.registry && !state.staleModelId) {
     updates[KEYS.TRANSLATION_EFFORT] = state.effortLevel;
     updates[KEYS.EFFORT] = state.effortLevel;
   }

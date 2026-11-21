@@ -1,9 +1,9 @@
 // Settings-page provider manager: a side list of providers plus one detail panel.
-import { state, ui, i18n, t } from './context.mjs';
+import { KEYS, modelsTools, state, ui, i18n, t } from './context.mjs';
 import { renderCustomFields } from './custom-provider.mjs';
 import { renderKeyPanel, resetClearConfirm, setKeyVisibility } from './keys.mjs';
 import { renderProviderModels } from './provider-models.mjs';
-import { polishProvider, providerKeyFor, translationProvider } from './models.mjs';
+import { isCustomProvider, polishProvider, providerKeyFor, translationProvider } from './models.mjs';
 import { setFeedback } from './utils.mjs';
 
 export function registryProviders() {
@@ -36,6 +36,19 @@ export function providerUses(providerIdValue) {
 export function selectedProvider() {
   if (state.providerDraft) return null;
   return getProvider(state.selectedProviderId);
+}
+
+/** Network responses belong to the panel and endpoint that sent the request. */
+export function providerPanelMatches(provider) {
+  const shown = selectedProvider();
+  return shown?.id === provider.id && shown.endpoint === provider.endpoint;
+}
+
+export function providerInStorageMatches(provider, values) {
+  if (!isCustomProvider(provider)) return true;
+  const entry = modelsTools.normalizeCustomProviders(values[KEYS.CUSTOM_PROVIDERS], values[KEYS.CUSTOM_PROVIDER])
+    .find((current) => current.id === provider.id);
+  return entry?.endpoint === provider.endpoint;
 }
 
 function keyTone(provider) {
@@ -132,7 +145,9 @@ export function renderProviders() {
     ui.providerNav.replaceChildren(...items);
   }
   if (hadFocus) focusCurrentProvider();
-  if (ui.addProviderButton) ui.addProviderButton.disabled = state.busy || state.customBusy || !state.registry;
+  const busy = state.busy || state.customBusy;
+  if (ui.addProviderButton) ui.addProviderButton.disabled = busy || !state.registry;
+  if (ui.reloadModelsButton) ui.reloadModelsButton.disabled = busy;
 
   const provider = selectedProvider();
   const shownId = state.providerDraft ? '#draft' : (provider ? provider.id : '');

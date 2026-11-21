@@ -259,9 +259,9 @@ export function populateEffortSelect(model) {
   fillEffortOptions(select, levels, false, '');
   const value = levels.includes(state.effortLevel) ? state.effortLevel : levels[0];
   select.value = value;
-  state.effortLevel = value;
-  // While stale, `state.modelId` is the stand-in: an effort change would save it as the model.
+  // While stale, the stand-in's effort must not replace the missing model's saved effort.
   const stale = Boolean(staleTranslationModelId());
+  if (!stale) state.effortLevel = value;
   select.disabled = stale || levels.length <= 1;
   if (ui.effortHint) {
     ui.effortHint.textContent = stale
@@ -276,6 +276,7 @@ export function populatePolishEffortSelect() {
   const select = ui.polishEffortSelect;
   if (!select) return;
   const model = polishModel();
+  select.disabled = !model;
   const levels = effortLevelsFor(model);
   fillEffortOptions(select, levels, true, t('opt_effort_follow'));
   const value =

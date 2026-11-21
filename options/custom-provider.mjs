@@ -1,9 +1,10 @@
 // Settings-page user-added OpenAI-compatible providers (add, edit, rename, delete).
 import { CONFIRM_RESET_MS, FEEDBACK_CLEAR_MS, KEYS, LOCAL_HTTP_HOSTS, modelsTools, state, ui, t } from './context.mjs';
 import { applyCustomProviders, renderModelArea } from './model-selection.mjs';
-import { isCustomProvider, providerKeyFor } from './models.mjs';
+import { isCustomProvider } from './models.mjs';
 import { focusCurrentProvider, providerUses, renderProviders, selectedProvider } from './providers.mjs';
-import { persist, restoreFocus, setFeedback, storedModelIds } from './utils.mjs';
+import { normalizeProviderKeys, persist, restoreFocus, setFeedback, storedModelIds } from './utils.mjs';
+import { withStorageLock } from '../shared/storage-lock.mjs';
 
 /* ---------- 自定义 OpenAI 兼容接口 ---------- */
 
@@ -12,12 +13,7 @@ let busyFocus = null;
 export function setCustomBusy(busy) {
   state.customBusy = Boolean(busy);
   if (state.customBusy) busyFocus = document.activeElement;
-  const disabled = state.customBusy;
-  for (const input of [ui.providerNameInput, ui.customEndpointInput, ui.customModelInput]) {
-    if (input) input.disabled = disabled;
-  }
-  ui.saveCustomProviderButton.disabled = disabled;
-  if (ui.deleteProviderButton) ui.deleteProviderButton.disabled = disabled;
+  renderProviders();
   if (state.customBusy) ui.saveCustomProviderButton.setAttribute('aria-busy', 'true');
   else ui.saveCustomProviderButton.removeAttribute('aria-busy');
   if (state.customBusy) return;
@@ -62,6 +58,11 @@ export function renderCustomFields(provider, switched) {
   const editable = state.providerDraft || isCustomProvider(provider);
   ui.customProviderFields.hidden = !editable;
   if (!editable) return;
+  const busy = state.busy || state.customBusy;
+  for (const input of [ui.providerNameInput, ui.customEndpointInput, ui.customModelInput]) {
+    if (input) input.disabled = busy;
+  }
+  ui.saveCustomProviderButton.disabled = busy;
   // Prefill only when the panel switches provider, so re-renders keep unsaved typing.
   if (switched) {
     const entry = state.providerDraft ? null : storedEntry(provider.id);
@@ -76,6 +77,7 @@ export function renderCustomFields(provider, switched) {
     : state.providerDraft ? t('opt_provider_add') : t('opt_provider_save');
   if (ui.deleteProviderButton) {
     ui.deleteProviderButton.hidden = state.providerDraft;
+    ui.deleteProviderButton.disabled = busy;
     if (state.confirmDeleteProvider !== (provider && provider.id)) {
       ui.deleteProviderButton.textContent = t('opt_provider_delete');
       ui.deleteProviderButton.classList.remove('is-confirming');
@@ -114,21 +116,44 @@ function defaultName(providerIdValue) {
 }
 
 /** Another options tab may have changed the list since this one loaded it. */
-async function refreshCustomProviders() {
-  const values = await chrome.storage.local.get([KEYS.CUSTOM_PROVIDERS, KEYS.CUSTOM_PROVIDER]);
+async function readProviderSettings() {
+  const values = await chrome.storage.local.get([
+    KEYS.CUSTOM_PROVIDERS, KEYS.CUSTOM_PROVIDER, KEYS.PROVIDER_KEYS, KEYS.USER_MODELS
+  ]);
   state.customProviders = modelsTools.normalizeCustomProviders(
     values[KEYS.CUSTOM_PROVIDERS], values[KEYS.CUSTOM_PROVIDER]
   );
+  return {
+    keys: normalizeProviderKeys(values[KEYS.PROVIDER_KEYS] ?? state.providerKeys),
+    models: modelsTools.normalizeUserModels(values[KEYS.USER_MODELS])
+  };
 }
 
 async function commitCustomProviders(list, extraUpdate) {
   await persist({ [KEYS.CUSTOM_PROVIDERS]: list, ...(extraUpdate || {}) });
   state.customProviders = modelsTools.normalizeCustomProviders(list);
+  if (extraUpdate?.[KEYS.USER_MODELS]) state.userModels = extraUpdate[KEYS.USER_MODELS];
+  if (extraUpdate?.[KEYS.PROVIDER_KEYS]) state.providerKeys = extraUpdate[KEYS.PROVIDER_KEYS];
   applyCustomProviders();
 }
 
+function armMoveConfirm(provider) {
+  state.confirmMoveProvider = provider.id;
+  ui.saveCustomProviderButton.textContent = t('opt_provider_confirm_save');
+  const warning = t('opt_provider_move_warning');
+  setFeedback(ui.customProviderFeedback, warning, 'warning');
+  window.clearTimeout(state.moveConfirmTimer);
+  state.moveConfirmTimer = window.setTimeout(() => {
+    state.moveConfirmTimer = 0;
+    if (state.confirmMoveProvider !== provider.id) return;
+    state.confirmMoveProvider = '';
+    clearFeedbackIf(warning);
+    renderProviders();
+  }, CONFIRM_RESET_MS);
+}
+
 export async function handleSaveCustomProvider() {
-  if (state.customBusy) return;
+  if (state.busy || state.customBusy) return;
   const adding = state.providerDraft;
   const current = selectedProvider();
   if (!adding && !isCustomProvider(current)) return;
@@ -142,66 +167,55 @@ export async function handleSaveCustomProvider() {
     setFeedback(ui.customProviderFeedback, validation.message, 'error');
     return;
   }
-  // Moving to another host drops the saved key, so that save takes a second click.
-  if (!adding && state.confirmMoveProvider !== current.id && providerKeyFor(current.id) &&
-    hostMoved(storedEntry(current.id), validation.endpoint)) {
-    state.confirmMoveProvider = current.id;
-    ui.saveCustomProviderButton.textContent = t('opt_provider_confirm_save');
-    const warning = t('opt_provider_move_warning');
-    setFeedback(ui.customProviderFeedback, warning, 'warning');
-    window.clearTimeout(state.moveConfirmTimer);
-    state.moveConfirmTimer = window.setTimeout(() => {
-      state.moveConfirmTimer = 0;
-      if (state.confirmMoveProvider !== current.id) return;
-      state.confirmMoveProvider = '';
-      clearFeedbackIf(warning);
-      renderProviders();
-    }, CONFIRM_RESET_MS);
-    return;
-  }
-  resetMoveConfirm();
+  const moveConfirmed = !adding && state.confirmMoveProvider === current.id;
 
+  const enteredName = ui.providerNameInput.value.trim().slice(0, 60);
   setCustomBusy(true);
-  setFeedback(ui.customProviderFeedback, '', '');
+  setFeedback(ui.customProviderFeedback, '');
   let saved = null;
   let droppedKey = false;
   try {
-    await refreshCustomProviders();
-    if (!adding && !storedEntry(current.id)) {
-      // Writing it back would undo the other tab's delete, and its key is already gone.
-      setCustomBusy(false);
-      applyCustomProviders();
-      renderModelArea();
-      setFeedback(ui.keyFeedback, t('opt_provider_deleted_elsewhere', [current.name]), 'warning');
-      return;
-    }
-    const id = adding ? nextCustomId() : current.id;
-    const previous = adding ? null : storedEntry(id);
-    const moved = hostMoved(previous, validation.endpoint);
-    const name = ui.providerNameInput.value.trim().slice(0, 60) || defaultName(id);
-    const entry = { id, name, endpoint: validation.endpoint, model: validation.model };
-    const list = adding
-      ? state.customProviders.concat(entry)
-      : state.customProviders.map((item) => (item.id === id ? entry : item));
-    // A reused id must not inherit a key or model names left behind by an earlier provider.
-    const nextKeys = Object.assign({}, state.providerKeys);
-    const nextModels = Object.assign({}, state.userModels);
-    if (adding) {
-      delete nextKeys[id];
-      delete nextModels[id];
-      state.userModels = nextModels;
-    }
-    // A key belongs to the host it was issued by; a path change on the same host keeps it.
-    droppedKey = moved && Boolean(nextKeys[id]);
-    if (moved) delete nextKeys[id];
-    await commitCustomProviders(
-      list,
-      adding
-        ? { [KEYS.PROVIDER_KEYS]: nextKeys, [KEYS.USER_MODELS]: nextModels }
-        : moved ? { [KEYS.PROVIDER_KEYS]: nextKeys } : undefined
-    );
-    if (adding || moved) state.providerKeys = nextKeys;
-    saved = entry;
+    await withStorageLock(KEYS.CUSTOM_PROVIDERS, async () => {
+      const { keys, models } = await readProviderSettings();
+      if (!adding && !storedEntry(current.id)) {
+        applyCustomProviders();
+        renderModelArea();
+        setFeedback(ui.keyFeedback, t('opt_provider_deleted_elsewhere', [current.name]), 'warning');
+        return;
+      }
+      if (adding && state.customProviders.length >= modelsTools.MAX_CUSTOM_PROVIDERS) {
+        setFeedback(ui.customProviderFeedback, t('opt_provider_limit', [modelsTools.MAX_CUSTOM_PROVIDERS]), 'error');
+        return;
+      }
+      const id = adding ? nextCustomId() : current.id;
+      const previous = adding ? null : storedEntry(id);
+      if (previous && previous.endpoint !== current.endpoint) throw new Error('PROVIDER_CHANGED');
+      const moved = hostMoved(previous, validation.endpoint);
+      if (moved && keys[id] && !moveConfirmed) {
+        armMoveConfirm(current);
+        return;
+      }
+      resetMoveConfirm();
+      const name = enteredName || defaultName(id);
+      const entry = { id, name, endpoint: validation.endpoint, model: validation.model };
+      const list = adding
+        ? state.customProviders.concat(entry)
+        : state.customProviders.map((item) => (item.id === id ? entry : item));
+      // A reused id must not inherit a key or model names left behind by an earlier provider.
+      if (adding) {
+        delete keys[id];
+        delete models[id];
+      }
+      droppedKey = moved && Boolean(keys[id]);
+      if (moved) delete keys[id];
+      await commitCustomProviders(
+        list,
+        adding
+          ? { [KEYS.PROVIDER_KEYS]: keys, [KEYS.USER_MODELS]: models }
+          : moved ? { [KEYS.PROVIDER_KEYS]: keys } : undefined
+      );
+      saved = entry;
+    });
   } catch (_error) {
     setFeedback(ui.customProviderFeedback, t('opt_provider_save_failed'), 'error');
   } finally {
@@ -222,54 +236,54 @@ export async function handleSaveCustomProvider() {
 }
 
 export async function handleDeleteProviderClick() {
-  if (state.customBusy) return;
+  if (state.busy || state.customBusy) return;
   const provider = selectedProvider();
   if (!isCustomProvider(provider)) return;
-  const uses = providerUses(provider.id);
-  const stored = (await storedModelIds()).map((id) => modelsTools.getModel(state.registry, id));
-  if (uses.length > 0 || stored.some((model) => model && model.provider === provider.id)) {
-    setFeedback(
-      ui.customProviderFeedback,
-      t('opt_provider_in_use', [provider.name, uses.join(t('opt_provider_usage_separator')) || t('opt_provider_other_settings')]),
-      'warning'
-    );
-    return;
-  }
-  if (state.confirmDeleteProvider !== provider.id) {
-    resetMoveConfirm();
-    state.confirmDeleteProvider = provider.id;
-    ui.deleteProviderButton.textContent = t('opt_provider_confirm_delete');
-    ui.deleteProviderButton.classList.add('is-confirming');
-    const warning = t('opt_provider_delete_warning');
-    setFeedback(ui.customProviderFeedback, warning, 'warning');
-    window.clearTimeout(state.deleteConfirmTimer);
-    state.deleteConfirmTimer = window.setTimeout(() => {
-      state.deleteConfirmTimer = 0;
-      if (state.confirmDeleteProvider !== provider.id) return;
-      state.confirmDeleteProvider = '';
-      clearFeedbackIf(warning);
-      renderProviders();
-    }, CONFIRM_RESET_MS);
-    return;
-  }
-
-  state.confirmDeleteProvider = '';
-  window.clearTimeout(state.deleteConfirmTimer);
   setCustomBusy(true);
   let deleted = false;
   try {
-    await refreshCustomProviders();
-    const nextKeys = Object.assign({}, state.providerKeys);
-    delete nextKeys[provider.id];
-    const nextModels = Object.assign({}, state.userModels);
-    delete nextModels[provider.id];
-    state.userModels = nextModels;
-    await commitCustomProviders(
-      state.customProviders.filter((entry) => entry.id !== provider.id),
-      { [KEYS.PROVIDER_KEYS]: nextKeys, [KEYS.USER_MODELS]: nextModels }
-    );
-    state.providerKeys = nextKeys;
-    deleted = true;
+    await withStorageLock(KEYS.CUSTOM_PROVIDERS, async () => {
+      const uses = providerUses(provider.id);
+      const stored = (await storedModelIds()).map((id) => modelsTools.getModel(state.registry, id));
+      if (uses.length > 0 || stored.some((model) => model && model.provider === provider.id)) {
+        setFeedback(
+          ui.customProviderFeedback,
+          t('opt_provider_in_use', [provider.name, uses.join(t('opt_provider_usage_separator')) || t('opt_provider_other_settings')]),
+          'warning'
+        );
+        return;
+      }
+      if (state.confirmDeleteProvider !== provider.id) {
+        resetMoveConfirm();
+        state.confirmDeleteProvider = provider.id;
+        ui.deleteProviderButton.textContent = t('opt_provider_confirm_delete');
+        ui.deleteProviderButton.classList.add('is-confirming');
+        const warning = t('opt_provider_delete_warning');
+        setFeedback(ui.customProviderFeedback, warning, 'warning');
+        window.clearTimeout(state.deleteConfirmTimer);
+        state.deleteConfirmTimer = window.setTimeout(() => {
+          state.deleteConfirmTimer = 0;
+          if (state.confirmDeleteProvider !== provider.id) return;
+          state.confirmDeleteProvider = '';
+          clearFeedbackIf(warning);
+          renderProviders();
+        }, CONFIRM_RESET_MS);
+        return;
+      }
+
+      state.confirmDeleteProvider = '';
+      window.clearTimeout(state.deleteConfirmTimer);
+      const { keys, models } = await readProviderSettings();
+      const current = storedEntry(provider.id);
+      if (current && current.endpoint !== provider.endpoint) throw new Error('PROVIDER_CHANGED');
+      delete keys[provider.id];
+      delete models[provider.id];
+      await commitCustomProviders(
+        state.customProviders.filter((entry) => entry.id !== provider.id),
+        { [KEYS.PROVIDER_KEYS]: keys, [KEYS.USER_MODELS]: models }
+      );
+      deleted = true;
+    });
   } catch (_error) {
     setFeedback(ui.customProviderFeedback, t('opt_provider_delete_failed'), 'error');
   } finally {

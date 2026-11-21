@@ -51,6 +51,7 @@ export function resetUsageErrorMessage(error) {
 }
 
 export async function handleResetUsage() {
+  const focused = document.activeElement;
   resetResetUsageConfirm();
   state.usageBusy = true;
   if (ui.resetUsageButton) {
@@ -63,6 +64,7 @@ export async function handleResetUsage() {
   if (ui.resetUsageButton) {
     ui.resetUsageButton.disabled = false;
     ui.resetUsageButton.removeAttribute('aria-busy');
+    restoreFocus(focused);
   }
   if (!response || response.ok === false) {
     const error = response && response.error ? response.error : { code: 'UNKNOWN_ERROR' };
