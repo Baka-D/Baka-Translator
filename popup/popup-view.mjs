@@ -62,9 +62,12 @@ function renderPageNotice() {
 
 function renderStatus() {
   const info = state.info;
+  const running = info?.status === 'running';
+  const polishing = running && info.phase === 'polishing';
   const pretranslating = Boolean(info && !state.pageError && info.pretranslationStatus === 'running' &&
-    (info.status !== 'running' || info.phase === 'pretranslating'));
+    (!running || info.phase === 'pretranslating'));
   const pretranslationProgress = info?.pretranslationProgress || {};
+  const polishProgress = info?.polishProgress || {};
   const stageLabels = { fetching: t('pop_stage_fetch'), translating: t('pop_stage_translate'), polishing: t('pop_stage_polish'), saving: t('pop_stage_save') };
   let tone = 'idle';
   let text = t('pop_loading');
@@ -80,10 +83,13 @@ function renderStatus() {
   } else if (!info) {
     tone = 'warn';
     text = t('pop_page_unknown');
-  } else if (info.status === 'running') {
+  } else if (running) {
     tone = 'running';
-    if (info.phase === 'polishing') {
+    if (polishing) {
       text = t('pop_polishing');
+      if (polishProgress.total > 0) {
+        count = t('progress_chunks', [Math.min(polishProgress.done, polishProgress.total), polishProgress.total]);
+      }
     } else {
       text = t('pop_translating');
       count = info.progress.total > 0 ? `${info.progress.done}/${info.progress.total}` : '';
@@ -133,8 +139,17 @@ function renderStatus() {
       : labelOf(state.settings.targetCode);
   ui.targetLabel.textContent = activeTarget;
 
-  const running = Boolean(info && info.status === 'running');
-  const progress = pretranslating ? pretranslationProgress : running ? info.progress : {};
+  let progress = {};
+  let label = t('pop_translated');
+  if (pretranslating) {
+    progress = pretranslationProgress;
+    label = stageLabels[pretranslationProgress.stage] || t('pop_pretranslation');
+  } else if (polishing) {
+    progress = polishProgress;
+    label = t('pop_polishing');
+  } else if (running) {
+    progress = info.progress;
+  }
   const total = progress.total || 0;
   const done = progress.done || 0;
   const hasProgress = (running || pretranslating) && total > 0;
@@ -144,8 +159,7 @@ function renderStatus() {
   ui.progressTrack.setAttribute('aria-hidden', hasProgress ? 'false' : 'true');
   ui.progressTrack.setAttribute('aria-valuenow', String(percent));
   if (hasProgress) {
-    const label = pretranslating ? stageLabels[pretranslationProgress.stage] || t('pop_pretranslation') : t('pop_translated');
-    const progressCount = pretranslating ? count : t('pop_segments', [done, total]);
+    const progressCount = pretranslating || polishing ? count : t('pop_segments', [done, total]);
     ui.progressTrack.setAttribute('aria-valuetext', t('pop_progress', [label, progressCount]));
     ui.progressFill.style.width = `${percent}%`;
   } else {

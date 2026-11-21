@@ -1,5 +1,5 @@
 /** Page state polling and translation / restore commands. */
-import { t, i18n, languages, POLL_INTERVAL_MS, PRETRANSLATE_POLL_MS, VISION_NOTICE_TEXT, ui, state } from './popup-state.mjs';
+import { t, languages, POLL_INTERVAL_MS, PRETRANSLATE_POLL_MS, VISION_NOTICE_TEXT, ui, state } from './popup-state.mjs';
 import { errorText, pageCommand } from './popup-transport.mjs';
 import { render, computeMainAction } from './popup-view.mjs';
 
@@ -17,9 +17,13 @@ function normalizeInfo(raw) {
   const value = raw && typeof raw === 'object' ? raw : {};
   const knownStatus = { idle: 1, running: 1, done: 1, partial: 1, error: 1 };
   const status = Object.prototype.hasOwnProperty.call(knownStatus, value.status) ? value.status : 'idle';
-  const progressRaw = value.progress && typeof value.progress === 'object' ? value.progress : {};
   const pretranslationRaw = value.pretranslationProgress || {};
   const progressCount = (count) => Number.isFinite(Number(count)) ? Math.max(0, Math.floor(Number(count))) : 0;
+  const normalizeProgress = (progress) => ({
+    done: progressCount(progress?.done),
+    total: progressCount(progress?.total),
+    failed: progressCount(progress?.failed)
+  });
   const sourceRaw = value.source && typeof value.source === 'object' ? value.source : null;
   const targetLanguage = languages.getTargetLanguage(value.targetCode);
   const phase = typeof value.phase === 'string' ? value.phase : '';
@@ -72,6 +76,7 @@ function normalizeInfo(raw) {
       typeof value.polishError === 'string' && value.polishError.trim()
         ? value.polishError.trim()
         : null,
+    polishProgress: normalizeProgress(value.polishProgress),
     proofreadEnabled: value.proofreadEnabled === true,
     pageTranslated: value.pageTranslated === true,
     targetCode: targetLanguage ? targetLanguage.code : null,
@@ -92,11 +97,7 @@ function normalizeInfo(raw) {
           mixed: sourceRaw.mixed === true
         }
       : null,
-    progress: {
-      done: Math.max(0, Math.floor(Number(progressRaw.done) || 0)),
-      total: Math.max(0, Math.floor(Number(progressRaw.total) || 0)),
-      failed: Math.max(0, Math.floor(Number(progressRaw.failed) || 0))
-    },
+    progress: normalizeProgress(value.progress),
     truncated: value.truncated === true,
     error: typeof value.error === 'string' && value.error.trim() ? value.error.trim() : null,
     imagePanelOpen: value.imagePanelOpen === true
@@ -141,6 +142,9 @@ function applyStateResponse(response) {
 
 /* ---------- 状态刷新与轮询 ---------- */
 
+let stateRequest = 0;
+let pageHidden = false;
+
 function stopPolling() {
   if (state.pollTimer) {
     window.clearTimeout(state.pollTimer);
@@ -148,16 +152,30 @@ function stopPolling() {
   }
 }
 
+function invalidateStateRefresh() {
+  stateRequest += 1;
+  stopPolling();
+}
+
+function disposePageState() {
+  pageHidden = true;
+  invalidateStateRefresh();
+}
+
 function schedulePoll(intervalMs) {
   stopPolling();
   state.pollTimer = window.setTimeout(() => {
+    state.pollTimer = 0;
     void refreshState();
   }, intervalMs || POLL_INTERVAL_MS);
 }
 
 async function refreshState() {
-  if (!state.tabId) return;
+  if (!state.tabId || pageHidden) return;
+  stopPolling();
+  const request = ++stateRequest;
   const response = await pageCommand('getState');
+  if (request !== stateRequest || pageHidden) return;
   if (response.ok === false) {
     const error = response.error || {};
     if (error.code === 'MISSING_API_KEY') {
@@ -166,7 +184,6 @@ async function refreshState() {
       state.info = null;
       state.pageError = { code: error.code || 'UNKNOWN_ERROR', message: errorText(error) };
     }
-    stopPolling();
     render();
     return;
   }
@@ -177,8 +194,6 @@ async function refreshState() {
   );
   if (pageRunning || pretranslateRunning) {
     schedulePoll(pageRunning ? POLL_INTERVAL_MS : PRETRANSLATE_POLL_MS);
-  } else {
-    stopPolling();
   }
 }
 
@@ -191,7 +206,8 @@ function setBusy(busy) {
 }
 
 async function startPageTranslation() {
-  if (!state.hasApiKey || state.busy) return;
+  if (!state.hasApiKey || state.busy || pageHidden) return;
+  invalidateStateRefresh();
   setBusy(true);
   state.pageMessage = null;
   if (state.info) {
@@ -211,6 +227,7 @@ async function startPageTranslation() {
     targetCode: state.settings.targetCode,
     bilingual: state.settings.bilingual
   });
+  if (pageHidden) return;
   setBusy(false);
 
   if (response.ok === false) {
@@ -245,18 +262,21 @@ async function startPageTranslation() {
 }
 
 async function restorePage() {
-  if (state.busy) return;
+  if (state.busy || pageHidden) return;
+  invalidateStateRefresh();
   setBusy(true);
   state.pageMessage = null;
   render();
 
   const response = await pageCommand('restore');
+  if (pageHidden) return;
   setBusy(false);
 
   if (response.ok === false) {
     const error = response.error || {};
     state.pageMessage = { tone: 'error', message: errorText(error) };
     render();
+    void refreshState();
     return;
   }
 
@@ -267,36 +287,13 @@ async function restorePage() {
   }
 
   state.pageMessage = null;
-  state.info = {
-    status: 'idle',
-    phase: '',
-    estimatedCostUsd: null,
-    costCurrency: '',
-    novel: state.info ? state.info.novel : null,
-    pretranslateEnabled: false,
-    pretranslationStatus: '',
-    pretranslationNote: '',
-    pretranslationScope: 'next',
-    pretranslationProgress: { stage: '', done: 0, total: 0 },
-    cachedPretranslation: false,
-    polishError: null,
-    proofreadEnabled: false,
-    pageTranslated: false,
-    targetCode: null,
-    targetLabel: null,
-    bilingual: false,
-    source: state.info ? state.info.source : null,
-    progress: { done: 0, total: 0, failed: 0 },
-    truncated: false,
-    error: null,
-    imagePanelOpen: false
-  };
+  state.info = normalizeInfo({ novel: state.info?.novel, source: state.info?.source });
   render();
   await refreshState();
 }
 
 async function runQuickCommand(kind) {
-  if (state.busy || !state.hasApiKey) return;
+  if (state.busy || !state.hasApiKey || pageHidden) return;
   if (kind === 'images' && !state.supportsVision) {
     state.pageMessage = { tone: 'info', message: VISION_NOTICE_TEXT };
     render();
@@ -308,6 +305,7 @@ async function runQuickCommand(kind) {
   render();
 
   const response = await pageCommand(kind, { targetCode: state.settings.targetCode });
+  if (pageHidden) return;
   setBusy(false);
 
   if (response.ok === false) {
@@ -324,6 +322,11 @@ async function runQuickCommand(kind) {
 
   if (response.started === false) {
     let message;
+    if (response.reason === 'cancelled') {
+      state.pageMessage = { tone: 'info', message: t('pop_cancelled') };
+      render();
+      return;
+    }
     if (kind === 'images' && response.reason === 'model-changed') {
       state.pageMessage = { tone: 'info', message: t('pop_model_changed') };
       render();
@@ -367,4 +370,4 @@ async function handleMainAction() {
 }
 
 
-export { normalizeInfo, stopPolling, refreshState, handleMainAction, restorePage, runQuickCommand };
+export { normalizeInfo, disposePageState, refreshState, handleMainAction, restorePage, runQuickCommand };

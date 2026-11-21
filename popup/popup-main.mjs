@@ -1,28 +1,31 @@
 /** Bind popup controls and initialize the active tab. */
-import { t, i18n, config, languages, KEYS, TARGETS, ui, state, PAGE_ERROR_MESSAGES, VISION_NOTICE_TEXT, EXT_PAGE_MESSAGE, normalizeUsage, renderUsage } from './popup-state.mjs';
+import { t, i18n, languages, KEYS, TARGETS, ui, state, PAGE_ERROR_MESSAGES, VISION_NOTICE_TEXT, EXT_PAGE_MESSAGE, normalizeUsage, renderUsage } from './popup-state.mjs';
 import { hostFromUrl, presetDisplayName, populateSitePresetSelect, readSiteSettings, saveSiteFlag, loadPresetIndex } from './popup-site.mjs';
 import { persistSettings, openOptions, readConfig, queryActiveTab, isRestrictedUrl } from './popup-transport.mjs';
 import { render } from './popup-view.mjs';
-import { stopPolling, refreshState, handleMainAction, restorePage, runQuickCommand } from './popup-page.mjs';
+import { disposePageState, refreshState, handleMainAction, restorePage, runQuickCommand } from './popup-page.mjs';
 
 /* ---------- 事件绑定 ---------- */
 
-let modelConfigRequest = 0;
+let modelConfigRequest;
 
-async function refreshModelConfig() {
-  const request = ++modelConfigRequest;
-  const settings = await readConfig();
-  if (request === modelConfigRequest && settings.ok) {
+function refreshModelConfig() {
+  const request = readConfig().then((settings) => {
+    if (request !== modelConfigRequest) return modelConfigRequest;
+    if (!settings.ok) return settings;
     state.hasApiKey = settings.hasApiKey;
     state.modelError = settings.modelError || '';
     state.polishHasApiKey = settings.polishHasApiKey;
+    state.globalPresetId = settings.presetId;
     state.supportsVision = settings.supportsVision;
     state.modelName = settings.modelName;
     state.modelKey = settings.modelKey;
     if (state.supportsVision && state.pageMessage?.message === VISION_NOTICE_TEXT) state.pageMessage = null;
     render();
-  }
-  return settings;
+    return settings;
+  });
+  modelConfigRequest = request;
+  return request;
 }
 
 function populateTargetSelect() {
@@ -137,7 +140,8 @@ function wireEvents() {
     chrome.storage.onChanged.addListener((changes, areaName) => {
       if (areaName !== 'local' || !changes) return;
       const modelKeys = [KEYS.MODEL_ID, KEYS.TRANSLATION_MODEL_ID, KEYS.CUSTOM_PROVIDER,
-        KEYS.CUSTOM_PROVIDERS, KEYS.USER_MODELS, KEYS.VISION_CAPABILITIES, KEYS.PROVIDER_KEYS, KEYS.API_KEY];
+        KEYS.CUSTOM_PROVIDERS, KEYS.USER_MODELS, KEYS.VISION_CAPABILITIES, KEYS.PROVIDER_KEYS,
+        KEYS.API_KEY, KEYS.POLISH_MODEL_ID, KEYS.PRESET_ID];
       if (modelKeys.some((key) => key && Object.hasOwn(changes, key))) void refreshModelConfig();
       if (Object.prototype.hasOwnProperty.call(changes, KEYS.USAGE) && changes[KEYS.USAGE]) {
         state.usage = normalizeUsage(changes[KEYS.USAGE].newValue);
@@ -153,7 +157,7 @@ function wireEvents() {
     });
   }
 
-  window.addEventListener('pagehide', stopPolling);
+  window.addEventListener('pagehide', disposePageState);
 }
 
 /* ---------- 启动 ---------- */
@@ -172,12 +176,8 @@ async function init() {
     state.tabUrl = tab && typeof tab.url === 'string' ? tab.url : '';
     state.host = hostFromUrl(state.tabUrl);
 
-    const results = await Promise.all([refreshModelConfig(), readSiteSettings(), loadPresetIndex()]);
-    const settings = results[0];
-    state.siteSettings = results[1];
-    state.globalPresetId =
-      (settings && settings.presetId) || config.DEFAULT_PRESET_ID || 'general';
-    state.polishHasApiKey = !(settings && settings.polishHasApiKey === false);
+    const [settings, siteSettings] = await Promise.all([refreshModelConfig(), readSiteSettings(), loadPresetIndex()]);
+    state.siteSettings = siteSettings;
     populateSitePresetSelect();
     state.configLoaded = true;
     if (!settings.ok) {
@@ -189,8 +189,6 @@ async function init() {
       render();
       return;
     }
-    state.hasApiKey = settings.hasApiKey;
-    state.modelError = settings.modelError || '';
     state.settings.targetCode = settings.targetCode;
     state.settings.bilingual = settings.bilingual;
     state.usage = settings.usage;
