@@ -80,3 +80,106 @@ test('the popup remembers font repair per host and preserves legacy and unrelate
   renderSiteToggles();
   assert.equal(toggle.disabled, true);
 });
+
+function fontRepairHarness({ reading = false, hiddenReading = false } = {}) {
+  const observations = [];
+  const attributes = new Map();
+  const document = {
+    documentElement: { lang: 'ja' },
+    adoptedStyleSheets: [],
+    fonts: { add() {}, delete() {}, check: () => true },
+    defaultView: {
+      crypto: { getRandomValues: values => values },
+      FontFace: class { async load() {} },
+      CSSStyleSheet: class {
+        cssRules = [];
+        replaceSync() {}
+        insertRule(rule) { this.cssRules.push(rule); }
+      },
+      MutationObserver: class {
+        observe(target, options) { observations.push({ target, options }); }
+        disconnect() {}
+      },
+      getComputedStyle: () => ({ content: 'none' })
+    },
+    createElement(tag) {
+      assert.equal(tag, 'canvas');
+      return {
+        getContext() {
+          return {
+            canvas: {},
+            measureText() {
+              const author = this.font.includes('Author');
+              const probe = this.font.includes('dsht-measure');
+              return { width: author ? (probe ? 30 : 20) : 60 };
+            }
+          };
+        }
+      };
+    },
+    querySelectorAll: () => [anchor],
+    createTreeWalker: () => {
+      const nodes = [text];
+      return { nextNode: () => nodes.shift() || null };
+    }
+  };
+  const rt = { nodeType: 1, matches: selector => selector === 'rt,rp', hasAttribute: () => false };
+  const anchor = {
+    ownerDocument: document,
+    childNodes: [],
+    getRootNode: () => document,
+    closest: selector => reading && selector.startsWith(':is(') ? anchor : null,
+    matches: selector => reading ? false : selector === 'ruby' || selector.startsWith(':not('),
+    querySelectorAll: () => [],
+    hasAttribute: key => attributes.has(key),
+    setAttribute: (key, value) => attributes.set(key, value),
+    removeAttribute: key => attributes.delete(key)
+  };
+  const text = {
+    ownerDocument: document, parentElement: anchor, isConnected: true,
+    nodeType: 3, nodeValue: '译文'
+  };
+  anchor.childNodes.push(text);
+  if (!reading) anchor.childNodes.push(rt);
+  const route = 'https://ncode.syosetu.example/chapter';
+  const app = {
+    BILINGUAL_ATTR: 'data-dsht-original',
+    page: {
+      targetCode: 'zh', runId: 1, translatedRoute: route,
+      novel: reading ? { siteId: 'syosetu', isChapter: true } : null,
+      hiddenRubyReadings: new Set(hiddenReading ? [rt] : [])
+    },
+    currentRoute: () => route,
+    novelUtils: { SITE_ADAPTERS: { syosetu: { chapterRootSelectors: ['article'], titleSelector: 'h1' } } },
+    newFilterContext: () => ({}),
+    isSkippedParent: () => false,
+    getComputedStyleFor: () => ({ fontFamily: 'Author', fontStyle: 'normal', fontWeight: '400' })
+  };
+  const context = createLocalizedContext({ document, Node: { TEXT_NODE: 3, ELEMENT_NODE: 1 }, NodeFilter: { SHOW_TEXT: 4 } });
+  const file = path.join(__dirname, '../../content/content-font.js');
+  vm.runInContext(fs.readFileSync(file, 'utf8'), context, { filename: file });
+  const font = context.DSHT.contentModules.font(app);
+  return { font, text, attributes, document, observations };
+}
+
+test('translated ruby bases accept a local font repair when the readings are hidden', async () => {
+  const hidden = fontRepairHarness({ hiddenReading: true });
+  const visible = fontRepairHarness();
+  for (const { font, text } of [hidden, visible]) font.applyTranslatedFont(text, text.nodeValue);
+  await new Promise(setImmediate);
+  assert.deepEqual([...hidden.attributes.values()], ['l0']);
+  assert.equal(hidden.observations.length, 1);
+  assert.equal(visible.attributes.size, 0);
+});
+
+test('reading-area font repair applies and clears without observing document mutations', async () => {
+  const { font, text, attributes, document, observations } = fontRepairHarness({ reading: true });
+  font.applyTranslatedFont(text, text.nodeValue);
+  await new Promise(setImmediate);
+  assert.deepEqual([...attributes.values()], ['r0']);
+  assert.equal(document.adoptedStyleSheets.length, 1);
+  assert.equal(observations.length, 0);
+  font.clearTranslatedFonts();
+  assert.equal(attributes.size, 0);
+  assert.equal(document.adoptedStyleSheets.length, 0);
+});

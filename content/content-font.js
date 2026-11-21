@@ -136,6 +136,7 @@
     function canInheritLocalFont(child, record) {
       if (child.nodeType === Node.TEXT_NODE) return !child.nodeValue.trim() || record.nodes.get(child) === child.nodeValue;
       if (child.nodeType !== Node.ELEMENT_NODE || child.matches(`br,wbr,${originalContent}`)) return true;
+      if (record.element.matches('ruby') && child.matches('rt,rp') && app.page.hiddenRubyReadings?.has(child)) return true;
       if (child.matches('ruby') && [...child.childNodes].every((part) =>
         !part.textContent.trim() || part.nodeType === Node.ELEMENT_NODE && part.matches('rt,rp'))) return true;
       // Inline emphasis and links that need the same repair can share the font.
@@ -187,7 +188,7 @@
     function clearTranslatedFonts() {
       pending = new WeakMap();
       for (const [scope, { sheet, observer }] of stylesheets) {
-        observer.disconnect();
+        observer?.disconnect();
         scope.adoptedStyleSheets = scope.adoptedStyleSheets.filter((item) => item !== sheet);
       }
       for (const [element, record] of styledElements) element.removeAttribute(record.marker);
@@ -211,7 +212,7 @@
       return `:is(${local}${safeHost},${reading}${readerScope}:not(:has(${protectedChildren}))):not(${blocked},${blocked} *)`;
     }
 
-    function stylesheetFor(element, probe, profile) {
+    function stylesheetFor(element, probe, profile, reading) {
       const scope = element.getRootNode();
       let state = stylesheets.get(scope);
       if (!state) {
@@ -221,12 +222,15 @@
         const selector = scope === document && readingSelector();
         const readerScope = selector ? `:is(${selector}, ${selector} *)` : ':not(*)';
         sheet.replaceSync(`${styleSelector(marker, readerScope)} { font-family: ${profile.stack.family} !important; }`);
-        const observer = new view.MutationObserver(observeLocalChanges);
-        observer.observe(scope, { childList: true, characterData: true, subtree: true });
         scope.adoptedStyleSheets = [...scope.adoptedStyleSheets, sheet];
-        state = { sheet, observer, marker, readerScope, families: new Map() };
+        state = { sheet, observer: null, marker, readerScope, families: new Map() };
         stylesheets.set(scope, state);
         globalScope.navigation?.addEventListener('currententrychange', checkReadingRoute);
+      }
+      if (!reading && !state.observer) {
+        const observer = new element.ownerDocument.defaultView.MutationObserver(observeLocalChanges);
+        observer.observe(scope, { childList: true, characterData: true, subtree: true });
+        state.observer = observer;
       }
       return state;
     }
@@ -248,7 +252,7 @@
       let record = styledElements.get(element);
       if (record) return record;
       if (hasInheritedDecoration(element, originalFamily)) return null;
-      const { sheet, marker, readerScope, families } = stylesheetFor(element, probe, profile);
+      const { sheet, marker, readerScope, families } = stylesheetFor(element, probe, profile, reading);
       let id = families.get(originalFamily);
       if (id === undefined) {
         id = families.size;
