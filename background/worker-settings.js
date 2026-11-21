@@ -137,8 +137,12 @@ function sitePresetId(settings, hostname) {
   return settings.presetId;
 }
 
-async function readSettings() {
-  const values = await chrome.storage.local.get(Object.values(config.STORAGE_KEYS));
+const runtimeStorageKeys = Object.values(config.STORAGE_KEYS).filter((key) =>
+  key !== config.STORAGE_KEYS.USAGE && key !== config.STORAGE_KEYS.INSTALLED_AT);
+const snapshotStorageKeys = [...runtimeStorageKeys, config.STORAGE_KEYS.USAGE];
+
+async function readSettings(includeUsage = false) {
+  const values = await chrome.storage.local.get(includeUsage ? snapshotStorageKeys : runtimeStorageKeys);
   const legacyKey =
     typeof values[config.STORAGE_KEYS.API_KEY] === 'string'
       ? values[config.STORAGE_KEYS.API_KEY].trim()
@@ -180,7 +184,7 @@ async function readSettings() {
     legacyApiKey: legacyKey,
     targetLang: normalizeTargetCode(values[config.STORAGE_KEYS.TARGET]),
     bilingual: normalizeBilingual(values[config.STORAGE_KEYS.BILINGUAL]),
-    usage: usageUtils.normalizeStoredUsage(values[config.STORAGE_KEYS.USAGE]),
+    ...(includeUsage && { usage: usageUtils.normalizeStoredUsage(values[config.STORAGE_KEYS.USAGE]) }),
     translationModelId,
     translationEffortLevel,
     polishModelId,
@@ -235,12 +239,20 @@ function getProviderApiKey(provider, settings) {
   return '';
 }
 
+let lastSettingsRegistry;
 /** The bundled registry plus the user's added providers and model names. */
 function settingsRegistry(registry, settings) {
-  return visionUtils.applyToRegistry(modelUtils.withUserModels(
-    modelUtils.withCustomProviders(registry, settings.customProviders),
-    settings.userModels
-  ), settings.visionCapabilities);
+  const { customProviders, userModels, visionCapabilities } = settings;
+  // Read current storage for every request, including immediate changes in the UI.
+  const key = JSON.stringify([customProviders, userModels, visionCapabilities]);
+  if (lastSettingsRegistry && lastSettingsRegistry.registry === registry && lastSettingsRegistry.key === key) {
+    return lastSettingsRegistry.value;
+  }
+  const value = visionUtils.applyToRegistry(modelUtils.withUserModels(
+    modelUtils.withCustomProviders(registry, customProviders), userModels
+  ), visionCapabilities);
+  lastSettingsRegistry = { registry, key, value };
+  return value;
 }
 
 /**

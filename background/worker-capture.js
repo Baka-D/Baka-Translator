@@ -30,7 +30,7 @@ async function capturePageScreenshot(sender) {
   async function requireOwner() {
     try {
       const tab = await getTab(tabId);
-      const source = await frameDocument(tabId, 0);
+      const source = await frameDocument(tab, 0);
       if (changed || !tab.active || tab.windowId !== windowId ||
           source.documentId !== sender.documentId) throw pageError('SCREENSHOT_FAILED');
     } catch (_error) {

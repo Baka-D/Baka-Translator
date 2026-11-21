@@ -24,8 +24,8 @@ function discardedUsageRecorder(runtime, onBilling) {
   };
 }
 
-async function getConfigSnapshot() {
-  const settings = await readSettings();
+async function getConfigSnapshot(includeUsage = true) {
+  const settings = await readSettings(includeUsage);
   let registry = null;
   try {
     registry = settingsRegistry(await loadRegistry(), settings);
@@ -141,14 +141,11 @@ async function recordUsage(apiUsage, billing, countRequest = true) {
 }
 
 function resetUsage() {
-  usageWriteQueue = usageWriteQueue
-    .then(async () => {
-      await chrome.storage.local.set({
-        [config.STORAGE_KEYS.USAGE]: { ...usageUtils.EMPTY_USAGE }
-      });
-    })
-    .catch(() => {});
-  return usageWriteQueue;
+  const operation = usageWriteQueue.then(() => chrome.storage.local.set({
+    [config.STORAGE_KEYS.USAGE]: { ...usageUtils.EMPTY_USAGE }
+  }));
+  usageWriteQueue = operation.catch(() => {});
+  return operation;
 }
 
 async function initializeStorage() {

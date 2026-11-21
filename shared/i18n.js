@@ -180,6 +180,7 @@
   }
 
   const api = Object.freeze({
+    storageKey,
     t, languageLabel, presetName, presetDescription, providerName, modelName, localizeDocument,
     setPreference,
     onChange(listener) {

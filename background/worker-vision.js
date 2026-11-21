@@ -1,6 +1,5 @@
 // User-initiated image requests teach the extension when a model rejects images.
 let visionMenuRevision = 0;
-
 function requireVisionSupported(runtime) {
   if (runtime.resolved.model.supportsVision === false) {
     throw new PageAccessError('VISION_UNSUPPORTED', t('bg_vision_disabled'));
@@ -16,10 +15,13 @@ async function syncVisionContextMenu() {
   if (typeof chrome.contextMenus.update !== 'function') return;
   const revision = ++visionMenuRevision;
   try {
-    const snapshot = await getConfigSnapshot();
+    const snapshot = await getConfigSnapshot(false);
     if (revision !== visionMenuRevision) return;
-    chrome.contextMenus.update(MENU_IDS.IMAGES, { enabled: snapshot.model?.supportsVision !== false }, () => {
-      void chrome.runtime.lastError;
+    await new Promise((resolve) => {
+      chrome.contextMenus.update(MENU_IDS.IMAGES, { enabled: snapshot.model?.supportsVision !== false }, () => {
+        void chrome.runtime.lastError;
+        resolve();
+      });
     });
   } catch (_error) {
     // Menu state is best-effort; the request path independently guards the capability.

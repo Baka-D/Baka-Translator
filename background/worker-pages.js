@@ -9,11 +9,16 @@ function contentScriptFilesFor(tabId, recipient = { frameId: 0 }) {
   });
 }
 
-async function frameDocument(tabId, frameId, expectedUrl) {
-  const results = await chrome.scripting.executeScript({
-    target: { tabId, frameIds: [frameId] },
-    func: () => location.href
-  });
+async function frameDocument(tab, frameId, expectedUrl) {
+  let results;
+  try {
+    results = await chrome.scripting.executeScript({
+      target: { tabId: tab.id, frameIds: [frameId] },
+      func: () => location.href
+    });
+  } catch (error) {
+    throw describeInjectionFailure(error, { url: expectedUrl || tab.url });
+  }
   const frame = results.find((item) => item.frameId === frameId);
   if (!frame || typeof frame.documentId !== 'string' || !frame.documentId ||
       typeof frame.result !== 'string' || (expectedUrl && frame.result !== expectedUrl)) {
@@ -301,14 +306,12 @@ async function handlePageCommand(message, sender) {
   const tab = await getTab(tabId);
   const runtime = await requireRuntimeReady('translation', hostnameFromUrl(tab && tab.url));
   if (command === 'images') requireVisionSupported(runtime);
-  await ensureContentScript(tabId);
-
   if (command === 'translate') {
-    return chrome.tabs.sendMessage(tabId, {
+    return sendToContent(tabId, {
       type: MSG.TRANSLATE_PAGE,
       targetCode,
       bilingual
-    }, { frameId: 0 });
+    });
   }
   if (command === 'selection') {
     return sendToContent(tabId, {
@@ -317,10 +320,10 @@ async function handlePageCommand(message, sender) {
     }, await selectionRecipient(tabId));
   }
   if (command === 'images') {
-    return chrome.tabs.sendMessage(tabId, {
+    return sendToContent(tabId, {
       type: MSG.TRANSLATE_IMAGES,
       targetCode
-    }, { frameId: 0 });
+    });
   }
   throw new PageAccessError('UNKNOWN_COMMAND', t('bg_unknown_command'));
 }
@@ -337,7 +340,7 @@ async function handleContextMenuClick(info, tab) {
       if (!Number.isInteger(frameId) || frameId < 0) throw pageError('NO_PAGE_ACCESS');
       const frameUrl = frameId === 0 ? info.pageUrl || tab.url : info.frameUrl;
       if (typeof frameUrl !== 'string' || !frameUrl) throw pageError('NO_PAGE_ACCESS');
-      const source = await frameDocument(tab.id, frameId, frameUrl);
+      const source = await frameDocument(tab, frameId, frameUrl);
       await requireRuntimeReady('translation', hostnameFromUrl(source.url));
       await sendToContent(tab.id, {
         type: MSG.TRANSLATE_SELECTION,

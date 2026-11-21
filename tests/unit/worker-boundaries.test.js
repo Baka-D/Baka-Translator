@@ -204,6 +204,14 @@ test('top-frame context selection remains supported with document pinning', asyn
   assert.equal(worker.messages.at(-1).recipient.documentId, 'top-doc');
 });
 
+test('a file frame without script access returns the local page access error', async () => {
+  const worker = loadWorker({ probe: () => { throw new Error('Raw browser error'); } });
+  worker.state.tab.url = 'file:///example.html';
+  await worker.context.handleContextMenuClick(selectionInfo({ frameId: 0, pageUrl: worker.state.tab.url }), worker.state.tab);
+  assert.equal(worker.errors[0].code, 'FILE_ACCESS_DISABLED');
+  assert.notEqual(worker.errors[0].message, 'Raw browser error');
+});
+
 test('ordinary page messages and injection explicitly target only frame zero', async () => {
   const worker = loadWorker({ contentReady: false });
   await worker.context.sendToContent(5, { type: config.MSG.TRANSLATE_IMAGES });

@@ -45,6 +45,7 @@ const {
 const { t } = i18n;
 const MSG = config.MSG;
 const LIMITS = config.LIMITS;
+const knownMessages = new Set(Object.values(MSG));
 
 let usageWriteQueue = Promise.resolve();
 let visionWriteQueue = Promise.resolve();
@@ -61,9 +62,10 @@ if (chrome.storage.onChanged) {
       Object.assign(learnedVisionCapabilities, next);
     }
     const keys = config.STORAGE_KEYS;
+    if (!localeHydrated && changes?.[i18n.storageKey]) queueContextMenuUpdate(setupContextMenus);
     if ([keys.VISION_CAPABILITIES, keys.MODEL_ID, keys.TRANSLATION_MODEL_ID, keys.CUSTOM_PROVIDER,
       keys.CUSTOM_PROVIDERS, keys.USER_MODELS].some((key) => changes?.[key])) {
-      void i18n.ready.then(syncVisionContextMenu);
+      queueContextMenuUpdate(syncVisionContextMenu);
     }
   });
 }
@@ -249,9 +251,7 @@ async function handleMessage(message, sender) {
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (!message || typeof message.type !== 'string') return false;
-  const known = new Set(Object.values(MSG));
-  if (!known.has(message.type)) return false;
+  if (!knownMessages.has(message?.type)) return false;
   handleMessage(message, sender)
     .then((result) => {
       if (result === null) {
@@ -279,30 +279,31 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
     setBadge(tabId, 'idle');
   }
 });
+chrome.tabs.onRemoved.addListener((tabId) => pageRunStops.delete(tabId));
 
-// Menu removal and creation must finish in order across startup and language changes.
+// Menu removal, creation and capability updates must finish in order.
 let menuQueue = Promise.resolve();
-function refreshContextMenus() {
+function queueContextMenuUpdate(update) {
   menuQueue = menuQueue.then(async () => {
     await i18n.ready;
-    await setupContextMenus();
+    await update();
   }).catch(() => {});
 }
 
-function runBackgroundSetup() {
-  initializeStorage().catch(() => {});
-  refreshContextMenus();
-}
-
+let localeHydrated = false;
+void i18n.ready.then(() => { localeHydrated = true; });
 i18n.onChange(() => {
   registryPromise = null;
   presetIndexPromise = null;
   presetCache.clear();
-  refreshContextMenus();
+  if (localeHydrated) queueContextMenuUpdate(setupContextMenus);
 });
 
-chrome.runtime.onInstalled.addListener(runBackgroundSetup);
-chrome.runtime.onStartup.addListener(refreshContextMenus);
-
-// Ensure menus and defaults exist after a manual extension reload / worker wake.
-runBackgroundSetup();
+// Chromium retains context menus across worker wakes, and emits onInstalled on extension reload.
+chrome.runtime.onInstalled.addListener(() => {
+  queueContextMenuUpdate(async () => {
+    await initializeStorage().catch(() => {});
+    await setupContextMenus();
+  });
+});
+chrome.runtime.onStartup.addListener(() => queueContextMenuUpdate(setupContextMenus));
