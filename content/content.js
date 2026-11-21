@@ -27,13 +27,7 @@
   const LIMITS = config.LIMITS;
   const BILINGUAL_ATTR = 'data-dsht-original';
 
-  const FATAL_ERROR_CODES = new Set([
-    'MISSING_API_KEY',
-    'MISSING_MODEL',
-    'AUTH_FAILED',
-    'INSUFFICIENT_BALANCE',
-    'INVALID_API_KEY_FORMAT'
-  ]);
+  const FATAL_ERROR_CODES = new Set([...config.FATAL_MODEL_ERROR_CODES, 'EXTENSION_RELOADED']);
 
   const SETTINGS_ERROR_CODES = new Set([
     'MISSING_API_KEY',

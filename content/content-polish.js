@@ -25,6 +25,7 @@
             `${target.leading}${page.initialTranslations.get(segmentId) || ''}${target.trailing}`;
           if (target.node.nodeValue !== previous) continue;
           const value = `${target.leading}${translation}${target.trailing}`;
+          if (value === previous) continue;
           target.node.nodeValue = value;
           target.lastApplied = value;
           page.translatedNodes.set(target.node, {
@@ -59,6 +60,7 @@
       maxChars: LIMITS.POLISH_CHUNK_CHARS || 16000
     });
     const failures = [];
+    let fatalMessage;
     let cursor = 0;
     page.polishError = '';
     page.polishProgress = { done: 0, total: chunks.length, failed: 0 };
@@ -94,12 +96,9 @@
 
     const worker = async () => {
       while (true) {
-        if (runId !== page.runId) return;
+        if (runId !== page.runId || fatalMessage || cursor >= chunks.length) return;
         app.assertPageRoute();
-        const index = cursor;
-        cursor += 1;
-        if (index >= chunks.length) return;
-        const chunk = chunks[index];
+        const chunk = chunks[cursor++];
         try {
           const context = textUtils.contextBefore(
             page.requestContext, segments, chunk[0], textUtils.pairText,
@@ -123,10 +122,13 @@
             failures.push(String(response.polishError));
             page.polishProgress.failed += 1;
           }
+          if (response.fatalCode) fatalMessage ||= response.polishError || t('content_polish_failed_draft_kept');
         } catch (error) {
           if (runId !== page.runId) return;
           if (error.code === 'PAGE_CHANGED') throw error;
-          failures.push((error && error.message) || t('content_polish_failed_draft_kept'));
+          const message = error?.message || t('content_polish_failed_draft_kept');
+          failures.push(message);
+          if (app.FATAL_ERROR_CODES?.has(error?.code)) fatalMessage ||= message;
           page.polishProgress.failed += 1;
         }
         if (runId !== page.runId) return;
@@ -142,13 +144,18 @@
     try {
       await Promise.all(Array.from({ length: concurrency }, () => worker()));
       if (runId !== page.runId) return;
-      if (failures.length > 0) {
+      const skipped = fatalMessage ? chunks.length - cursor : 0;
+      page.polishProgress.done += skipped;
+      page.polishProgress.failed += skipped;
+      const failed = failures.length + skipped;
+      if (failed > 0) {
+        const message = fatalMessage || failures[0];
         if (chunks.length === 1) {
-          page.polishError = failures[0];
-        } else if (failures.length === chunks.length) {
-          page.polishError = t('content_polish_failure_detail', [failures[0]]);
+          page.polishError = message;
+        } else if (failed === chunks.length) {
+          page.polishError = t('content_polish_failure_detail', [message]);
         } else {
-          page.polishError = t('content_polish_partial_detail', [failures.length, chunks.length, failures[0]]);
+          page.polishError = t('content_polish_partial_detail', [failed, chunks.length, message]);
         }
       }
     } finally {

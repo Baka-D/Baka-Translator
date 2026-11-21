@@ -2,7 +2,6 @@
 
 // Per tab: how many times its page was restored. In-flight replies still land so
 // their usage is recorded; only the next attempt is skipped.
-// shortcut: entries stay until the worker restarts, drop them on tabs.onRemoved if that ever matters.
 const pageRunStops = new Map();
 
 function pageRunStopped(sender) {
@@ -74,8 +73,8 @@ function normalizeGlossaryPayload(value, limit = LIMITS.GLOSSARY_REQUEST_MAX_TER
     terms.push({
       source,
       target,
-      category: String(item.category || 'term').trim().slice(0, 40) || 'term',
-      note: String(item.note || '').trim().slice(0, 160),
+      category: textUtils.sliceText(String(item.category || 'term').trim(), 0, 40) || 'term',
+      note: textUtils.sliceText(String(item.note || '').trim(), 0, 160),
       ...(['male', 'female', 'none'].includes(item.gender) ? { gender: item.gender } : {})
     });
     if (terms.length >= limit) break;
@@ -88,9 +87,9 @@ function normalizeContextPayload(value) {
   if (!value || typeof value !== 'object') return null;
   const text = (key) => (typeof value[key] === 'string' ? value[key].trim() : '');
   return {
-    workTitle: text('workTitle').slice(0, 200),
-    previousChapter: text('previousChapter').slice(-LIMITS.CONTEXT_PREVIOUS_CHAPTER_CHARS),
-    precedingText: text('precedingText').slice(-LIMITS.CONTEXT_PRECEDING_CHARS)
+    workTitle: textUtils.sliceText(text('workTitle'), 0, 200),
+    previousChapter: textUtils.sliceText(text('previousChapter'), -LIMITS.CONTEXT_PREVIOUS_CHAPTER_CHARS),
+    precedingText: textUtils.sliceText(text('precedingText'), -LIMITS.CONTEXT_PRECEDING_CHARS)
   };
 }
 
@@ -213,38 +212,29 @@ async function handleTranslateImage(message, sender) {
   return enriched;
 }
 
-function startWorkerKeepalive() {
-  let timer = 0;
-  const ping = () => {
-    try {
-      if (chrome.runtime && typeof chrome.runtime.getPlatformInfo === 'function') {
-        chrome.runtime.getPlatformInfo(() => {
-          void chrome.runtime.lastError;
-        });
-      }
-    } catch (_error) {
-      // Keepalive is best-effort.
-    }
-  };
+let keepaliveTimer;
+let activeWorkerOperations = 0;
+function pingWorker() {
   try {
-    ping();
-    timer = setInterval(ping, 15000);
+    chrome.runtime.getPlatformInfo?.(() => { void chrome.runtime.lastError; });
   } catch (_error) {
-    return () => {};
+    // Keepalive is best-effort.
   }
-  return () => {
-    if (timer) clearInterval(timer);
-    timer = 0;
-  };
 }
 
 /** Slow model responses must outlive MV3's idle window, including after navigation. */
 async function withWorkerKeepalive(operation) {
-  const stopKeepalive = startWorkerKeepalive();
+  if (activeWorkerOperations++ === 0 && typeof setInterval === 'function') {
+    pingWorker();
+    keepaliveTimer = setInterval(pingWorker, 15000);
+  }
   try {
     return await operation();
   } finally {
-    stopKeepalive();
+    if (--activeWorkerOperations === 0 && keepaliveTimer !== undefined) {
+      clearInterval(keepaliveTimer);
+      keepaliveTimer = undefined;
+    }
   }
 }
 
@@ -255,17 +245,16 @@ async function handlePolishSegments(message, sender, stopped, runtime, onChunkCo
   stopped ||= pageRunStopped(sender);
   const request = validatePolishMessage(message);
   runtime ||= await resolveRuntime('polish', hostnameFromSender(sender));
-  // Long reasoning calls can exceed the MV3 service-worker idle window. The
-  // runtime API ping keeps the worker alive while chunks are in flight.
-  const stopKeepalive = startWorkerKeepalive();
-  try {
+  return withWorkerKeepalive(async () => {
     const chunks = chunkPolishSegments(request.segments);
     const translations = [];
     let costUsd = 0;
     let currency = billingUtils.DEFAULT_CURRENCY;
     let available = false;
     const failures = [];
+    let fatalError;
     let cursor = 0;
+    const shouldStop = () => Boolean(fatalError) || stopped();
     const addBilling = (billing) => {
       if (!billing || !billing.available) return;
       available = true;
@@ -279,13 +268,10 @@ async function handlePolishSegments(message, sender, stopped, runtime, onChunkCo
     // waiting for each large slice serially; this is the main latency win for
     // long pages. Individual failures do not discard successful chunks.
     const worker = async () => {
-      while (true) {
+      while (cursor < chunks.length) {
         // Already-sent replies still count, but restoring a page stops new paid chunks.
-        if (stopped()) return;
-        const index = cursor;
-        cursor += 1;
-        if (index >= chunks.length) return;
-        const chunk = chunks[index];
+        if (shouldStop()) return;
+        const chunk = chunks[cursor++];
         try {
           const result = await api.polishSegments({
             apiKey: runtime.apiKey,
@@ -305,7 +291,7 @@ async function handlePolishSegments(message, sender, stopped, runtime, onChunkCo
               LIMITS.CONTEXT_PRECEDING_CHARS
             ),
             timeoutMs: config.TIMEOUTS.POLISH_MS,
-            stopped,
+            stopped: shouldStop,
             onDiscardedUsage
           });
           const enriched = attachBilling(runtime, result);
@@ -314,11 +300,11 @@ async function handlePolishSegments(message, sender, stopped, runtime, onChunkCo
           addBilling(enriched.billing);
           onChunkCompleted?.();
         } catch (error) {
-          failures.push({
-            index,
-            code: error && error.code ? error.code : 'POLISH_CHUNK_FAILED',
-            message: (error && error.message) || t('bg_polish_failed')
-          });
+          const message = error?.message || t('bg_polish_failed');
+          failures.push(message);
+          if (!fatalError && config.FATAL_MODEL_ERROR_CODES.includes(error?.code)) {
+            fatalError = { code: error.code, message };
+          }
         }
       }
     };
@@ -329,13 +315,14 @@ async function handlePolishSegments(message, sender, stopped, runtime, onChunkCo
     );
     await Promise.all(Array.from({ length: concurrency }, () => worker()));
 
+    const failedChunks = failures.length + (fatalError ? chunks.length - cursor : 0);
     let polishError = '';
-    if (failures.length > 0) {
-      const first = failures[0];
+    if (failedChunks > 0) {
+      const message = fatalError?.message || failures[0];
       polishError =
-        failures.length === chunks.length
-          ? t('bg_polish_error', [first.message])
-          : t('bg_polish_partial', [failures.length, chunks.length, first.message]);
+        failedChunks === chunks.length
+          ? t('bg_polish_error', [message])
+          : t('bg_polish_partial', [failedChunks, chunks.length, message]);
     }
 
     return {
@@ -347,15 +334,14 @@ async function handlePolishSegments(message, sender, stopped, runtime, onChunkCo
         period: 'mixed'
       },
       chunks: chunks.length,
-      failedChunks: failures.length,
+      failedChunks,
       polishError: polishError || null,
+      ...(fatalError && { fatalCode: fatalError.code }),
       modelId: runtime.resolved.model.id,
       modelName: runtime.resolved.model.name,
       providerId: runtime.resolved.provider.id
     };
-  } finally {
-    stopKeepalive();
-  }
+  });
 }
 
 function validateTermMessage(message) {

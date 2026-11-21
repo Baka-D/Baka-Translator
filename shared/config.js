@@ -21,6 +21,10 @@
     DEFAULT_MODEL_ID: 'deepseek-flash',
     DEFAULT_EFFORT: 'none',
     DEFAULT_PRESET_ID: 'general',
+    FATAL_MODEL_ERROR_CODES: Object.freeze([
+      'MISSING_API_KEY', 'MISSING_MODEL', 'AUTH_FAILED', 'INSUFFICIENT_BALANCE', 'INVALID_API_KEY_FORMAT',
+      'MODEL_CONFIG_ERROR', 'MISSING_CUSTOM_PROVIDER', 'MISSING_CUSTOM_ENDPOINT', 'MISSING_MODEL_NAME'
+    ]),
     DEFAULT_GLOSSARY_TIDY_CHAPTERS: 10,
     GLOSSARY_TIDY_MAX_CHAPTERS: 500,
     // Presets whose requests carry the surrounding text as read-only context.
@@ -132,6 +136,7 @@
       CAPTURE_SCREENSHOT: 'dsht:captureScreenshot',
       IMAGE_PANEL_UPDATE: 'dsht:imagePanelUpdate',
       IMAGE_PANEL_CLOSED: 'dsht:imagePanelClosed',
+      IMAGE_PANEL_DISCONNECTED: 'dsht:imagePanelDisconnected',
       IMAGE_PANEL_READY: 'dsht:imagePanelReady',
       TRANSLATE_BATCH: 'dsht:translateBatch',
       POLISH_SEGMENTS: 'dsht:polishSegments',

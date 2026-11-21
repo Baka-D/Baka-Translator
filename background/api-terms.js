@@ -8,6 +8,8 @@
   const glossary =
     (globalScope.DSHT && globalScope.DSHT.glossary) ||
     (typeof require === 'function' ? require('../shared/glossary.js') : null);
+  const config = globalScope.DSHT?.config ||
+    (typeof require === 'function' ? require('../shared/config.js') : null);
   const REVIEW_BATCH = 40;
   const REVIEW_TIMEOUT_MS = 30000;
   // A batch this size dropped whole is a bad reply, not a batch of ordinary words.
@@ -45,7 +47,7 @@
         for (const source of drop) dropped.add(source);
       } catch (error) {
         // The review only tidies the glossary; extracted terms must survive it.
-        if (error && error.code === 'TIMEOUT') break;
+        if (error?.code === 'TIMEOUT' || config.FATAL_MODEL_ERROR_CODES.includes(error?.code)) break;
       }
     }
     return { terms: terms.filter((term) => !dropped.has(term.source)), replies };
