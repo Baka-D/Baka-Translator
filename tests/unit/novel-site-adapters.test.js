@@ -20,6 +20,22 @@ test('the Syosetu family uses the same chapter and cache format on every subdoma
   }
 });
 
+test('automatic chapter navigation skips links that require a different origin', () => {
+  const origin = 'https://ncode.syosetu.com';
+  const url = `${origin}/n0193jx/2/`;
+  const candidates = {
+    'a.c-pager__item--next': [
+      { href: 'https://yomou.syosetu.com/n0193jx/3/' },
+      { href: 'https://ncode.syosetu.com:444/n0193jx/3/' },
+      { href: '../3/' }
+    ],
+    'a.c-pager__item--before': [{ href: 'https://yomou.syosetu.com/n0193jx/1/' }, { href: '../1/' }]
+  };
+  const doc = { querySelectorAll: (selector) => candidates[selector] || [] };
+  assert.equal(novel.findNextChapterUrl(doc, url), `${origin}/n0193jx/3`);
+  assert.equal(novel.findPreviousChapterUrl(doc, url), `${origin}/n0193jx/1`);
+});
+
 test('Hameln distinguishes chapters from work indexes and uses its own storage keys', () => {
   const chapter = novel.detectChapter('https://syosetu.org/novel/313861/2.html#honbun');
   assert.equal(chapter?.isChapter, true);
@@ -68,6 +84,8 @@ test('Hameln uses chapter navigation and skips links to other works', () => {
   selectors['#nextpage a[href]'] = [{ href: './3.html', textContent: '次の話 >>' }];
   assert.equal(novel.findNextChapterUrl(doc, url), `${origin}/novel/313861/3.html`);
   assert.equal(novel.findPreviousChapterUrl(doc, url), '');
+  selectors['#nextpage a[href]'][0].textContent = '次話へ';
+  assert.equal(novel.findNextChapterUrl(doc, url), `${origin}/novel/313861/3.html`);
 });
 
 test('the options page can edit the glossary of a Hameln work', () => {

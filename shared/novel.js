@@ -3,7 +3,7 @@
  *
  * Chapter detection is URL-pattern based so a table-of-contents or work home
  * page can never be mistaken for a chapter. DOM-based next-link discovery is
- * deliberately restricted to the same site and the same work.
+ * deliberately restricted to the same origin and the same work.
  */
 (function initNovel(globalScope) {
   'use strict';
@@ -268,7 +268,9 @@
     if (!href) return '';
     let next;
     try {
-      next = new URL(href, baseUrl);
+      const base = new URL(baseUrl);
+      next = new URL(href, base);
+      if (next.origin !== base.origin) return '';
     } catch (_error) {
       return '';
     }
@@ -308,7 +310,7 @@
     } catch (_error) {
       anchors = [];
     }
-    const nextPattern = /(次へ|次章|次の|next)/i;
+    const nextPattern = /(次へ|次章|次話|次の|next)/i;
     for (const anchor of anchors) {
       const text = String(
         (typeof anchor.textContent === 'string' ? anchor.textContent : '') || ''
