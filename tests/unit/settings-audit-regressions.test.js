@@ -2,11 +2,13 @@
 
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { installI18n } = require('../helpers/i18n');
+const { createLocalizedContext, installI18n } = require('../helpers/i18n');
 const { readFile } = require('node:fs/promises');
 const path = require('node:path');
+const { pathToFileURL } = require('node:url');
 const config = require('../../shared/config');
 require('../../shared/languages');
+require('../../shared/novel');
 const models = require('../../shared/models');
 installI18n();
 
@@ -216,4 +218,24 @@ test('resetting usage returns keyboard focus to the confirmed action', async () 
   await pending;
   assert.equal(ui.resetUsageButton.disabled, false);
   assert.equal(document.activeElement, ui.resetUsageButton);
+});
+
+test('novel support labels show the domain families and keep both localized values', async () => {
+  const directory = path.resolve(__dirname, '../../options');
+  // Import the renderer without triggering unrelated settings startup.
+  const source = (await readFile(path.join(directory, 'options.js'), 'utf8'))
+    .replace(/from '(\.\/[^']+)'/g, (_all, file) => `from '${pathToFileURL(path.resolve(directory, file)).href}'`)
+    .replace(/\nvoid init\(\);\s*$/, '\n');
+  const { renderNovelSupportNote } = await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
+  const { ui } = await import('../../options/context.mjs');
+  renderNovelSupportNote();
+  const labels = 'syosetu.com（小説家になろう）、syosetu.org（ハーメルン）、kakuyomu.jp（カクヨム）';
+  assert.equal(ui.novelSupportNote.textContent, DSHT.i18n.t('opt_novel_support', [labels]));
+
+  for (const [locale, expected] of [['zh_CN', 'site.example（Name）'], ['en', 'site.example (Name)'], ['ko', 'site.example (Name)']]) {
+    const { DSHT: { i18n } } = createLocalizedContext({}, { locale });
+    assert.equal(i18n.t('opt_novel_site', ['site.example', 'Name']), expected);
+    const { placeholders } = require(`../../_locales/${locale}/messages.json`).opt_novel_site;
+    assert.deepEqual(placeholders, { arg1: { content: '$1' }, arg2: { content: '$2' } });
+  }
 });
