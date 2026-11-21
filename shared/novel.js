@@ -39,6 +39,7 @@
       chapterPattern: /^\/novel\/(\d+)\/(\d+)\.html$/,
       workPattern: /^\/novel\/(\d+)$/,
       workPath: (id) => `/novel/${id}/`,
+      chapterReadySelectors: ['#honbun'],
       chapterRootSelectors: ['#maegaki, #honbun, #atogaki'],
       nextSelectors: ['#nextpage a.next_page_link'],
       nextFallbackSelector: '#nextpage a[href]',
@@ -180,7 +181,7 @@
     if (!doc || typeof doc.querySelector !== 'function') return null;
     const adapter = chapter && SITE_ADAPTERS[chapter.siteId];
     if (!adapter) return null;
-    for (const selector of adapter.chapterRootSelectors) {
+    for (const selector of adapter.chapterReadySelectors || adapter.chapterRootSelectors) {
       try {
         const node = doc.querySelector(selector);
         if (node && String(node.textContent || '').trim()) return node;

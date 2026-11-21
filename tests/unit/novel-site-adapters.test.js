@@ -34,6 +34,21 @@ test('Hameln distinguishes chapters from work indexes and uses its own storage k
   assert.equal(novel.detectChapter('https://syosetu.org/novel/313861/2/'), null);
 });
 
+test('Hameln is ready as soon as the story body has text, regardless of the preface', () => {
+  const chapter = novel.detectChapter('https://syosetu.org/novel/313861/2.html');
+  const preface = { textContent: '' };
+  const body = { textContent: '本文' };
+  const doc = {
+    querySelector: (selector) => selector === '#honbun' ? body : preface,
+    querySelectorAll: () => [preface, body]
+  };
+  assert.equal(novel.findChapterRoot(doc, chapter), body);
+  assert.deepEqual(novel.findChapterRoots(doc, chapter), [body]);
+  preface.textContent = '前書き';
+  body.textContent = '';
+  assert.equal(novel.findChapterRoot(doc, chapter), null);
+});
+
 test('Hameln uses chapter navigation and skips links to other works', () => {
   const origin = 'https://syosetu.org';
   const url = `${origin}/novel/313861/2.html`;
