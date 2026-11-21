@@ -110,8 +110,9 @@ function renderStatus() {
     const prefix = info.pretranslationScope === 'current' ? t('pop_resume') : t('pop_pretranslating');
     const stage = stageLabels[pretranslationProgress.stage] || t('pop_preparing');
     const hasCount = pretranslationProgress.total > 0;
+    const countKey = pretranslationProgress.stage === 'polishing' ? 'progress_chunks' : 'pop_segments';
     count = hasCount
-      ? t('pop_segments', [Math.min(pretranslationProgress.done, pretranslationProgress.total), pretranslationProgress.total])
+      ? t(countKey, [Math.min(pretranslationProgress.done, pretranslationProgress.total), pretranslationProgress.total])
       : '';
     text = `${prefix} · ${stage}${hasCount ? '' : '…'}`;
   }
@@ -144,7 +145,8 @@ function renderStatus() {
   ui.progressTrack.setAttribute('aria-valuenow', String(percent));
   if (hasProgress) {
     const label = pretranslating ? stageLabels[pretranslationProgress.stage] || t('pop_pretranslation') : t('pop_translated');
-    ui.progressTrack.setAttribute('aria-valuetext', t('pop_progress', [label, done, total]));
+    const progressCount = pretranslating ? count : t('pop_segments', [done, total]);
+    ui.progressTrack.setAttribute('aria-valuetext', t('pop_progress', [label, progressCount]));
     ui.progressFill.style.width = `${percent}%`;
   } else {
     ui.progressTrack.removeAttribute('aria-valuetext');

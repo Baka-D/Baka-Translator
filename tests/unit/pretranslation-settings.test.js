@@ -22,14 +22,14 @@ async function until(predicate) {
   assert.fail('pretranslation did not reach the expected state');
 }
 
-function loadWorker() {
+function loadWorker({ holdPolish = false } = {}) {
   const stored = {
     providerKeys: { openai: 'test-key-must-stay-private' },
     modelId: 'deepseek-flash', effortLevel: 'none', polishEffortLevel: '', promptOverrides: {},
     translationModelId: 'gpt-6.1-terra', translationEffortLevel: 'none',
     polishModelId: 'gpt-6.1-terra', presetId: 'general'
   };
-  const calls = [], releases = [];
+  const calls = [], releases = [], polishReleases = [];
   const listener = { addListener() {}, removeListener() {} };
   const apiStub = { ApiError: class ApiError extends Error {} };
   for (const kind of ['translateSegments', 'polishSegments']) {
@@ -37,6 +37,9 @@ function loadWorker() {
       calls.push({ kind, model: options.model.id, preset: options.preset.id });
       if (kind === 'translateSegments' && calls.length <= 3) {
         await new Promise((resolve) => releases.push(resolve));
+      }
+      if (kind === 'polishSegments' && holdPolish) {
+        await new Promise((resolve) => polishReleases.push(resolve));
       }
       return {
         translations: options.segments.map((segment) => ({
@@ -86,9 +89,38 @@ function loadWorker() {
   const request = async (overrides = {}) => ({ chapterUrl, targetCode: 'zh', polish: true,
     translationKey: await key(), segments: Array.from({ length: 240 }, (_, i) => ({ id: `s${i}`, text: `source ${i}` })), ...overrides });
   const get = () => context.getPretranslation({ chapterUrl, targetCode: 'zh' }, sender);
-  return { context, stored, calls, releases, key, request, get,
+  function finishPolish() {
+    holdPolish = false;
+    polishReleases.splice(0).forEach((release) => release());
+  }
+  return { context, stored, calls, releases, polishReleases, finishPolish, key, request, get,
     cache: () => Object.entries(stored).find(([name]) => name.startsWith('novelCache:'))?.[1] };
 }
+
+test('pretranslation reports each completed polish request as one chunk', async () => {
+  const worker = loadWorker({ holdPolish: true });
+  const segments = Array.from({ length: 12 }, (_, index) => ({
+    id: `s${index}`, text: `Source ${index} ${'x'.repeat(2000)}`
+  }));
+  await worker.context.handlePretranslateChapter(await worker.request({ segments }), sender);
+  await until(() => worker.releases.length === 3);
+  worker.releases.splice(0).forEach((release) => release());
+  await until(() => worker.polishReleases.length === 3);
+  const initial = (await worker.get()).progress;
+  try {
+    assert.equal(initial.stage, 'polishing');
+    assert.equal(initial.done, 0);
+    worker.polishReleases.shift()();
+    await until(() => worker.calls.filter(({ kind }) => kind === 'polishSegments').length === 4);
+    assert.equal((await worker.get()).progress.done, 1);
+    assert.equal(worker.cache().polished, false);
+  } finally {
+    worker.finishPolish();
+  }
+  await until(async () => (await worker.get()).status === 'ready');
+  assert.equal(initial.total, worker.calls.filter(({ kind }) => kind === 'polishSegments').length);
+  assert.equal(worker.cache().polished, true);
+});
 
 test('a chapter keeps its translation, polish and preset settings when selections change mid-job', async () => {
   const worker = loadWorker();

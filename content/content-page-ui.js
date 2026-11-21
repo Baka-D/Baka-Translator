@@ -98,10 +98,13 @@
     const stages = { fetching: t('content_stage_fetch'), translating: t('content_stage_translate'), polishing: t('content_stage_polish'), saving: t('content_stage_save') };
     const total = Math.max(0, Number(progress.total) || 0);
     const done = Math.max(0, Math.min(total, Number(progress.done) || 0));
+    const count = progress.stage === 'polishing'
+      ? ` ${t('progress_chunks', [done, total])}`
+      : t('content_segment_progress', [done, total]);
     return {
       active: page.pretranslationStatus === 'running',
       title: page.pretranslationScope === 'current' ? t('content_resume_chapter') : t('content_next_chapter_pretranslating'),
-      detail: t('content_stage_progress', [stages[progress.stage] || t('content_preparing'), total > 0 ? t('content_segment_progress', [done, total]) : '…']),
+      detail: t('content_stage_progress', [stages[progress.stage] || t('content_preparing'), total > 0 ? count : '…']),
       showProgress: total > 0,
       ratio: total > 0 ? done / total : 0
     };

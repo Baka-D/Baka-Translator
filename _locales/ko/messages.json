@@ -3494,16 +3494,13 @@
     "message": "미리 번역"
   },
   "pop_progress": {
-    "message": "$arg1$ · $arg2$/$arg3$구간",
+    "message": "$arg1$ · $arg2$",
     "placeholders": {
       "arg1": {
         "content": "$1"
       },
       "arg2": {
         "content": "$2"
-      },
-      "arg3": {
-        "content": "$3"
       }
     }
   },
@@ -3645,6 +3642,17 @@
   },
   "preset_light_novel_name": {
     "message": "라이트 노벨"
+  },
+  "progress_chunks": {
+    "message": "$arg1$/$arg2$개 묶음",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
   },
   "provider_custom_key_label": {
     "message": "사용자 지정 API 키"

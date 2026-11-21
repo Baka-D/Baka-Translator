@@ -247,30 +247,32 @@ async function polishPretranslation(job) {
   const pairs = job.segments.map((segment) => ({
     id: segment.id, original: segment.text, translation: job.translations.get(segment.id)
   }));
-  job.progress = { stage: 'polishing', done: 0, total: pairs.length };
+  // Preserve the pool-sized slices and count the individual model requests within them.
+  const slices = chunkPolishSegments(pairs, LIMITS.POLISH_CHUNK_CHARS * LIMITS.POLISH_MAX_CONCURRENCY);
+  const total = slices.reduce((count, slice) => count + chunkPolishSegments(slice).length, 0);
+  job.progress = { stage: 'polishing', done: 0, total };
   job.noteKey = 'bg_next_chapter_polishing';
-  // Keep the outer chunk loop so the pretranslation panel advances its
-  // progress between chunks. Each slice fills the polish pool, which
-  // handlePolishSegments runs as parallel inner chunks.
-  for (const chunk of chunkPolishSegments(pairs, LIMITS.POLISH_CHUNK_CHARS * LIMITS.POLISH_MAX_CONCURRENCY)) {
+  const onChunkCompleted = () => {
+    if (pretranslationActive(job)) job.progress.done += 1;
+  };
+  for (const slice of slices) {
     if (!pretranslationActive(job)) return;
     const context = textUtils.contextBefore(
-      job.context, pairs, chunk[0], textUtils.pairText, LIMITS.CONTEXT_PRECEDING_CHARS
+      job.context, pairs, slice[0], textUtils.pairText, LIMITS.CONTEXT_PRECEDING_CHARS
     );
-    const texts = chunk.map((pair) => pair.original);
+    const texts = slice.map((pair) => pair.original);
     const result = await handlePolishSegments({
-      segments: chunk, targetCode: job.targetCode, sourceHint: job.sourceHint,
+      segments: slice, targetCode: job.targetCode, sourceHint: job.sourceHint,
       glossary: pretranslationNovel.requestGlossary(job.glossary, texts, context),
       context
-    }, job.sender, () => !pretranslationActive(job), job.polishRuntime);
+    }, job.sender, () => !pretranslationActive(job), job.polishRuntime, onChunkCompleted);
     if (!pretranslationActive(job)) return;
     // Surface the provider's real failure instead of a generic incomplete-result error.
     if (result.polishError) {
       addPretranslationCost(job, result.billing);
       throw new PageAccessError('POLISH_FAILED', result.polishError);
     }
-    addPretranslationResult(job, result, chunk);
-    job.progress.done += chunk.length;
+    addPretranslationResult(job, result, slice);
   }
 }
 
@@ -309,7 +311,7 @@ async function runPretranslation(job) {
     if (job.polish) {
       await polishPretranslation(job);
       if (!pretranslationActive(job)) return;
-      job.progress.stage = 'saving';
+      job.progress = { stage: 'saving', done: 0, total: 0 };
       job.noteKey = 'bg_next_chapter_saving_polish';
       await savePretranslationCache(job, true);
       if (!pretranslationActive(job)) return;

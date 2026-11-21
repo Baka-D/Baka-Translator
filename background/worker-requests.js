@@ -131,7 +131,7 @@ function validatePolishMessage(message) {
   };
 }
 
-function chunkPolishSegments(segments, maxChars) {
+function chunkPolishSegments(segments, maxChars = LIMITS.POLISH_CHUNK_CHARS || 16000) {
   const chunks = [];
   let current = [];
   let chars = 0;
@@ -248,7 +248,7 @@ async function withWorkerKeepalive(operation) {
   }
 }
 
-async function handlePolishSegments(message, sender, stopped, runtime) {
+async function handlePolishSegments(message, sender, stopped, runtime, onChunkCompleted) {
   if (!sender.tab || !sender.tab.id) {
     throw new PageAccessError('INVALID_SENDER', t('bg_invalid_sender'));
   }
@@ -259,10 +259,7 @@ async function handlePolishSegments(message, sender, stopped, runtime) {
   // runtime API ping keeps the worker alive while chunks are in flight.
   const stopKeepalive = startWorkerKeepalive();
   try {
-    const chunks = chunkPolishSegments(
-      request.segments,
-      LIMITS.POLISH_CHUNK_CHARS || 16000
-    );
+    const chunks = chunkPolishSegments(request.segments);
     const translations = [];
     let costUsd = 0;
     let currency = billingUtils.DEFAULT_CURRENCY;
@@ -315,6 +312,7 @@ async function handlePolishSegments(message, sender, stopped, runtime) {
           await recordUsage(enriched.usage, enriched.billing);
           if (Array.isArray(enriched.translations)) translations.push(...enriched.translations);
           addBilling(enriched.billing);
+          onChunkCompleted?.();
         } catch (error) {
           failures.push({
             index,

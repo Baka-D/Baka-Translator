@@ -3494,16 +3494,13 @@
     "message": "Pretranslation"
   },
   "pop_progress": {
-    "message": "$arg1$ $arg2$/$arg3$ segments",
+    "message": "$arg1$ $arg2$",
     "placeholders": {
       "arg1": {
         "content": "$1"
       },
       "arg2": {
         "content": "$2"
-      },
-      "arg3": {
-        "content": "$3"
       }
     }
   },
@@ -3645,6 +3642,17 @@
   },
   "preset_light_novel_name": {
     "message": "Light novel"
+  },
+  "progress_chunks": {
+    "message": "$arg1$/$arg2$ chunks",
+    "placeholders": {
+      "arg1": {
+        "content": "$1"
+      },
+      "arg2": {
+        "content": "$2"
+      }
+    }
   },
   "provider_custom_key_label": {
     "message": "Custom API Key"
