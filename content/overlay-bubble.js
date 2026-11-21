@@ -11,10 +11,14 @@
     let bubbleVisible = false;
     let bubbleAnchorRect = null;
     let currentTranslation = '';
-    let currentOriginal = '';
     let copyResetTimer = 0;
 
     function buildBubble(layer) {
+      bubbleVisible = false;
+      bubbleAnchorRect = null;
+      currentTranslation = '';
+      clearTimeout(copyResetTimer);
+      copyResetTimer = 0;
       bubble = el('section', 'dsht-bubble dsht-hidden');
       bubble.setAttribute('role', 'dialog');
       localizedAttribute(bubble, 'aria-label', 'content_selection_panel_label');
@@ -48,6 +52,7 @@
       bubbleError.setAttribute('role', 'alert');
 
       bubbleOriginal = el('details', 'dsht-original');
+      bubbleOriginal.addEventListener('toggle', () => positionBubble());
       const summary = localizedEl('summary', '', 'content_view_original');
       bubbleOriginalText = el('p', 'dsht-original-text');
       bubbleOriginal.appendChild(summary);
@@ -82,15 +87,17 @@
       bubbleSettings.type = 'button';
       onTrusted(bubbleSettings, 'click', () => callbacks.onBubbleSettings && callbacks.onBubbleSettings());
 
-      bubbleCopy = localizedEl('button', 'dsht-btn dsht-btn-primary dsht-copy-btn', 'content_copy');
-      bubbleCopy.type = 'button';
-      onTrusted(bubbleCopy, 'click', async () => {
+      const copyButton = localizedEl('button', 'dsht-btn dsht-btn-primary dsht-copy-btn', 'content_copy');
+      bubbleCopy = copyButton;
+      copyButton.type = 'button';
+      onTrusted(copyButton, 'click', async () => {
         if (!currentTranslation) return;
         const ok = await copyText(currentTranslation);
+        if (bubbleCopy !== copyButton) return;
         clearTimeout(copyResetTimer);
-        bubbleCopy.textContent = ok ? t('content_copied') : t('content_copy_failed');
+        copyButton.textContent = ok ? t('content_copied') : t('content_copy_failed');
         copyResetTimer = setTimeout(() => {
-          if (bubbleCopy) bubbleCopy.textContent = t('content_copy');
+          copyButton.textContent = t('content_copy');
         }, 1600);
       });
 
@@ -141,7 +148,7 @@
       bubbleError.textContent = model.error || '';
 
       currentTranslation = typeof model.translation === 'string' ? model.translation : '';
-      currentOriginal = typeof model.original === 'string' ? model.original : '';
+      const currentOriginal = typeof model.original === 'string' ? model.original : '';
 
       if (!model.loading && model.translation) bubbleText.textContent = model.translation;
       else bubbleText.textContent = '';
@@ -187,12 +194,11 @@
       const anchorBottom = anchor ? anchor.bottom : 96;
       let left = anchorX - width / 2;
       left = Math.max(margin, Math.min(left, viewportWidth - width - margin));
+      const maxTop = Math.max(margin, viewportHeight - height - margin);
       let top = anchorBottom + 8;
-      if (top + height > viewportHeight - margin) {
-        const above = anchorTop - height - 8;
-        if (above >= margin) top = above;
-        else top = Math.max(margin, Math.min(top, viewportHeight - height - margin));
-      }
+      const above = anchorTop - height - 8;
+      if (top > maxTop && above >= margin) top = above;
+      top = Math.max(margin, Math.min(top, maxTop));
       bubble.style.left = `${Math.round(left)}px`;
       bubble.style.top = `${Math.round(top)}px`;
     }

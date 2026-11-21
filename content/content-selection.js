@@ -8,6 +8,7 @@
 
   let lastPointer = null;
   let bubbleListenersBound = false;
+  let bubblePositionPending = false;
 
   function readSelection() {
     try {
@@ -208,6 +209,15 @@
     if (bubble.rect) overlay.positionBubble(bubble.rect);
   }
 
+  function scheduleBubblePosition() {
+    if (!bubble.open || bubblePositionPending) return;
+    bubblePositionPending = true;
+    window.requestAnimationFrame(() => {
+      bubblePositionPending = false;
+      refreshBubblePosition();
+    });
+  }
+
   function bindBubbleListeners() {
     if (bubbleListenersBound) return;
     bubbleListenersBound = true;
@@ -227,7 +237,7 @@
       },
       true
     );
-    window.addEventListener('scroll', refreshBubblePosition, true);
+    window.addEventListener('scroll', scheduleBubblePosition, { capture: true, passive: true });
     window.addEventListener('resize', refreshBubblePosition);
   }
 
