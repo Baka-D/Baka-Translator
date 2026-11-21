@@ -13,7 +13,7 @@ const extensionUrl = `chrome-extension://${extensionId}/`;
 const sessionId = '12345678-1234-4234-8234-123456789abc';
 const otherId = '12345678-1234-4234-8234-123456789def';
 const MSG = { IMAGE_PANEL_UPDATE: 'dsht:imagePanelUpdate', IMAGE_PANEL_CLOSED: 'dsht:imagePanelClosed',
-  IMAGE_PANEL_READY: 'dsht:imagePanelReady' };
+  IMAGE_PANEL_READY: 'dsht:imagePanelReady', IMAGE_PANEL_DISCONNECTED: 'dsht:imagePanelDisconnected' };
 const secret = 'sensitive OCR result';
 const model = { visible: true, items: [{ status: 'done', hasText: true,
   thumbnail: 'data:image/jpeg;base64,AA==', original: secret, translation: secret }] };
@@ -274,15 +274,41 @@ test('moving the host rebuilds the window around the same model', async () => {
   assert.equal(updates.at(-1).model.items[0].original, secret);
 });
 
+test('rebuilding the host cannot be closed by an old renderer notice', async () => {
+  const { bridge, layer, fromWorker } = loadBridge(async () => ({ ok: true }));
+  bridge.render(model);
+  await tick();
+  const replacement = node('div');
+  bridge.build(replacement);
+  fromWorker({ type: MSG.IMAGE_PANEL_CLOSED, sessionId });
+  await tick();
+  assert.equal(layer.children.length, 0);
+  assert.equal(replacement.children[0].src, `${extensionUrl}content/image-results.html#${otherId}`);
+  fromWorker({ type: MSG.IMAGE_PANEL_CLOSED, sessionId: otherId });
+  assert.equal(replacement.children.length, 0);
+});
+
+test('a renderer can relay its own disconnect after the worker restarted', () => {
+  const broker = loadBroker();
+  const sender = viewer().port.sender;
+  const request = { sessionId };
+  for (const invalid of [owner, { ...sender, origin: 'https://example.test' },
+    { ...sender, url: sender.url.replace(sessionId, otherId) }]) {
+    assert.throws(() => broker.context.handleImagePanelDisconnected(request, invalid));
+  }
+  broker.context.handleImagePanelDisconnected(request, sender);
+  assert.deepEqual(structuredClone(broker.sent), [[owner.tab.id, { type: MSG.IMAGE_PANEL_CLOSED, sessionId }, { frameId: 0 }]]);
+});
+
 test('renderer uses a private runtime port and clears its DOM when disconnected', async () => {
   const accepted = viewer();
-  const rendered = [], events = [], intervals = new Set();
+  const rendered = [], events = [], intervals = new Set(), relayed = [];
   const context = createLocalizedContext({ URL, location: { hash: `#${sessionId}` },
     document: { body: node('body'), createElement: node },
     addEventListener(type) { events.push(type); },
     setInterval(fn) { intervals.add(fn); return fn; }, clearInterval(fn) { intervals.delete(fn); },
-    chrome: { runtime: { connect() { return accepted.port; } } },
-    DSHT: { overlayParts: { baseCss: '', imageCss: '', createImages() {
+    chrome: { runtime: { connect() { return accepted.port; }, async sendMessage(message) { relayed.push(message); } } },
+    DSHT: { config: { MSG }, overlayParts: { baseCss: '', imageCss: '', createImages() {
       return { build() {}, render(value) { rendered.push(value); }, hide() { rendered.push({ visible: false }); } } } } }
   });
   await vm.runInContext(fs.readFileSync(path.join(root, 'content/image-results.js'), 'utf8'), context);
@@ -291,6 +317,7 @@ test('renderer uses a private runtime port and clears its DOM when disconnected'
   accepted.port.disconnect();
   assert.equal(rendered.at(-1).visible, false);
   assert.equal(intervals.size, 0);
+  assert.deepEqual(structuredClone(relayed), [{ type: MSG.IMAGE_PANEL_DISCONNECTED, sessionId }]);
   assert.equal(events.includes('message'), false);
   const source = fs.readFileSync(path.join(root, 'content/image-results.js'), 'utf8');
   assert.doesNotMatch(source, /postMessage\s*\(\s*[^)]*,\s*['"]\*|window\.name|(?:parent|top)\.(?:postMessage|location|name)/);

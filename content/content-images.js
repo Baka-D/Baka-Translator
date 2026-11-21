@@ -5,7 +5,7 @@
   const modules = globalScope.DSHT.contentModules ||= {};
   modules['images'] = function createModule(app) {
   const { languages, MSG, LIMITS, page, imageJob, overlay } = app;
-  const { loadScreenshotImage, clamp, cropImageFromScreenshot, nextPaint } = app;
+  const { loadScreenshotImage, clamp, screenshotViewport, cropImageFromScreenshot, nextPaint } = app;
   imageJob.unsupported = false;
   let capabilityRevision = 0;
   let captureRunId = null;
@@ -96,14 +96,19 @@
       .filter((img) => img.currentSrc && img.complete && img.naturalWidth !== 0 &&
         shownThroughFrames(img));
     const rects = await visibleRects(images);
+    const viewport = screenshotViewport();
 
     for (const img of images) {
       const rect = rects.get(img);
       if (!rect?.width || !rect.height) continue;
-      const { left, top, right, bottom } = toTopViewport(img, rect);
+      const box = toTopViewport(img, rect);
+      const left = Math.max(box.left, viewport.left);
+      const top = Math.max(box.top, viewport.top);
+      const right = Math.min(box.right, viewport.left + viewport.width);
+      const bottom = Math.min(box.bottom, viewport.top + viewport.height);
       const visibleWidth = right - left;
       const visibleHeight = bottom - top;
-      if (visibleWidth < LIMITS.IMAGE_MIN_WIDTH || visibleHeight < LIMITS.IMAGE_MIN_HEIGHT) {
+      if (!(visibleWidth >= LIMITS.IMAGE_MIN_WIDTH && visibleHeight >= LIMITS.IMAGE_MIN_HEIGHT)) {
         continue;
       }
       const visibleArea = visibleWidth * visibleHeight;
@@ -208,26 +213,27 @@
   async function processImageJob(job) {
     const runId = job.runId;
     if (runId !== imageJob.runId) return;
+    const items = [];
     try {
       // Never let our own overlays end up in the screenshot we send for OCR.
       captureRunId = runId;
       overlay.setCaptureMode(true);
       await nextPaint();
       if (runId !== imageJob.runId) return;
+      const viewport = screenshotViewport();
       const screenshotResponse = await app.sendRuntime({ type: MSG.CAPTURE_SCREENSHOT });
       finishCapture(runId);
       if (runId !== imageJob.runId) return;
 
       const screenshot = await loadScreenshotImage(screenshotResponse.dataUrl);
-      const items = [];
       for (const candidate of job.candidates) {
         if (runId !== imageJob.runId) return;
         try {
-          const dataUrl = cropImageFromScreenshot(screenshot, candidate);
+          const dataUrl = cropImageFromScreenshot(screenshot, candidate, undefined, undefined, viewport);
           items.push({
             status: 'pending',
             // The panel shows a 58px thumb; resending the full OCR crop on every update is wasteful.
-            thumbnail: cropImageFromScreenshot(screenshot, candidate, 160, 0.7),
+            thumbnail: cropImageFromScreenshot(screenshot, candidate, 160, 0.7, viewport),
             dataUrl,
             alt: candidate.alt,
             hasText: false,
@@ -264,13 +270,11 @@
       }
 
       let cursor = 0;
+      let fatalError;
       const worker = async () => {
-        while (true) {
+        while (!fatalError && cursor < items.length) {
           if (runId !== imageJob.runId) return;
-          const index = cursor;
-          cursor += 1;
-          if (index >= imageJob.items.length) return;
-          const item = imageJob.items[index];
+          const item = items[cursor++];
           if (!item.dataUrl) {
             item.status = 'error';
             item.error = item.error || t('content_image_capture_error');
@@ -301,9 +305,17 @@
             }
             item.status = 'error';
             item.error = error.message || t('content_image_translation_error');
-            if (app.isSettingsError(error.code)) {
-              overlay.showToast(t('content_image_provider_error'), 'error');
+            if (!fatalError && app.FATAL_ERROR_CODES?.has(error.code)) {
+              fatalError = item.error;
+              const notice = error.code === 'EXTENSION_RELOADED' ? 'content_extension_updated'
+                : app.isSettingsError(error.code) ? 'content_image_provider_error' : 'content_image_error_details';
+              overlay.showToast(t(notice), 'error');
+              for (const pending of items.slice(cursor)) {
+                if (pending.status === 'pending') Object.assign(pending, { status: 'error', error: fatalError, dataUrl: '' });
+              }
             }
+          } finally {
+            item.dataUrl = '';
           }
           renderImagePanel();
         }
@@ -329,6 +341,7 @@
       overlay.showToast(t('content_image_error_details'), 'error');
       renderImagePanel();
     } finally {
+      for (const item of items) item.dataUrl = '';
       finishCapture(runId);
     }
   }

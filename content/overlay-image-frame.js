@@ -106,6 +106,7 @@
       }
       if (message.type !== MSG.IMAGE_PANEL_CLOSED) return false;
       hide();
+      onReady?.(false);
       if (callbacks.onImageClose) callbacks.onImageClose();
       return false;
     });
@@ -114,9 +115,7 @@
     });
 
     return { build(nextLayer) {
-      removeFrame();
-      layer = nextLayer;
-      if (session) schedule(session);
+      reattach(() => { layer = nextLayer; });
     }, render, hide, reattach, ready,
     refreshLanguage() { if (frame) frame.title = t('content_image_panel_label'); } };
   };

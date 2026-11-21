@@ -131,6 +131,9 @@ async function handleMessage(message, sender) {
     case MSG.IMAGE_PANEL_UPDATE:
       return handleImagePanelUpdate(message, sender);
 
+    case MSG.IMAGE_PANEL_DISCONNECTED:
+      return handleImagePanelDisconnected(message, sender);
+
     case MSG.TEST_CONNECTION: {
       if (!sender.url || !sender.url.startsWith(chrome.runtime.getURL('options/'))) {
         throw new PageAccessError('INVALID_SENDER', t('bg_invalid_sender'));

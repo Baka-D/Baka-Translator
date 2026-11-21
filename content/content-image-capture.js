@@ -20,23 +20,33 @@
     return Math.max(min, Math.min(max, value));
   }
 
+  function screenshotViewport() {
+    const visual = window.visualViewport;
+    if (visual?.scale > 1) {
+      return { left: visual.offsetLeft, top: visual.offsetTop, width: visual.width, height: visual.height };
+    }
+    return { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
+  }
+
   function cropImageFromScreenshot(
     screenshot,
     candidate,
     maxDimension = LIMITS.IMAGE_MAX_DIMENSION,
-    quality = LIMITS.IMAGE_JPEG_QUALITY
+    quality = LIMITS.IMAGE_JPEG_QUALITY,
+    viewport = screenshotViewport()
   ) {
     const naturalWidth = screenshot.naturalWidth || screenshot.width;
     const naturalHeight = screenshot.naturalHeight || screenshot.height;
     if (!naturalWidth || !naturalHeight) throw new Error(t('content_screenshot_size_error'));
 
-    const scaleX = naturalWidth / Math.max(1, window.innerWidth);
-    const scaleY = naturalHeight / Math.max(1, window.innerHeight);
+    const scaleX = naturalWidth / Math.max(1, viewport.width);
+    const scaleY = naturalHeight / Math.max(1, viewport.height);
     const padding = 6;
-    const left = clamp(candidate.rect.left - padding, 0, window.innerWidth);
-    const top = clamp(candidate.rect.top - padding, 0, window.innerHeight);
-    const right = clamp(candidate.rect.right + padding, 0, window.innerWidth);
-    const bottom = clamp(candidate.rect.bottom + padding, 0, window.innerHeight);
+    const left = clamp(candidate.rect.left - viewport.left - padding, 0, viewport.width);
+    const top = clamp(candidate.rect.top - viewport.top - padding, 0, viewport.height);
+    const right = clamp(candidate.rect.right - viewport.left + padding, 0, viewport.width);
+    const bottom = clamp(candidate.rect.bottom - viewport.top + padding, 0, viewport.height);
+    if (!(right > left && bottom > top)) throw new Error(t('content_image_crop_error'));
     const sourceX = Math.floor(left * scaleX);
     const sourceY = Math.floor(top * scaleY);
     const sourceWidth = Math.max(1, Math.ceil((right - left) * scaleX));
@@ -96,6 +106,6 @@
     });
   }
 
-  return { loadScreenshotImage, clamp, cropImageFromScreenshot, nextPaint };
+  return { loadScreenshotImage, clamp, screenshotViewport, cropImageFromScreenshot, nextPaint };
   };
 })(globalThis);

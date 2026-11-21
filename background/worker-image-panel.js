@@ -10,7 +10,7 @@ function imagePanelInvalid() {
 
 function imagePanelOwner(sender) {
   if (sender?.id !== chrome.runtime.id || !Number.isInteger(sender.tab?.id) ||
-      !Number.isInteger(sender.frameId) || sender.frameId < 0 ||
+      sender.tab.id < 0 || sender.frameId !== 0 ||
       typeof sender.documentId !== 'string' || !sender.documentId ||
       typeof sender.url !== 'string' || !/^(https?:|file:)\/\//i.test(sender.url)) {
     throw imagePanelInvalid();
@@ -91,9 +91,8 @@ function handleImagePanelUpdate(message, sender) {
   return { ok: true };
 }
 
-function imagePanelRenderer(port, session) {
-  const sender = port.sender;
-  if (sender?.id !== chrome.runtime.id || sender.tab?.id !== session.owner.tabId ||
+function imagePanelRenderer(sender, tabId, sessionId) {
+  if (sender?.id !== chrome.runtime.id || sender.tab?.id !== tabId ||
       !Number.isInteger(sender.frameId) || sender.frameId <= 0 ||
       typeof sender.documentId !== 'string' || !sender.documentId) return false;
   try {
@@ -101,15 +100,34 @@ function imagePanelRenderer(port, session) {
     const origin = new URL(sender.origin);
     return url.protocol === imagePanelResource.protocol && url.host === imagePanelResource.host &&
       origin.protocol === imagePanelResource.protocol && origin.host === imagePanelResource.host &&
-      url.pathname === imagePanelResource.pathname && !url.search && url.hash === `#${session.id}`;
+      url.pathname === imagePanelResource.pathname && !url.search && url.hash === `#${sessionId}`;
   } catch (_error) { return false; }
+}
+
+function handleImagePanelDisconnected(message, sender) {
+  const tabId = sender.tab?.id;
+  const { sessionId } = message;
+  if (!Number.isInteger(tabId) || tabId < 0 || typeof sessionId !== 'string' ||
+      !imagePanelIdPattern.test(sessionId) || !imagePanelRenderer(sender, tabId, sessionId)) {
+    throw imagePanelInvalid();
+  }
+  // An active broker notifies its bound document on disconnect. After a worker
+  // restart the top-frame bridge matches the old session before closing it.
+  const session = imagePanelSessions.get(sessionId);
+  if (!session) {
+    void chrome.tabs.sendMessage(tabId, { type: imagePanelConfig.MSG.IMAGE_PANEL_CLOSED, sessionId },
+      { frameId: 0 }).catch(() => {});
+  } else if (session.owner.tabId === tabId && !session.port) {
+    forgetImagePanel(session, true);
+  }
+  return { ok: true };
 }
 
 chrome.runtime.onConnect.addListener((port) => {
   if (!port.name.startsWith('dsht:image-panel:')) return;
   const id = port.name.slice('dsht:image-panel:'.length);
   const session = imagePanelSessions.get(id);
-  if (!session || session.port || !imagePanelRenderer(port, session)) {
+  if (!session || session.port || !imagePanelRenderer(port.sender, session.owner.tabId, session.id)) {
     port.disconnect();
     return;
   }
