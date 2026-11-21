@@ -3,7 +3,7 @@
   'use strict';
   const modules = globalScope.DSHT.contentModules ||= {};
   modules['ruby'] = function createModule(app) {
-  const { page } = app;
+  const { page, textUtils } = app;
 
   function rubyForNode(node) {
     const parent = node && node.parentElement;
@@ -53,6 +53,54 @@
     return readings;
   }
 
+  /** Group adjacent base text without crossing protected or already translated text. */
+  function buildRubyGroup(start, canInclude) {
+    const startRuby = rubyForNode(start);
+    const nodes = [];
+    const rubies = [];
+    const eligibleBase = (ruby) => {
+      const base = collectRubyBaseTextNodes(ruby);
+      return base.length && base.every(canInclude) ? base : null;
+    };
+
+    if (startRuby) {
+      const base = eligibleBase(startRuby);
+      if (!base?.includes(start)) return null;
+      nodes.push(...base);
+      rubies.push(startRuby);
+    } else {
+      nodes.push(start);
+    }
+
+    const first = startRuby || start;
+    for (let next = first.nextSibling; next; next = next.nextSibling) {
+      if (next.nodeType === Node.TEXT_NODE && canInclude(next)) {
+        nodes.push(next);
+      } else if (next.nodeType === Node.ELEMENT_NODE && next.tagName === 'RUBY') {
+        const base = eligibleBase(next);
+        if (!base) break;
+        nodes.push(...base);
+        rubies.push(next);
+      } else {
+        break;
+      }
+    }
+
+    // The text walker starts with a letter, so any leading punctuation or
+    // numeric base belonging to the same ruby sequence needs a backward scan.
+    const prefix = [];
+    for (let prior = first.previousSibling; prior; prior = prior.previousSibling) {
+      const isRuby = prior.nodeType === Node.ELEMENT_NODE && prior.tagName === 'RUBY';
+      const base = isRuby ? eligibleBase(prior) : (canInclude(prior) ? [prior] : null);
+      if (!base || base.some((part) => textUtils.isMeaningfulText(part.nodeValue))) break;
+      prefix.push(base);
+      if (isRuby) rubies.unshift(prior);
+    }
+    if (rubies.length) nodes.unshift(...prefix.reverse().flat());
+    if (nodes.length <= 1 && rubies.length === 0) return null;
+    return { nodes, rubyReadings: [...new Set(rubies.flatMap(collectRubyReadingElements))] };
+  }
+
   function hideRubyReadings(elements) {
     if (!Array.isArray(elements)) return;
     if (!page.hiddenRubyReadings) page.hiddenRubyReadings = new Map();
@@ -87,6 +135,6 @@
     page.hiddenRubyReadings.clear();
   }
 
-  return { rubyForNode, collectRubyBaseTextNodes, collectRubyReadingElements, hideRubyReadings, restoreRubyReadings };
+  return { rubyForNode, buildRubyGroup, hideRubyReadings, restoreRubyReadings };
   };
 })(globalThis);

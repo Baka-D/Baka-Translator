@@ -5,7 +5,6 @@
   const modules = globalScope.DSHT.contentModules ||= {};
   modules['dom'] = function createModule(app) {
   const { detect, textUtils, LIMITS, page } = app;
-  const { rubyForNode, collectRubyBaseTextNodes, collectRubyReadingElements } = app;
 
   const SKIP_TAGS = new Set([
     'SCRIPT',
@@ -40,7 +39,7 @@
     'TITLE'
   ]);
 
-  const SKIP_SELECTOR = [
+  const SKIP_SELECTORS = [
     'script',
     'style',
     'noscript',
@@ -66,7 +65,9 @@
     '[contenteditable]:not([contenteditable="false"])',
     '[data-dsht-skip]',
     '[data-dsht-original]'
-  ].join(',');
+  ];
+  const SKIP_SELECTOR = SKIP_SELECTORS.join(',');
+  const FRAME_SKIP_SELECTOR = SKIP_SELECTORS.filter((selector) => selector !== 'iframe').join(',');
 
   const TRANSLATE_BLOCK_SELECTOR = '[translate="no"], .notranslate';
   const SKIP_TEXT_ROOT_ATTR = 'data-dsht-ui';
@@ -74,16 +75,25 @@
   function newFilterContext() {
     return {
       skipCache: new WeakMap(),
+      frameSkipCache: new WeakMap(),
       visibilityCache: new WeakMap()
     };
   }
 
-  function isSkippedParent(element, ctx) {
+  function composedBoundary(element) {
+    return element.getRootNode?.().host || element.ownerDocument?.defaultView?.frameElement;
+  }
+
+  function isSkippedParent(element, ctx, frameBoundary = false) {
     if (!element) return true;
-    if (ctx.skipCache.has(element)) return ctx.skipCache.get(element);
+    const cache = frameBoundary ? ctx.frameSkipCache : ctx.skipCache;
+    if (cache.has(element)) return cache.get(element);
     let skipped = false;
     try {
-      skipped = SKIP_TAGS.has(element.tagName) || Boolean(element.closest(SKIP_SELECTOR));
+      // An iframe's own fallback DOM is excluded, but an accessible child document
+      // can be translated if the frame and its ancestors allow translation.
+      skipped = (!frameBoundary && SKIP_TAGS.has(element.tagName)) ||
+        Boolean(element.closest(frameBoundary ? FRAME_SKIP_SELECTOR : SKIP_SELECTOR));
       if (!skipped) {
         const blocker = element.closest(TRANSLATE_BLOCK_SELECTOR);
         if (blocker) {
@@ -98,10 +108,12 @@
           skipped = !rootLevel;
         }
       }
+      const boundary = !skipped && composedBoundary(element);
+      if (boundary) skipped = isSkippedParent(boundary, ctx, boundary.tagName === 'IFRAME');
     } catch (_error) {
       skipped = true;
     }
-    ctx.skipCache.set(element, skipped);
+    cache.set(element, skipped);
     return skipped;
   }
 
@@ -125,12 +137,17 @@
         visible = false;
       } else if (element.closest('[hidden]')) {
         visible = false;
+      } else if (style.display === 'contents') {
+        // A boxless host can still render its children.
+        visible = !element.parentElement || isVisibleParent(element.parentElement, ctx);
       } else if (typeof element.checkVisibility === 'function') {
         visible = element.checkVisibility({
           checkOpacity: false,
           checkVisibilityCSS: true
         });
       }
+      const boundary = visible && composedBoundary(element);
+      if (boundary) visible = isVisibleParent(boundary, ctx);
     } catch (_error) {
       visible = true;
     }
@@ -138,7 +155,7 @@
     return visible;
   }
 
-  function isCandidateTextNode(node, ctx, allowDetached) {
+  function isEligibleTextNode(node, ctx, allowDetached) {
     if (!node || node.nodeType !== Node.TEXT_NODE) return false;
     const previous = page.translatedNodes.get(node);
     if (previous && node.nodeValue === previous.translated) return false;
@@ -150,16 +167,16 @@
     }
     const parent = node.parentElement;
     if (!parent) return false;
-    if (!textUtils.isMeaningfulText(node.nodeValue)) return false;
     if (isSkippedParent(parent, ctx)) return false;
     // Parsed (not-yet-attached) documents have no layout; checkVisibility()
     // would report every node as invisible, so only apply visibility checks
-    // to nodes from the live page document.
-    const inLiveDocument = parent.ownerDocument === document;
-    if (!allowDetached || inLiveDocument) {
-      if (!isVisibleParent(parent, ctx)) return false;
-    }
-    return true;
+    // to nodes from a live document.
+    const inLiveDocument = parent.ownerDocument === document || parent.ownerDocument?.defaultView;
+    return (allowDetached && !inLiveDocument) || isVisibleParent(parent, ctx);
+  }
+
+  function isCandidateTextNode(node, ctx, allowDetached) {
+    return isEligibleTextNode(node, ctx, allowDetached) && textUtils.isMeaningfulText(node.nodeValue);
   }
 
   function createTextWalker(root) {
@@ -215,11 +232,6 @@
           continue;
         }
 
-        if (element.shadowRoot) {
-          addRoot(element.shadowRoot);
-          for (const child of element.shadowRoot.children) queue.push(child);
-        }
-
         if (element.tagName === 'IFRAME') {
           let childDocument = null;
           try {
@@ -233,8 +245,15 @@
           continue;
         }
 
-        if (element.children) {
-          for (const child of element.children) queue.push(child);
+        for (let index = (element.children?.length || 0) - 1; index >= 0; index--) {
+          queue.push(element.children[index]);
+        }
+        const shadow = element.shadowRoot;
+        if (shadow) {
+          addRoot(shadow);
+          for (let index = shadow.children.length - 1; index >= 0; index--) {
+            queue.push(shadow.children[index]);
+          }
         }
       }
     };
@@ -243,7 +262,8 @@
     return roots;
   }
 
-  function collectPageSample(maxChars) {    const sampleParts = [];
+  function collectPageSample(maxChars) {
+    const sampleParts = [];
     let length = 0;
     try {
       if (document.title) {
@@ -343,68 +363,8 @@
     if (roots.length === 0) return { targets, truncated };
     const consumed = new WeakSet();
 
-    /** Group a sentence split only by ruby elements into one readable target. */
-    const buildRubyGroup = (start) => {
-      const startRuby = rubyForNode(start);
-      const nodes = [];
-      const rubies = [];
-      let cursor = start;
-      if (startRuby) {
-        const baseNodes = collectRubyBaseTextNodes(startRuby)
-          .filter((node) => isCandidateTextNode(node, ctx, opts.allowDisconnected));
-        if (!baseNodes.includes(start)) return null;
-        nodes.push(...baseNodes);
-        rubies.push(startRuby);
-        cursor = startRuby;
-      } else {
-        nodes.push(start);
-      }
-
-      while (cursor) {
-        const next = cursor.nextSibling;
-        if (!next) break;
-        if (next.nodeType === Node.TEXT_NODE) {
-          if (isCandidateTextNode(next, ctx, opts.allowDisconnected)) {
-            nodes.push(next);
-            cursor = next;
-            continue;
-          }
-          if (!textUtils.isMeaningfulText(next.nodeValue)) {
-            nodes.push(next);
-            cursor = next;
-            continue;
-          }
-          break;
-        }
-        if (next.nodeType === Node.ELEMENT_NODE && next.tagName === 'RUBY') {
-          const baseNodes = collectRubyBaseTextNodes(next)
-            .filter((node) => isCandidateTextNode(node, ctx, opts.allowDisconnected));
-          if (baseNodes.length > 0) {
-            nodes.push(...baseNodes);
-            rubies.push(next);
-          }
-          cursor = next;
-          continue;
-        }
-        break;
-      }
-
-      if (nodes.length <= 1 && rubies.length === 0) return null;
-      const combined = nodes.map((node) => node.nodeValue).join('');
-      const split = textUtils.splitWhitespace(combined);
-      if (!textUtils.isMeaningfulText(split.core)) return null;
-      if (split.core.length > LIMITS.TEXT_MAX_SEGMENT_CHARS) {
-        truncated = true;
-        return null;
-      }
-      const readings = [];
-      for (const ruby of rubies) {
-        for (const reading of collectRubyReadingElements(ruby)) {
-          if (!readings.includes(reading)) readings.push(reading);
-        }
-      }
-      return { nodes, rubyReadings: readings, split };
-    };
+    const canInclude = (node) =>
+      !consumed.has(node) && isEligibleTextNode(node, ctx, opts.allowDisconnected);
 
     const pushTarget = (targetInfo) => {
       if (targets.length >= LIMITS.PAGE_MAX_NODES) {
@@ -449,10 +409,14 @@
         return;
       }
       if (!isCandidateTextNode(node, ctx, opts.allowDisconnected)) return;
-      const group = buildRubyGroup(node);
+      const group = app.buildRubyGroup(node, canInclude);
       if (group) {
-        pushTarget(group);
-        return;
+        const split = textUtils.splitWhitespace(group.nodes.map((part) => part.nodeValue).join(''));
+        if (split.core.length <= LIMITS.TEXT_MAX_SEGMENT_CHARS) {
+          pushTarget({ ...group, split });
+          return;
+        }
+        truncated = true;
       }
       const split = textUtils.splitWhitespace(node.nodeValue);
       if (!textUtils.isMeaningfulText(split.core)) return;

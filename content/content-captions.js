@@ -5,6 +5,7 @@
   const modules = globalScope.DSHT.contentModules ||= {};
   modules['captions'] = function createModule(app) {
   const { textUtils, LIMITS, BILINGUAL_ATTR, page } = app;
+  const OWN_CAPTION = `:scope > [${BILINGUAL_ATTR}]`;
 
   const CAPTION_PRIMARY_TAGS = new Set([
     'P',
@@ -176,7 +177,7 @@
       if (!record.applied || record.captioned) continue;
       const anchor = record.anchor;
       if (!anchor || !anchor.isConnected || !record.original) continue;
-      if (anchor.querySelector(`[${BILINGUAL_ATTR}]`)) continue;
+      if (anchor.querySelector(OWN_CAPTION)) continue;
 
       let caption;
       try {
@@ -250,7 +251,7 @@
 
   function removeCaptionForNode(node) {
     const anchor = findCaptionAnchor(node);
-    const caption = anchor && anchor.querySelector(`[${BILINGUAL_ATTR}]`);
+    const caption = anchor && anchor.querySelector(OWN_CAPTION);
     if (!caption) return;
     caption.remove();
     page.captions.delete(caption);
