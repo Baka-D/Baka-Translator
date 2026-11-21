@@ -6,7 +6,7 @@
   modules['dynamic'] = function createModule(app) {
   const { textUtils, MSG, LIMITS, BILINGUAL_ATTR, FATAL_ERROR_CODES, page, overlay } = app;
   const REVEAL_ATTRIBUTES = ['class', 'style', 'hidden', 'open'];
-  let observedRoots = new WeakSet();
+  let leftRouteRunId = -1;
   let frameNoticeShown = false;
   const revealed = new Set();
   let composedRoots = [];
@@ -28,23 +28,20 @@
     return Boolean(entry && entry.live && Date.now() - entry.at < LIVE_MS);
   }
 
+  function disconnectObservation(observation) {
+    try {
+      observation.disconnect();
+    } catch (_error) {
+      // An unloaded frame must not prevent cleanup of the remaining roots.
+    }
+  }
+
   function disconnectDynamicObserver() {
-    observedRoots = new WeakSet();
     frameNoticeShown = false;
     composedRoots = [];
     revealed.clear();
     rootsChanged = false;
-    if (!Array.isArray(page.observers)) {
-      page.observers = [];
-      return;
-    }
-    for (const observer of page.observers) {
-      try {
-        observer.disconnect();
-      } catch (_error) {
-        // Ignore.
-      }
-    }
+    for (const observation of page.observers) disconnectObservation(observation);
     page.observers = [];
   }
 
@@ -82,7 +79,9 @@
 
   /** Consent covers the page the user translated, not wherever an SPA goes next. */
   function leftTranslatedRoute() {
+    if (leftRouteRunId === page.runId) return true;
     if (currentRoute() === page.translatedRoute) return false;
+    leftRouteRunId = page.runId;
     app.clearTranslatedFonts?.();
     stopDynamicTranslation();
     overlay.showToast(t('content_route_changed_notice'), 'info');
@@ -96,6 +95,7 @@
       stopDynamicTranslation();
       return;
     }
+    const sweptSiblings = new Set();
     for (const record of records) {
       if (record.type === 'characterData') {
         const previous = page.translatedNodes.get(record.target);
@@ -112,10 +112,15 @@
         revealed.add(target);
         // `.on + .panel` shows a later sibling. Style is left out: scripts animate it per frame.
         if (attributeName === 'style') continue;
-        for (let next = target.nextElementSibling; next; next = next.nextElementSibling) {
+        for (let next = target.nextElementSibling; next && !sweptSiblings.has(next); next = next.nextElementSibling) {
+          sweptSiblings.add(next);
           revealed.add(next);
         }
         continue;
+      }
+      if (!rootsChanged && !page.novelMode && page.observers.length > 1 &&
+        Array.from(record.removedNodes || []).some((node) => node.nodeType === Node.ELEMENT_NODE)) {
+        rootsChanged = true;
       }
       for (const added of record.addedNodes) {
         if (!added) continue;
@@ -131,7 +136,7 @@
         }
       }
     }
-    if (page.dynamicQueue.size > 0 || revealed.size > 0) scheduleDynamicFlush();
+    if (rootsChanged || page.dynamicQueue.size > 0 || revealed.size > 0) scheduleDynamicFlush();
   }
 
   function handleFrameLoad(event) {
@@ -145,7 +150,13 @@
     // A frame document that appeared after the run was never asked for. A frame that keeps its
     // document while its content changes cannot be told apart from new text on the same page.
     const inScope = (root) => page.translatedDocuments.has(root?.ownerDocument);
-    const roots = allRoots.filter(inScope);
+    const roots = allRoots.filter((root) => root?.isConnected !== false && inScope(root));
+    const unobserved = new Set(roots);
+    page.observers = page.observers.filter((observation) => {
+      if (unobserved.delete(observation.root)) return true;
+      disconnectObservation(observation);
+      return false;
+    });
     const refused = allRoots.filter((root) => root && !inScope(root));
     if (!frameNoticeShown && refused.some((root) => app.collectTargets(root, {}).targets.length > 0)) {
       frameNoticeShown = true;
@@ -153,23 +164,24 @@
     }
     composedRoots = roots;
     const options = { childList: true, characterData: true, subtree: true };
-    if (!page.novelMode) options.attributeFilter = REVEAL_ATTRIBUTES;
+    const watchFrames = !page.novelMode;
+    if (watchFrames) options.attributeFilter = REVEAL_ATTRIBUTES;
     const added = [];
-    for (const root of roots) {
-      if (!root || root.isConnected === false || observedRoots.has(root)) continue;
-      observedRoots.add(root);
+    for (const root of unobserved) {
       try {
-        const view = root.ownerDocument && root.ownerDocument.defaultView;
-        const ObserverCtor = (view && view.MutationObserver) || MutationObserver;
+        const view = root.ownerDocument.defaultView;
+        const ObserverCtor = view?.MutationObserver || MutationObserver;
         const observer = new ObserverCtor(handleMutations);
         observer.observe(root, options);
-        page.observers.push(observer);
-        added.push(root);
-        if (page.novelMode) continue;
-        root.addEventListener('load', handleFrameLoad, true);
         page.observers.push({
-          disconnect: () => root.removeEventListener('load', handleFrameLoad, true)
+          root,
+          disconnect() {
+            observer.disconnect();
+            if (watchFrames) root.removeEventListener('load', handleFrameLoad, true);
+          }
         });
+        added.push(root);
+        if (watchFrames) root.addEventListener('load', handleFrameLoad, true);
       } catch (_error) {
         // A detached frame/root can refuse observation; keep the others.
       }
@@ -196,7 +208,9 @@
   /** Queue revealed elements, plus the shadow and frame roots inside them. */
   function queueRevealed() {
     for (const element of revealed) {
-      if (element.textContent.trim()) page.dynamicQueue.add(element);
+      if (element.isConnected && !page.dynamicQueue.has(element) && element.textContent.trim()) {
+        page.dynamicQueue.add(element);
+      }
     }
     for (const root of composedRoots) {
       let node = root;
@@ -217,7 +231,7 @@
         ? app.collectNovelRoots(document, page.novel)
         : app.collectComposedTextRoots(document));
     } catch (_error) {
-      page.observers = [];
+      disconnectDynamicObserver();
     }
     // Nothing observed the run, so sweep for what it missed. Truncated or failed text stays out.
     if (page.status !== 'done' || page.truncated || page.novelMode) return;
@@ -308,12 +322,16 @@
       const remainingNodes = LIMITS.DYNAMIC_MAX_NODES - page.dynamicNodeCount;
       const remainingChars = LIMITS.DYNAMIC_MAX_CHARS - page.dynamicCharCount;
       const limited = [];
+      const freshText = new Set();
       let chars = 0;
       for (const target of uniqueTargets) {
-        if (limited.length >= remainingNodes) break;
-        if (chars + target.core.length > remainingChars) break;
+        const { core } = target;
+        if (!page.translationMemory.has(core) && !freshText.has(core)) {
+          if (freshText.size >= remainingNodes || chars + core.length > remainingChars) continue;
+          freshText.add(core);
+          chars += core.length;
+        }
         limited.push(target);
-        chars += target.core.length;
       }
       if (limited.length === 0) {
         stopDynamicTranslation();
@@ -329,14 +347,16 @@
         maxItems: LIMITS.TEXT_MAX_BATCH_ITEMS
       });
       let cursor = 0;
-      const earlier = page.requestContext ? translatedBefore(plan) : [];
+      let sentNodes = 0;
+      let sentChars = 0;
+      const earlier = page.requestContext && batches.length > 0 ? translatedBefore(plan) : [];
       if (recalled.known.length > 0) {
         app.applyTranslationsForBatch(recalled.known, recalled.translations, plan, { updateProgress: false });
       }
 
       const worker = async () => {
         while (true) {
-          if (runId !== page.runId || page.abortFatal || currentRoute() !== page.translatedRoute) return;
+          if (runId !== page.runId || page.abortFatal || leftTranslatedRoute()) return;
           const index = cursor;
           cursor += 1;
           if (index >= batches.length) return;
@@ -346,7 +366,7 @@
               page.requestContext, [...earlier, ...plan.segments], batch[0],
               (segment) => segment.text, LIMITS.CONTEXT_PRECEDING_CHARS
             );
-            const response = await app.sendRuntime({
+            const pending = app.sendRuntime({
               type: MSG.TRANSLATE_BATCH,
               targetCode: page.targetCode,
               sourceHint: page.source && page.source.code,
@@ -354,17 +374,20 @@
               context,
               segments: batch.map((segment) => ({ id: segment.id, text: segment.text }))
             });
+            sentNodes += batch.length;
+            for (const { text } of batch) sentChars += text.length;
+            const response = await pending;
             if (runId !== page.runId) return;
             app.addPageCost(response.billing);
             app.addDiscardedCost(response);
-            if (currentRoute() !== page.translatedRoute) return;
+            if (leftTranslatedRoute()) return;
             app.applyTranslationsForBatch(batch, response.translations, plan, {
               updateProgress: false
             });
           } catch (error) {
             if (runId !== page.runId) return;
             app.addDiscardedCost(error);
-            if (currentRoute() !== page.translatedRoute) return;
+            if (leftTranslatedRoute()) return;
             if (FATAL_ERROR_CODES.has(String(error.code || ''))) {
               page.abortFatal = true;
               page.error = error.message || page.error;
@@ -375,17 +398,16 @@
         }
       };
 
-      const workerCount = Math.max(
-        1,
-        Math.min(LIMITS.IMAGE_MAX_CONCURRENCY, batches.length, 2)
-      );
-      await Promise.all(Array.from({ length: workerCount }, () => worker()));
-      if (runId !== page.runId || currentRoute() !== page.translatedRoute) return;
+      if (batches.length > 0) {
+        const workerCount = Math.max(1, Math.min(LIMITS.IMAGE_MAX_CONCURRENCY, batches.length, 2));
+        await Promise.all(Array.from({ length: workerCount }, () => worker()));
+      }
+      if (runId !== page.runId || leftTranslatedRoute()) return;
       if (captions.length > 0) app.applyBilingualCaptions(captions);
 
       // Count what was sent, not what was written back: the limit bounds what leaves the page.
-      page.dynamicNodeCount += limited.length;
-      page.dynamicCharCount += chars;
+      page.dynamicNodeCount += sentNodes;
+      page.dynamicCharCount += sentChars;
       if (dynamicBudgetReached()) {
         stopDynamicTranslation();
       }

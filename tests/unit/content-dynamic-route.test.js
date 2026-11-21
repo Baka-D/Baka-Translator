@@ -12,8 +12,11 @@ const textUtils = require('../../shared/text');
 function harness(count = 1) {
   const location = { origin: 'https://example.test', pathname: '/first', search: '', hash: '' };
   const requests = [], costs = [], captions = [], timers = new Map();
+  const toasts = [], observers = new Map();
+  let roots = [];
   let disconnected = false;
   const document = {
+    body: {},
     getElementById: (id) => id === 'chapter' ? {} : null,
     getElementsByName: () => [], querySelectorAll: () => [],
     createTreeWalker(root) {
@@ -39,6 +42,7 @@ function harness(count = 1) {
   });
   const page = {
     status: 'done', runId: 1, translatedRoute: 'https://example.test/first',
+    truncated: true, translatedDocuments: new WeakSet([document]),
     targetCode: 'zh', source: { code: 'en' }, bilingual: true, glossary: [],
     progress: { done: 1, total: 1, failed: 0 },
     dynamicQueue: new Set(nodes), dynamicNodeCount: 0, dynamicCharCount: 0,
@@ -50,7 +54,8 @@ function harness(count = 1) {
     config, textUtils, MSG: config.MSG, BILINGUAL_ATTR: 'data-dsht-original',
     LIMITS: { ...config.LIMITS, TEXT_MAX_BATCH_ITEMS: 1 },
     FATAL_ERROR_CODES: new Set(['AUTH_FAILED']), page,
-    overlay: { showToast() {}, hidePanel() {} },
+    overlay: { showToast(message) { toasts.push(message); }, hidePanel() {} },
+    collectComposedTextRoots: () => roots,
     renderPagePanel() {}, notifyBadge() {}, cancelPretranslation() {},
     addPageCost(value) { if (value) costs.push(value); },
     collectTargets(roots) {
@@ -66,7 +71,13 @@ function harness(count = 1) {
   };
   const context = createLocalizedContext({
     DSHT: { contentModules: {} }, document, location,
+    Node: { TEXT_NODE: 3, ELEMENT_NODE: 1 },
     NodeFilter: { SHOW_TEXT: 4 },
+    MutationObserver: class {
+      constructor(callback) { this.callback = callback; }
+      observe(root) { observers.set(root, this); }
+      disconnect() { this.disconnected = true; }
+    },
     setTimeout(callback) { const id = timers.size + 1; timers.set(id, callback); return id; },
     clearTimeout(id) { timers.delete(id); }
   });
@@ -81,7 +92,18 @@ function harness(count = 1) {
       billing, discardedBilling: [0.25]
     });
   }
-  return { app, page, location, nodes, requests, costs, captions, timers, reply,
+  function makeRoot() {
+    const listeners = new Set();
+    return {
+      ownerDocument: document, isConnected: true, nodeType: 1,
+      hasAttribute: () => false,
+      addEventListener(type) { listeners.add(type); },
+      removeEventListener(type) { listeners.delete(type); },
+      listeners
+    };
+  }
+  return { app, page, location, nodes, requests, costs, captions, timers, reply, toasts, observers, makeRoot,
+    setRoots: (next) => { roots = next; },
     disconnected: () => disconnected };
 }
 
@@ -178,4 +200,90 @@ test('a restored old request cannot change the cost or scheduling state of a new
   assert.equal(h.page.dynamicBusy, true);
   assert.equal(h.page.dynamicQueue.size, 1);
   assert.equal(h.timers.size, 1);
+});
+
+test('remembered and duplicate text do not crowd out a fresh segment near the request cap', async () => {
+  const h = harness(4);
+  h.app.LIMITS.DYNAMIC_MAX_NODES = 1;
+  h.app.LIMITS.DYNAMIC_MAX_CHARS = h.nodes[2].nodeValue.length;
+  for (const node of h.nodes.slice(0, 2)) {
+    h.page.translationMemory.set(node.nodeValue, { text: 'Remembered translation' });
+  }
+  h.nodes[3].nodeValue = h.nodes[2].nodeValue;
+  const pending = h.app.flushDynamicQueue();
+  assert.equal(h.requests.length, 1);
+  assert.equal(h.requests[0].message.segments[0].text, 'Original text 2');
+  h.reply(h.requests[0]);
+  await pending;
+  assert.equal(h.page.dynamicNodeCount, 1);
+  assert.equal(h.page.dynamicCharCount, 'Original text 2'.length);
+  assert.deepEqual(h.nodes.map(({ nodeValue }) => nodeValue), [
+    'Remembered translation', 'Remembered translation', 'Translated text', 'Translated text'
+  ]);
+});
+
+test('a cache-only flush leaves the request budget intact', async () => {
+  const h = harness();
+  h.page.translationMemory.set(h.nodes[0].nodeValue, { text: 'Remembered translation' });
+  await h.app.flushDynamicQueue();
+  assert.equal(h.nodes[0].nodeValue, 'Remembered translation');
+  assert.equal(h.requests.length, 0);
+  assert.equal(h.page.dynamicNodeCount, 0);
+  assert.equal(h.page.dynamicCharCount, 0);
+});
+
+test('a route changed while a request is pending shows one notice', async () => {
+  const h = harness();
+  const root = h.makeRoot();
+  h.setRoots([root]);
+  h.app.startDynamicObserver();
+  const pending = h.app.flushDynamicQueue();
+  assert.equal(h.requests.length, 1);
+  h.location.pathname = '/second';
+  h.observers.get(root).callback([]);
+  h.reply(h.requests[0]);
+  await pending;
+  assert.equal(h.toasts.length, 1);
+});
+
+test('removal-only mutations disconnect the detached root and remove its frame-load listener', async () => {
+  const h = harness();
+  h.page.dynamicQueue.clear();
+  const root = h.makeRoot();
+  const shadow = h.makeRoot();
+  h.setRoots([root, shadow]);
+  h.app.startDynamicObserver();
+  const detached = h.observers.get(shadow);
+  assert.ok(shadow.listeners.has('load'));
+  shadow.isConnected = false;
+  h.setRoots([root]);
+  h.observers.get(root).callback([{ type: 'childList', addedNodes: [], removedNodes: [shadow] }]);
+  assert.equal(h.timers.size, 1);
+  await h.app.flushDynamicQueue();
+  assert.equal(detached.disconnected, true);
+  assert.equal(shadow.listeners.size, 0);
+  assert.equal(h.observers.get(root).disconnected, undefined);
+});
+
+test('attribute changes on many adjacent elements make one linear sibling sweep', async () => {
+  const h = harness();
+  h.page.dynamicQueue.clear();
+  const root = h.makeRoot();
+  h.setRoots([root]);
+  h.app.startDynamicObserver();
+  const siblings = Array.from({ length: 100 }, () => {
+    const sibling = h.makeRoot();
+    sibling.textContent = '';
+    return sibling;
+  });
+  let siblingReads = 0;
+  siblings.forEach((sibling, index) => {
+    Object.defineProperty(sibling, 'nextElementSibling', {
+      get() { siblingReads += 1; return siblings[index + 1] || null; }
+    });
+  });
+  h.observers.get(root).callback(siblings.map((target) => ({
+    type: 'attributes', target, attributeName: 'class'
+  })));
+  assert.ok(siblingReads <= 2 * siblings.length);
 });
