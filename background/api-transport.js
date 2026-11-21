@@ -34,7 +34,7 @@
       if (provider && provider.apiKeyRequired === false) return '';
       throw missingKeyError(provider && (provider.name || provider.id));
     }
-    if (key.length > 512 || /[\r\n]/.test(key)) {
+    if (key.length > 512 || /[^\x20-\x7e]/.test(key)) {
       throw new ApiError(t('bg_invalid_key_format'), {
         code: 'INVALID_API_KEY_FORMAT',
         retryable: false
@@ -55,10 +55,10 @@
 
   function mapHttpError(status, payload, rawText, headers, providerName, apiKey) {
     const label = providerName || t('bg_provider_fallback');
+    const root = Array.isArray(payload) ? payload[0] : payload;
+    const apiError = root?.error;
     const providerMessage = trimProviderMessage(
-      (payload && payload.error && payload.error.message) ||
-        (payload && payload.message) ||
-        rawText,
+      apiError?.message || root?.message || rawText,
       apiKey
     );
     const retryAfterHeader = getHeader(headers, 'retry-after');
@@ -95,7 +95,6 @@
       });
     }
     if (status === 429) {
-      const apiError = payload && payload.error;
       const quotaCodes = [
         'insufficient_quota',
         'credit_balance_exhausted',
@@ -317,7 +316,7 @@
                 retryable: false
               });
         lastError = apiError;
-        if (!apiError.retryable || attempt >= maxRetries) throw apiError;
+        if (!apiError.retryable || attempt >= maxRetries || opts.stopped?.()) throw apiError;
         const backoff =
           apiError.retryAfterMs ||
           config.TIMEOUTS.RETRY_BASE_DELAY_MS * Math.pow(2, attempt) +
