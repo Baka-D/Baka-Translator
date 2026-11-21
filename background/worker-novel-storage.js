@@ -83,8 +83,7 @@ function glossaryEditRequest(message, sender) {
   }
   const site = Object.hasOwn(storedNovel.SITE_ADAPTERS, message.siteId) && storedNovel.SITE_ADAPTERS[message.siteId];
   const id = typeof message.workId === 'string' ? message.workId : '';
-  const workPath = message.siteId === 'syosetu' ? `/${id}/` : `/works/${id}`;
-  const chapter = site && storedNovel.detectChapter(`https://${site.hosts[0]}${workPath}`);
+  const chapter = site && storedNovel.detectChapter(`https://${site.hosts[0]}${site.workPath(id)}`);
   if (!chapter?.isWorkPage || chapter.workId !== id || !['save', 'undo', 'clear'].includes(message.action)) {
     throw new PageAccessError('INVALID_REQUEST', t('bg_glossary_operation_invalid'));
   }

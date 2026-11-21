@@ -345,7 +345,7 @@
   "html_model_name_placeholder": "예: deepseek-chat",
   "html_next_page": "다음",
   "html_notes": "메모",
-  "html_novel_support_note": "라이트 노벨 모드는 ncode.syosetu.com(소설가가 되자)과 kakuyomu.jp(카쿠요무)에서 회차와 다음 화 링크를 자동으로 감지합니다. 한 작품에서 서로 다른 세 회차가 기록되면 회차 번역 후 용어 추출을 시도하고, 성공하면 이 기기에 용어집을 만듭니다. 현재는 이 두 사이트만 지원합니다.",
+  "html_novel_support_note": "라이트 노벨 모드는 소설가가 되자(syosetu.com 및 모든 하위 도메인), 하멜른(syosetu.org), 카쿠요무(kakuyomu.jp)에서 회차와 다음 화 링크를 자동으로 감지합니다. 한 작품에서 서로 다른 세 회차가 기록되면 회차 번역 후 용어 추출을 시도하고, 성공하면 이 기기에 용어집을 만듭니다.",
   "html_open_extension_settings": "확장 프로그램 설정 열기",
   "html_open_settings": "설정 열기",
   "html_options_subtitle": "여러 모델로 페이지 번역 · 번역문 다듬기 · 이미지 번역",

@@ -1439,7 +1439,7 @@
     "message": "备注"
   },
   "html_novel_support_note": {
-    "message": "轻小说模式：适配 ncode.syosetu.com（小説家になろう）与 kakuyomu.jp（カクヨム），自动识别章节与下一章链接。同一作品累计记录 3 个不同章节后，会在章节翻译完成时尝试提取术语；成功提取后会在本机建立术语表。目前仅支持以上站点。"
+    "message": "轻小说模式支持小説家になろう（syosetu.com 及其所有子域名）、ハーメルン（syosetu.org）和カクヨム（kakuyomu.jp），自动识别章节和下一章链接。同一作品累计记录 3 个不同章节后，会在章节翻译完成时尝试提取术语，成功后在本机建立术语表。"
   },
   "html_open_extension_settings": {
     "message": "打开扩展设置"

@@ -1439,7 +1439,7 @@
     "message": "Notes"
   },
   "html_novel_support_note": {
-    "message": "Light novel mode supports ncode.syosetu.com (Shosetsuka ni Naro) and kakuyomu.jp (Kakuyomu), automatically detecting chapters and next-chapter links. Once three distinct chapters of a work have been recorded, the extension attempts term extraction after chapter translation. Successful extraction creates a local glossary. Only these sites are currently supported."
+    "message": "Light novel mode detects chapters and next-chapter links on Shosetsuka ni Naro (syosetu.com and all its subdomains), Hameln (syosetu.org), and Kakuyomu (kakuyomu.jp). Once three distinct chapters of a work have been recorded, the extension attempts term extraction after chapter translation. Successful extraction creates a local glossary."
   },
   "html_open_extension_settings": {
     "message": "Open extension settings"

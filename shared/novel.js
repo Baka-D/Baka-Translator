@@ -19,9 +19,11 @@
     syosetu: {
       id: 'syosetu',
       name: '小説家になろう',
-      hosts: ['ncode.syosetu.com'],
+      hosts: ['syosetu.com'],
+      includeSubdomains: true,
       chapterPattern: /^\/([a-z]\d+[a-z0-9]*)\/(\d+)\/?$/i,
       workPattern: /^\/([a-z]\d+[a-z0-9]*)\/?$/i,
+      workPath: (id) => `/${id}/`,
       chapterRootSelectors: ['.p-novel__body .js-novel-text', '.js-novel-text', '.p-novel__body'],
       nextSelectors: ['a.c-pager__item--next'],
       previousSelectors: ['a.c-pager__item--before'],
@@ -30,12 +32,30 @@
       workTitleSelector: '',
       chapterLabelSelector: '.p-novel__number'
     },
+    hameln: {
+      id: 'hameln',
+      name: 'ハーメルン',
+      hosts: ['syosetu.org', 'h.syosetu.org'],
+      chapterPattern: /^\/novel\/(\d+)\/(\d+)\.html$/,
+      workPattern: /^\/novel\/(\d+)$/,
+      workPath: (id) => `/novel/${id}/`,
+      chapterRootSelectors: ['#maegaki, #honbun, #atogaki'],
+      nextSelectors: ['#nextpage a.next_page_link'],
+      nextFallbackSelector: '#nextpage a[href]',
+      previousSelectors: ['#nextpage a[href]'],
+      previousLinkPattern: /前の話|前話|前へ/,
+      afterwordSelector: '#atogaki',
+      titleSelector: '#maind .ss > span[style="font-size:120%"], #maind .ss > h2',
+      workTitleSelector: '#maind .ss > p > span > a',
+      chapterLabelSelector: '#maind div[style="text-align:right;font-size:80%"]'
+    },
     kakuyomu: {
       id: 'kakuyomu',
       name: 'カクヨム',
       hosts: ['kakuyomu.jp'],
       chapterPattern: /^\/works\/(\d+)\/episodes\/(\d+)\/?$/,
       workPattern: /^\/works\/(\d+)\/?$/,
+      workPath: (id) => `/works/${id}`,
       chapterRootSelectors: [
         '#contentMain .widget-episodeBody',
         '#contentMain .js-episode-body',
@@ -53,10 +73,8 @@
   const ADAPTER_LIST = Object.values(SITE_ADAPTERS);
 
   function hostMatches(host, adapter) {
-    const value = String(host || '').toLowerCase();
-    return adapter.hosts.some(
-      (candidate) => value === candidate || value === `www.${candidate}`
-    );
+    return adapter.hosts.some((candidate) => host === candidate || host === `www.${candidate}` ||
+      (adapter.includeSubdomains && host.endsWith(`.${candidate}`)));
   }
 
   function adapterForUrl(urlLike) {
@@ -102,10 +120,7 @@
 
     const workId = isChapter ? chapterMatch[1] : workMatch[1];
     const chapterId = isChapter ? chapterMatch[2] : '';
-    const workUrl =
-      adapter.id === 'syosetu'
-        ? `${url.origin}/${workId}/`
-        : `${url.origin}/works/${workId}`;
+    const workUrl = `${url.origin}${adapter.workPath(workId)}`;
     const canonicalUrl = isChapter ? `${url.origin}${pathname}` : workUrl;
     return {
       siteId: adapter.id,
@@ -216,13 +231,14 @@
     if (selected) return selected;
     const title = String(doc.title || '').trim();
     if (!title) return '';
-    if (adapter.id === 'syosetu') {
+    if (adapter.id === 'syosetu' || adapter.id === 'hameln') {
       // "作品名 - 話タイトル"; the work title itself may contain " - ".
+      const withoutSite = adapter.id === 'hameln' ? title.replace(/\s+-\s+ハーメルン$/, '') : title;
       const episode = getTitle(doc, chapter);
       const suffix = episode ? ` - ${episode}` : '';
-      if (suffix && title.endsWith(suffix)) return title.slice(0, -suffix.length).trim();
-      const match = title.match(/^(.*\S)\s+-\s+/);
-      return match ? match[1].trim() : '';
+      if (suffix && withoutSite.endsWith(suffix)) return withoutSite.slice(0, -suffix.length).trim();
+      const match = withoutSite.match(/^(.*\S)\s+-\s+/);
+      return match ? match[1].trim() : adapter.id === 'hameln' ? withoutSite : '';
     }
     if (adapter.id === 'kakuyomu') {
       const withoutSite = title.replace(/\s+-\s+カクヨム\s*$/, '').trim();
@@ -287,7 +303,7 @@
 
     let anchors = [];
     try {
-      anchors = Array.from(doc.querySelectorAll('a[href]'));
+      anchors = Array.from(doc.querySelectorAll(adapter.nextFallbackSelector || 'a[href]'));
     } catch (_error) {
       anchors = [];
     }
@@ -307,9 +323,11 @@
   function findPreviousChapterUrl(doc, currentUrl) {
     const chapter = detectChapter(currentUrl);
     if (!chapter || !chapter.isChapter || !doc) return '';
-    for (const selector of SITE_ADAPTERS[chapter.siteId].previousSelectors) {
+    const { previousSelectors, previousLinkPattern } = SITE_ADAPTERS[chapter.siteId];
+    for (const selector of previousSelectors) {
       try {
         for (const anchor of doc.querySelectorAll(selector)) {
+          if (previousLinkPattern && !previousLinkPattern.test(anchor.textContent)) continue;
           const previous = nextFromAnchor(anchor, currentUrl, chapter);
           if (previous) return previous;
         }
