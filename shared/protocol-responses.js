@@ -1,15 +1,17 @@
 /** Response parsing for translation, image OCR and terminology results. */
 (function initProtocolResponses(globalScope) {
   'use strict';
+  const textUtils = globalScope.DSHT?.textUtils ||
+    (typeof require === 'function' ? require('./text.js') : null);
 
   function normalizeTermItem(item) {
     if (!item || typeof item !== 'object') return null;
-    const source = String(item.source || item.term || item.original || '').trim();
-    const target = String(item.target || item.translation || '').trim();
+    const source = firstString(item.source, item.term, item.original);
+    const target = firstString(item.target, item.translation);
     if (!source || !target || source.length > 200 || target.length > 200) return null;
-    const category = String(item.category || 'term').trim() || 'term';
-    const note = String(item.note || '').trim().slice(0, 160);
-    const gender = String(item.gender || '').trim().toLowerCase();
+    const category = firstString(item.category) || 'term';
+    const note = textUtils.sliceText(firstString(item.note), 0, 160);
+    const gender = firstString(item.gender).toLowerCase();
     return {
       source,
       target,
@@ -80,10 +82,9 @@
     }
   }
 
-  /** The objects of a text made of nothing but JSON objects, or null. */
-  function objectSequence(text) {
-    const parts = [];
-    let depth = 0;
+  /** Balanced, valid outer JSON containers found in a reply. */
+  function* jsonParts(text) {
+    const stack = [];
     let start = 0;
     let inString = false;
     for (let index = 0; index < text.length; index += 1) {
@@ -91,23 +92,32 @@
       if (inString) {
         if (char === '\\') index += 1;
         else if (char === '"') inString = false;
-      } else if (depth === 0 && char !== '{') {
-        if (!/[\s,]/.test(char)) return null;
-      } else if (char === '"') {
+      } else if (stack.length && char === '"') {
         inString = true;
-      } else if (char === '{') {
-        if (depth === 0) start = index;
-        depth += 1;
-      } else if (char === '}') {
-        depth -= 1;
-        if (depth === 0) {
-          const part = tryParse(text.slice(start, index + 1));
-          if (!part.ok) return null;
-          parts.push(part.value);
+      } else if (char === '{' || char === '[') {
+        if (!stack.length) start = index;
+        stack.push(char === '{' ? '}' : ']');
+      } else if (stack.length && (char === '}' || char === ']')) {
+        if (stack.pop() !== char) stack.length = 0;
+        else if (!stack.length) {
+          const end = index + 1;
+          const { ok, value } = tryParse(text.slice(start, end));
+          if (ok) yield { start, end, value };
         }
       }
     }
-    return depth === 0 && parts.length > 1 ? parts : null;
+  }
+
+  /** The objects of a text made of nothing but JSON objects, or null. */
+  function objectSequence(text) {
+    const parts = [];
+    let offset = 0;
+    for (const { start, end, value } of jsonParts(text)) {
+      if (Array.isArray(value) || /[^\s,]/.test(text.slice(offset, start))) return null;
+      parts.push(value);
+      offset = end;
+    }
+    return parts.length > 1 && !/[^\s,]/.test(text.slice(offset)) ? parts : null;
   }
 
   /**
@@ -149,27 +159,29 @@
 
     const text = stripFences(raw);
     const direct = tryParse(text);
-    if (direct.ok) return { ok: true, value: direct.value };
+    if (direct.ok) return direct;
 
-    const candidates = [];
-    const objectStart = text.indexOf('{');
-    const objectEnd = text.lastIndexOf('}');
-    if (objectStart >= 0 && objectEnd > objectStart) {
-      candidates.push(text.slice(objectStart, objectEnd + 1));
+    const fences = raw.matchAll(/^[ \t]*```(?:json)?[ \t]*\r?\n([\s\S]*?)^[ \t]*```[ \t]*\r?$/gim);
+    const blocks = Array.from(fences, ([, block]) => tryParse(block))
+      .filter(({ ok, value }) => ok && value && typeof value === 'object');
+    if (blocks.length === 1) return blocks[0];
+
+    const values = Array.from(jsonParts(text), ({ value }) => value);
+    const objects = values.filter((value) => !Array.isArray(value));
+    if (objects.length === 1) return { ok: true, value: objects[0] };
+    const arrays = values.filter(Array.isArray);
+    if (arrays.length === 1) return { ok: true, value: arrays[0] };
+    if (!values.length) {
+      const objectStart = text.indexOf('{');
+      const legacy = tryParse(text.slice(objectStart, text.lastIndexOf('}') + 1));
+      if (objectStart >= 0 && legacy.ok) return legacy;
     }
+    // Preserve recovery of a list under a nonstandard key followed by metadata.
     const arrayStart = text.indexOf('[');
-    const arrayEnd = text.lastIndexOf(']');
-    if (arrayStart >= 0 && arrayEnd > arrayStart) {
-      candidates.push(text.slice(arrayStart, arrayEnd + 1));
+    if (arrayStart >= 0 && !arrays.length) {
+      const legacy = tryParse(text.slice(arrayStart, text.lastIndexOf(']') + 1));
+      if (legacy.ok) return legacy;
     }
-
-    // The earliest opening bracket is most likely to be the real payload.
-    candidates.sort((a, b) => text.indexOf(a[0]) - text.indexOf(b[0]));
-    for (const candidate of candidates) {
-      const parsed = tryParse(candidate);
-      if (parsed.ok) return { ok: true, value: parsed.value };
-    }
-
     return { ok: false, error: 'INVALID_JSON' };
   }
 
@@ -180,18 +192,14 @@
 
   function pickText(entry) {
     if (!entry || typeof entry !== 'object') return '';
-    const candidates = [
+    return firstString(
       entry.text,
       entry.translation,
       entry.translated,
       entry.translatedText,
       entry.translated_text,
       entry.value
-    ];
-    for (const candidate of candidates) {
-      if (typeof candidate === 'string') return candidate.trim();
-    }
-    return '';
+    );
   }
 
   /**
@@ -394,7 +402,9 @@
 
   function firstString(...values) {
     for (const value of values) {
-      if (typeof value === 'string') return value.trim();
+      if (typeof value !== 'string') continue;
+      const text = value.trim();
+      if (text) return text;
     }
     return '';
   }

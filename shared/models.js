@@ -33,6 +33,7 @@
     try {
       const url = new URL(text);
       if (url.protocol !== 'https:' && url.protocol !== 'http:') return '';
+      if (url.username || url.password) return '';
       url.hash = '';
       // Users often paste the full completions URL from provider docs; joinEndpoint adds it back.
       url.pathname = url.pathname.replace(/\/+$/, '').replace(/\/chat\/completions$/i, '');
@@ -305,10 +306,13 @@
     if (!registry || !Array.isArray(registry.models)) return registry;
     const models = registry.models.slice();
     for (const [providerId, names] of Object.entries(userModels || {})) {
-      const template = registry.models.find((model) => model.provider === providerId);
+      const providerModels = registry.models.filter((model) => model.provider === providerId);
+      const [template] = providerModels;
       if (!template) continue;
+      const existingNames = new Set(providerModels.map((model) => model.model));
       for (const name of names) {
-        if (models.some((model) => model.provider === providerId && model.model === name)) continue;
+        if (existingNames.has(name)) continue;
+        existingNames.add(name);
         models.push({
           ...template, id: userModelId(providerId, name), name, model: name,
           effortLevels: ['none'], defaultEffort: 'none', thinkingParam: null, effortParam: null,

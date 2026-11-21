@@ -1,6 +1,8 @@
 /** Glossary terms: normalization, merging and picking what a request actually uses. */
 (function initGlossary(globalScope) {
   'use strict';
+  const textUtils = globalScope.DSHT?.textUtils ||
+    (typeof require === 'function' ? require('./text.js') : null);
 
   // A library has no size limit; only what one request carries is bounded.
   const MAX_REQUEST_TERMS = 200;
@@ -128,22 +130,31 @@
     return false;
   }
 
-  /** Terms whose source appears in `texts`; a non-array glossary passes through. */
-  function selectGlossary(glossary, texts) {
-    if (!Array.isArray(glossary)) return glossary;
+  function* matchingTerms(glossary, texts) {
     const text = (Array.isArray(texts) ? texts : []).map(foldText).join('\n');
-    return glossary.filter(
-      (item) => item && termOccurs(text, foldText(item.source || item.term).trim())
-    );
+    if (!text.trim()) return;
+    for (const item of glossary) {
+      if (item && termOccurs(text, foldText(item.source || item.term).trim())) yield item;
+    }
+  }
+
+  /** Terms whose source appears in the texts; a non-array glossary passes through. */
+  function selectGlossary(glossary, texts) {
+    return Array.isArray(glossary) ? Array.from(matchingTerms(glossary, texts)) : glossary;
   }
 
   /** What one request may carry: terms in `texts` first, then those only in nearby context. */
   function requestGlossary(glossary, texts, context) {
     if (!Array.isArray(glossary)) return [];
-    const found = new Set(selectGlossary(glossary, texts));
-    const nearby = context ? [context.precedingText || context.previousChapter] : [];
-    for (const term of selectGlossary(glossary, nearby)) found.add(term);
-    return Array.from(found).slice(0, MAX_REQUEST_TERMS);
+    const found = new Set();
+    const nearby = context?.precedingText || context?.previousChapter;
+    for (const source of [texts, [nearby]]) {
+      for (const term of matchingTerms(glossary, source)) {
+        found.add(term);
+        if (found.size >= MAX_REQUEST_TERMS) return Array.from(found);
+      }
+    }
+    return Array.from(found);
   }
 
   /** People and skills stay: skill names are often ordinary words, such as 解析. */
@@ -238,7 +249,7 @@
     for (const text of chapters) {
       const at = text.indexOf(source);
       if (at < 0) continue;
-      excerpts.push(text.slice(Math.max(0, at - radius), at + source.length + radius));
+      excerpts.push(textUtils.sliceText(text, Math.max(0, at - radius), at + source.length + radius));
       if (excerpts.length === limit) break;
     }
     return excerpts;
@@ -274,7 +285,7 @@
         aliases.push({ source: term.source, target: change.targets[index + 1] }, ...(term.aliases || []));
         kept.note ||= term.note;
         if (isCharacterCategory(term.category)) kept.category = term.category;
-        kept.gender ||= term.gender;
+        if (!kept.gender || (kept.gender === 'none' && term.gender)) kept.gender = term.gender;
         gone.add(term);
       });
       kept.target = change.targets[0];
@@ -365,13 +376,21 @@
     const key = (term) => termKey(term.source);
     const touched = new Set(Array.isArray(tidy.touched) ? tidy.touched : []);
     const current = mergeGlossary(stored, []);
-    const byKey = new Map(current.map((term) => [key(term), term]));
+    const byKey = new Map();
+    for (const term of current) {
+      const source = key(term);
+      if (!byKey.has(source)) byKey.set(source, []);
+      byKey.get(source).push(term);
+    }
+    const remaining = new Set(current);
     const restored = mergeGlossary(tidy.terms, []).flatMap((term) => {
       if (touched.has(key(term))) return [term];
-      return byKey.has(key(term)) ? [byKey.get(key(term))] : [];
+      const live = byKey.get(key(term))?.shift();
+      if (!live) return [];
+      remaining.delete(live);
+      return [live];
     });
-    const kept = new Set(restored.map(key));
-    return restored.concat(current.filter((term) => !kept.has(key(term))));
+    return restored.concat([...remaining].filter((term) => !touched.has(key(term))));
   }
 
   const api = Object.freeze({

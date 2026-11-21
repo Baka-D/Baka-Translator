@@ -31,6 +31,7 @@
   }
 
   function isKana(cp) {
+    if (cp === 0x30a0 || cp === 0x30fb) return false;
     return (
       (cp >= 0x3040 && cp <= 0x30ff) ||
       (cp >= 0x31f0 && cp <= 0x31ff) ||

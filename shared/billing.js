@@ -83,32 +83,22 @@
 
   function normalizeBillingUsage(raw) {
     const source = isObject(raw) ? raw : {};
-    const promptTokens = tokenCount(
-      source.promptTokens !== undefined ? source.promptTokens : source.prompt_tokens
-    );
-    const reported = tokenCount(
-      source.completionTokens !== undefined ? source.completionTokens : source.completion_tokens
-    );
-    let totalTokens = tokenCount(
-      source.totalTokens !== undefined ? source.totalTokens : source.total_tokens
-    );
+    const promptTokens = tokenCount(source.promptTokens ?? source.prompt_tokens);
+    const reported = tokenCount(source.completionTokens ?? source.completion_tokens);
+    let totalTokens = tokenCount(source.totalTokens ?? source.total_tokens);
     if (!totalTokens) totalTokens = promptTokens + reported;
     // xAI and Gemini count reasoning in total_tokens only; it is billed as output.
     // The guard skips partial usage objects, where the gap means nothing.
     const hidden = promptTokens && reported ? Math.max(0, totalTokens - promptTokens - reported) : 0;
     const completionTokens = reported + hidden;
 
-    let cachedTokens = 0;
-    if (typeof source.cachedTokens !== 'undefined') cachedTokens = tokenCount(source.cachedTokens);
-    else if (typeof source.cached_tokens !== 'undefined') cachedTokens = tokenCount(source.cached_tokens);
-    else if (typeof source.prompt_cache_hit_tokens !== 'undefined') {
-      cachedTokens = tokenCount(source.prompt_cache_hit_tokens);
-    } else if (isObject(source.prompt_tokens_details)) {
-      cachedTokens = tokenCount(source.prompt_tokens_details.cached_tokens);
-    } else if (isObject(source.input_tokens_details)) {
-      cachedTokens = tokenCount(source.input_tokens_details.cached_tokens);
-    }
-    cachedTokens = Math.min(promptTokens, cachedTokens);
+    const cachedTokens = Math.min(promptTokens, tokenCount(
+      source.cachedTokens ??
+      source.cached_tokens ??
+      source.prompt_cache_hit_tokens ??
+      source.prompt_tokens_details?.cached_tokens ??
+      source.input_tokens_details?.cached_tokens
+    ));
 
     return { promptTokens, completionTokens, totalTokens, cachedTokens };
   }

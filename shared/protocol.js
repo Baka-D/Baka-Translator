@@ -22,6 +22,8 @@
   const glossaryUtils =
     (globalScope.DSHT && globalScope.DSHT.glossary) ||
     (typeof require === 'function' ? require('./glossary.js') : null);
+  const textUtils = globalScope.DSHT?.textUtils ||
+    (typeof require === 'function' ? require('./text.js') : null);
 
   const prompts =
     (globalScope.DSHT && globalScope.DSHT.systemPrompts) ||
@@ -283,7 +285,7 @@
 
   function buildTermReviewMessages(terms) {
     const candidates = terms.map(({ source, target, category, note }) => ({
-      source, target, category: String(category).slice(0, 40), note
+      source, target, category: textUtils.sliceText(String(category), 0, 40), note
     }));
     return [
       { role: 'system', content: prompts.terms.review.join('\n') },
@@ -296,9 +298,9 @@
       ...(id === undefined ? {} : { id }),
       source,
       target,
-      category: String(category).slice(0, 40),
+      category: textUtils.sliceText(String(category), 0, 40),
       ...(gender ? { gender } : {}),
-      ...(note ? { note: note.slice(0, 160) } : {}),
+      ...(note ? { note: textUtils.sliceText(note, 0, 160) } : {}),
       ...(aliases ? { aliases } : {})
     };
   }

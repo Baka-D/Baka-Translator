@@ -16,9 +16,13 @@
    */
   function splitWhitespace(value) {
     const text = typeof value === 'string' ? value : '';
-    const match = /^(\s*)([\s\S]*?)(\s*)$/.exec(text);
-    if (!match) return { leading: '', core: text, trailing: '' };
-    return { leading: match[1], core: match[2], trailing: match[3] };
+    const withoutLeading = text.trimStart();
+    const core = withoutLeading.trimEnd();
+    return {
+      leading: text.slice(0, text.length - withoutLeading.length),
+      core,
+      trailing: withoutLeading.slice(core.length)
+    };
   }
 
   function createBatches(items, options) {
@@ -78,11 +82,15 @@
       .toLowerCase();
   }
 
+  /** Cut within a UTF-16 length budget without leaving half of a character. */
+  function sliceText(text, start, end) {
+    return text.slice(start, end).replace(/^[\uDC00-\uDFFF]|[\uD800-\uDBFF]$/g, '');
+  }
+
   function truncate(value, maxLength) {
     const text = String(value || '');
     if (text.length <= maxLength) return text;
-    // A cut through a surrogate pair would leave half a character behind.
-    return text.slice(0, Math.max(0, maxLength - 1)).replace(/[\uD800-\uDBFF]$/, '') + '…';
+    return sliceText(text, 0, Math.max(0, maxLength - 1)) + '…';
   }
 
   function chunkPolishPairs(items, options) {
@@ -117,7 +125,8 @@
     for (let at = index - 1; at >= 0 && room > 0; at -= 1) {
       const text = String(textOf(items[at]) || '').trim();
       if (!text) continue;
-      parts.unshift(text.slice(-room));
+      const suffix = sliceText(text, -room);
+      if (suffix) parts.unshift(suffix);
       room -= text.length + 1;
     }
     return parts.join('\n');
@@ -145,6 +154,7 @@
     pairText,
     contextBefore,
     normalizeKey,
+    sliceText,
     truncate
   });
 

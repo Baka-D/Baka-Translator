@@ -5,6 +5,12 @@ const assert = require('node:assert/strict');
 const models = require('../../shared/models.js');
 const api = require('../../background/api.js');
 
+test('embedded URL authentication is rejected before the fetch call', () => {
+  const endpoint = 'https://demo:sample@gateway.example/v1';
+  assert.equal(models.normalizeEndpoint(endpoint), '');
+  assert.equal(models.joinEndpoint(endpoint, '/models'), '');
+});
+
 const cases = [
   ['literal slash', 'https://gateway.example/v1?path=folder/', '/v1', '?path=folder/'],
   ['encoded slash', 'https://gateway.example/v1?path=folder%2F', '/v1', '?path=folder%2F'],

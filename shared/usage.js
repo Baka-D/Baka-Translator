@@ -38,24 +38,18 @@
 
   function pick(object, camel, snake) {
     if (!object || typeof object !== 'object') return undefined;
-    if (object[camel] !== undefined) return object[camel];
-    return object[snake];
+    return object[camel] ?? object[snake];
   }
 
   function cachedTokenNumber(raw) {
     if (!raw || typeof raw !== 'object') return 0;
-    if (typeof raw.cachedTokens !== 'undefined') return tokenNumber(raw.cachedTokens);
-    if (typeof raw.cached_tokens !== 'undefined') return tokenNumber(raw.cached_tokens);
-    if (typeof raw.prompt_cache_hit_tokens !== 'undefined') {
-      return tokenNumber(raw.prompt_cache_hit_tokens);
-    }
-    if (raw.prompt_tokens_details && typeof raw.prompt_tokens_details === 'object') {
-      return tokenNumber(raw.prompt_tokens_details.cached_tokens);
-    }
-    if (raw.input_tokens_details && typeof raw.input_tokens_details === 'object') {
-      return tokenNumber(raw.input_tokens_details.cached_tokens);
-    }
-    return 0;
+    return tokenNumber(
+      raw.cachedTokens ??
+      raw.cached_tokens ??
+      raw.prompt_cache_hit_tokens ??
+      raw.prompt_tokens_details?.cached_tokens ??
+      raw.input_tokens_details?.cached_tokens
+    );
   }
 
   function normalizeApiUsage(raw) {
