@@ -2,6 +2,89 @@
 const storedNovel = globalThis.DSHT.novel;
 const novelWorkWrites = new Map();
 
+const novelNcodeMigrationKey = 'novelNcodeMigration';
+const syosetuStorageKey = /^(novel(?:Cache|Glossary(?:Tidy)?|Meta|Work):syosetu:)([a-zA-Z]\d+[a-zA-Z0-9]*)(?=:|$)/;
+let novelNcodeMigration;
+
+/** Preserve data written before Syosetu n-codes were canonicalized. */
+function ensureNovelNcodes() {
+  novelNcodeMigration ??= migrateNovelNcodes().catch((error) => {
+    novelNcodeMigration = null;
+    throw error;
+  });
+  return novelNcodeMigration;
+}
+
+function mergedNcodeValue(prefix, canonical, legacy, workId) {
+  if (prefix === 'novelGlossary:syosetu:') {
+    const terms = storedNovel.mergeGlossary([
+      ...(Array.isArray(canonical) ? canonical : []), ...(Array.isArray(legacy) ? legacy : [])
+    ], []);
+    const seen = new Set();
+    return terms.filter((term) => {
+      const pair = JSON.stringify([storedNovel.termKey(term.source), term.target]);
+      if (seen.has(pair)) return false;
+      seen.add(pair);
+      return true;
+    });
+  }
+  if (prefix === 'novelMeta:syosetu:') {
+    const current = storedNovel.normalizeMeta(canonical);
+    const old = storedNovel.normalizeMeta(legacy);
+    const titles = [current, old];
+    const title = titles.find((meta) => meta?.titleManual) || titles.find((meta) => meta?.title);
+    return storedNovel.normalizeMeta({
+      ...old, ...current, siteId: 'syosetu', workId,
+      title: title?.title, titleManual: title?.titleManual,
+      chapterIds: [...(old?.chapterIds || []), ...(current?.chapterIds || [])],
+      extractedChapterIds: [...(old?.extractedChapterIds || []), ...(current?.extractedChapterIds || [])],
+      chaptersSinceTidy: Math.max(old?.chaptersSinceTidy || 0, current?.chaptersSinceTidy || 0)
+    });
+  }
+  if (prefix === 'novelGlossaryTidy:syosetu:') {
+    return !canonical || (Number(legacy?.tidiedAt) || 0) > (Number(canonical.tidiedAt) || 0) ? legacy : canonical;
+  }
+  if (prefix === 'novelCache:syosetu:') {
+    const newest = !canonical || (Number(legacy?.createdAt) || 0) > (Number(canonical.createdAt) || 0) ? legacy : canonical;
+    return { ...newest, workId };
+  }
+  return canonical ?? legacy;
+}
+
+async function migrateNovelNcodes() {
+  const local = chrome.storage.local;
+  if ((await local.get(novelNcodeMigrationKey))[novelNcodeMigrationKey]) return;
+  const all = typeof local.getKeys === 'function' ? null : await local.get(null);
+  const renames = new Map();
+  for (const key of all ? Object.keys(all) : await local.getKeys()) {
+    const match = key.match(syosetuStorageKey);
+    if (!match || match[2] === match[2].toLowerCase()) continue;
+    const [, prefix, code] = match;
+    const workId = code.toLowerCase();
+    renames.set(key, [prefix + workId + key.slice(match[0].length), prefix, workId]);
+  }
+  const values = all || (renames.size
+    ? await local.get([...new Set([...renames.keys(), ...Array.from(renames.values(), ([key]) => key)])])
+    : {});
+  const updates = {};
+  const remove = [];
+  for (const [key, [canonicalKey, prefix, workId]] of renames) {
+    const canonical = updates[canonicalKey] ?? values[canonicalKey];
+    const legacy = values[key];
+    if (legacy === undefined) continue;
+    // This cache has a single language slot. Preserve a previously paid conflicting record.
+    if (prefix === 'novelCache:syosetu:' && canonical && canonical.targetCode !== legacy?.targetCode) continue;
+    updates[canonicalKey] = mergedNcodeValue(prefix, canonical, legacy, workId);
+    remove.push(key);
+  }
+  if (remove.length) {
+    await local.set(updates);
+    await local.remove(remove);
+  }
+  await local.set({ [novelNcodeMigrationKey]: true });
+}
+
+
 async function withNovelWorkWrite(key, operation) {
   const previous = novelWorkWrites.get(key) || Promise.resolve();
   const pending = previous.catch(() => {}).then(operation);
@@ -31,7 +114,7 @@ function currentNovelRequest(message, sender) {
 }
 
 function novelTitle(value) {
-  return typeof value === 'string' ? value.trim().slice(0, 200) : '';
+  return typeof value === 'string' ? textUtils.sliceText(value.trim(), 0, 200) : '';
 }
 
 async function loadNovelContext(message, sender) {
@@ -84,7 +167,8 @@ function glossaryEditRequest(message, sender) {
   const site = Object.hasOwn(storedNovel.SITE_ADAPTERS, message.siteId) && storedNovel.SITE_ADAPTERS[message.siteId];
   const id = typeof message.workId === 'string' ? message.workId : '';
   const chapter = site && storedNovel.detectChapter(`https://${site.hosts[0]}${site.workPath(id)}`);
-  if (!chapter?.isWorkPage || chapter.workId !== id || !['save', 'undo', 'clear'].includes(message.action)) {
+  const expectedId = site?.id === 'syosetu' ? id.toLowerCase() : id;
+  if (!chapter?.isWorkPage || chapter.workId !== expectedId || !['save', 'undo', 'clear'].includes(message.action)) {
     throw new PageAccessError('INVALID_REQUEST', t('bg_glossary_operation_invalid'));
   }
   return { chapter, targetCode: validateTargetCode(message.targetCode) };
@@ -106,7 +190,17 @@ async function handleGlossaryEdit(message, sender) {
   const opened = message.action === 'save' ? editedGlossaryTerms(message.opened, true) : null;
   return withNovelWorkWrite(glossaryKey, async () => {
     if (message.action === 'clear') {
-      await chrome.storage.local.remove([glossaryKey, tidyKey]);
+      const local = chrome.storage.local;
+      const values = await local.get(metaKey);
+      const meta = values[metaKey] && typeof values[metaKey] === 'object' ? values[metaKey] : null;
+      // A failure to reset the counters must leave the glossary intact.
+      if (meta) await local.set({ [metaKey]: { ...meta, chaptersSinceTidy: 0, extractedChapterIds: [] } });
+      try {
+        await local.remove([glossaryKey, tidyKey]);
+      } catch (error) {
+        if (meta) await local.set({ [metaKey]: meta }).catch(() => {});
+        throw error;
+      }
       if (typeof cancelGlossaryTidy === 'function') cancelGlossaryTidy(glossaryKey);
       return { cleared: true };
     }

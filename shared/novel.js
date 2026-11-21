@@ -113,7 +113,7 @@
     }
     const adapter = adapterForUrl(url.href);
     if (!adapter) return null;
-    const pathname = normalizePath(url.pathname);
+    const pathname = normalizePath(adapter.id === 'syosetu' ? url.pathname.toLowerCase() : url.pathname);
     const chapterMatch = pathname.match(adapter.chapterPattern);
     const workMatch = pathname.match(adapter.workPattern);
     const isChapter = Boolean(chapterMatch);
@@ -263,7 +263,7 @@
     return String(href || '').trim();
   }
 
-  function nextFromAnchor(anchor, baseUrl, chapter) {
+  function chapterFromAnchor(anchor, baseUrl, chapter, forward = false) {
     const href = candidateHref(anchor);
     if (!href) return '';
     let next;
@@ -276,9 +276,9 @@
     }
     const candidate = detectChapter(next.href);
     if (!candidate || !candidate.isChapter) return '';
-    if (candidate.siteId !== chapter.siteId) return '';
-    if (candidate.workId !== chapter.workId) return '';
+    if (candidate.siteId !== chapter.siteId || candidate.workId !== chapter.workId) return '';
     if (candidate.chapterId === chapter.chapterId) return '';
+    if (forward && chapter.siteId !== 'kakuyomu' && candidate.chapterOrder <= chapter.chapterOrder) return '';
     return candidate.canonicalUrl;
   }
 
@@ -290,13 +290,12 @@
     const chapter = detectChapter(currentUrl);
     if (!chapter || !chapter.isChapter || !doc) return '';
     const adapter = SITE_ADAPTERS[chapter.siteId];
-    if (!adapter) return '';
 
     for (const selector of adapter.nextSelectors) {
       try {
         const anchors = doc.querySelectorAll(selector);
         for (const anchor of anchors) {
-          const next = nextFromAnchor(anchor, currentUrl, chapter);
+          const next = chapterFromAnchor(anchor, currentUrl, chapter, true);
           if (next) return next;
         }
       } catch (_error) {
@@ -310,13 +309,13 @@
     } catch (_error) {
       anchors = [];
     }
-    const nextPattern = /(次へ|次章|次話|次の|next)/i;
+    const nextPattern = /^(?:次へ|次章(?:へ)?|次話(?:へ)?|次の(?:章|話|エピソード)(?:へ)?|next(?: chapter| episode)?)[\s>»›＞→]*$/i;
     for (const anchor of anchors) {
       const text = String(
         (typeof anchor.textContent === 'string' ? anchor.textContent : '') || ''
       ).trim();
       if (!nextPattern.test(text)) continue;
-      const next = nextFromAnchor(anchor, currentUrl, chapter);
+      const next = chapterFromAnchor(anchor, currentUrl, chapter, true);
       if (next) return next;
     }
     return '';
@@ -331,7 +330,7 @@
       try {
         for (const anchor of doc.querySelectorAll(selector)) {
           if (previousLinkPattern && !previousLinkPattern.test(anchor.textContent)) continue;
-          const previous = nextFromAnchor(anchor, currentUrl, chapter);
+          const previous = chapterFromAnchor(anchor, currentUrl, chapter);
           if (previous) return previous;
         }
       } catch (_error) {

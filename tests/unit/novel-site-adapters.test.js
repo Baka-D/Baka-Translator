@@ -102,3 +102,32 @@ test('the options page can edit the glossary of a Hameln work', () => {
   assert.equal(chapter.isWorkPage, true);
   assert.equal(novel.glossaryKeyForWork(chapter, targetCode), 'novelGlossary:hameln:313861:en');
 });
+
+test('Syosetu n-codes share a work identity and resolve lowercase next and previous links', () => {
+  const origin = 'https://ncode.syosetu.com';
+  const url = origin + '/N0193Jx/2/';
+  const chapter = novel.detectChapter(url);
+  assert.equal(chapter.canonicalUrl, origin + '/n0193jx/2');
+  assert.equal(chapter.workUrl, origin + '/n0193jx/');
+  assert.equal(novel.cacheKeyForChapter(chapter), 'novelCache:syosetu:n0193jx:2');
+  assert.equal(novel.glossaryKeyForWork(chapter), 'novelGlossary:syosetu:n0193jx');
+  const selectors = {
+    'a.c-pager__item--next': [{ href: '/n0193jx/3/' }],
+    'a.c-pager__item--before': [{ href: '../1/' }]
+  };
+  const doc = { querySelectorAll: (selector) => selectors[selector] || [] };
+  assert.equal(novel.findNextChapterUrl(doc, url), origin + '/n0193jx/3');
+  assert.equal(novel.findPreviousChapterUrl(doc, url), origin + '/n0193jx/1');
+});
+
+test('fallback rejects misleading titles and backward links when no next chapter is listed', () => {
+  const doc = { querySelectorAll: (selector) => selector === 'a[href]' ? [
+    { href: '/n0193jx/1/', textContent: '次へ' },
+    { href: '/n0193jx/3/', textContent: '次の日' }
+  ] : [] };
+  assert.equal(novel.findNextChapterUrl(doc, 'https://ncode.syosetu.com/n0193jx/2/'), '');
+  const kakuyomu = 'https://kakuyomu.jp/works/12/episodes/';
+  const kakuyomuDoc = { querySelectorAll: (selector) => selector === 'a[href]'
+    ? [{ href: kakuyomu + '4', textContent: 'Next Stage' }] : [] };
+  assert.equal(novel.findNextChapterUrl(kakuyomuDoc, kakuyomu + '3'), '');
+});

@@ -114,13 +114,13 @@
       }
     }
 
-    async function matchingCache(chapter, targetCode, plan, candidate) {
+    async function matchingCache(chapter, targetCode, plan, candidate, discardIncomplete = true) {
       const record = candidate || await app.readNovelCache(chapter, targetCode);
       if (!record || record.targetCode !== targetCode) return null;
       // Made under other settings: keep it, but this run must use the current ones.
       if (!novelUtils.cacheMatchesSettings(record, page.translationKey)) return null;
       if (novelUtils.mapCachedTranslations(plan.segments, record.entries).complete) return record;
-      await app.storageRemove(novelUtils.cacheKeyForChapter(chapter));
+      if (discardIncomplete) await app.storageRemove(novelUtils.cacheKeyForChapter(chapter));
       return null;
     }
 
@@ -133,7 +133,9 @@
         const snapshot = await getPretranslation(chapter, job.targetCode);
         if (job.runId !== page.runId) return null;
         app.assertPageRoute();
-        const record = await matchingCache(chapter, job.targetCode, job.plan, candidate);
+        const record = await matchingCache(
+          chapter, job.targetCode, job.plan, candidate, snapshot.status !== 'running'
+        );
         candidate = null;
         if (job.runId !== page.runId) return null;
         app.assertPageRoute();
@@ -155,24 +157,26 @@
       page.cachedPretranslation = true;
       // Make the complete first draft readable while the same background job polishes it.
       if (page.bilingual) app.applyBilingualCaptions(job.plan.anchors);
-      while (snapshot.status === 'running' && job.runId === page.runId) {
-        app.assertPageRoute();
-        page.phase = 'pretranslating';
-        showPretranslation(snapshot, 'current', chapter.canonicalUrl);
-        await app.delay(500);
+      if (snapshot.status === 'running') {
+        while (snapshot.status === 'running' && job.runId === page.runId) {
+          app.assertPageRoute();
+          page.phase = 'pretranslating';
+          showPretranslation(snapshot, 'current', chapter.canonicalUrl);
+          await app.delay(500);
+          if (job.runId !== page.runId) return;
+          app.assertPageRoute();
+          snapshot = await getPretranslation(chapter, job.targetCode);
+        }
         if (job.runId !== page.runId) return;
         app.assertPageRoute();
-        snapshot = await getPretranslation(chapter, job.targetCode);
-      }
-      if (job.runId !== page.runId) return;
-      app.assertPageRoute();
-      const finalRecord = await matchingCache(chapter, job.targetCode, job.plan);
-      if (job.runId !== page.runId) return;
-      app.assertPageRoute();
-      if (finalRecord) {
-        record = finalRecord;
-        const final = novelUtils.mapCachedTranslations(job.plan.segments, record.entries);
-        app.applyPolishResults(final.translations, job.plan);
+        const finalRecord = await matchingCache(chapter, job.targetCode, job.plan);
+        if (job.runId !== page.runId) return;
+        app.assertPageRoute();
+        if (finalRecord) {
+          record = finalRecord;
+          const final = novelUtils.mapCachedTranslations(job.plan.segments, record.entries);
+          app.applyPolishResults(final.translations, job.plan);
+        }
       }
       page.estimatedCostUsd = Number(record.costUsd) || 0;
       page.polishError = page.proofreadEnabled && !record.polished

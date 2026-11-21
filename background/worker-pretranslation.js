@@ -3,6 +3,7 @@ const pretranslationNovel = globalThis.DSHT.novel;
 const pretranslationText = globalThis.DSHT.textUtils;
 const pretranslationJobs = new Map();
 const pretranslationOwners = new Map();
+const pretranslationCacheDates = new Map();
 let pretranslationCacheWrites = Promise.resolve();
 
 function pretranslationRequest(message, sender) {
@@ -83,25 +84,52 @@ async function readPretranslationCache(request) {
   return record;
 }
 
-async function prunePretranslationCache(job, stillWanted = pretranslationActive) {
-  const prefix = `novelCache:${job.chapter.siteId}:${job.chapter.workId}:`;
-  const all = await chrome.storage.local.get(null);
-  const entries = [];
-  const remove = [];
-  for (const [key, value] of Object.entries(all)) {
-    if (!key.startsWith('novelCache:')) continue;
-    const created = Number(value && value.createdAt) || 0;
-    if (key !== job.cacheKey && created && Date.now() - created > LIMITS.NOVEL_CACHE_TTL_MS) {
-      remove.push(key);
-    } else if (key.startsWith(prefix)) {
-      entries.push({ key, created });
+function discardFinishedPretranslations(cacheKeys) {
+  for (const [key, job] of pretranslationJobs) {
+    if (job.status === 'running' || !cacheKeys.has(job.cacheKey)) continue;
+    pretranslationJobs.delete(key);
+    if (pretranslationOwners.get(job.cacheKey) === job) pretranslationOwners.delete(job.cacheKey);
+  }
+}
+
+async function pretranslationCacheEntries() {
+  const local = chrome.storage.local;
+  if (typeof local.getKeys !== 'function') {
+    const values = await local.get(null);
+    return Object.entries(values).filter(([key]) => key.startsWith('novelCache:'))
+      .map(([key, value]) => [key, Number(value?.createdAt) || 0]);
+  }
+  const keys = new Set((await local.getKeys()).filter((key) => key.startsWith('novelCache:')));
+  for (const key of pretranslationCacheDates.keys()) {
+    if (!keys.has(key)) pretranslationCacheDates.delete(key);
+  }
+  const unread = [...keys].filter((key) => !pretranslationCacheDates.has(key));
+  if (unread.length) {
+    const values = await local.get(unread);
+    for (const [key, value] of Object.entries(values)) {
+      pretranslationCacheDates.set(key, Number(value?.createdAt) || 0);
     }
   }
-  entries.sort((a, b) => b.created - a.created);
-  for (const entry of entries.slice(LIMITS.NOVEL_MAX_CACHE_CHAPTERS)) {
-    if (entry.key !== job.cacheKey) remove.push(entry.key);
+  return pretranslationCacheDates;
+}
+
+async function prunePretranslationCache(job, stillWanted = pretranslationActive) {
+  const prefix = `novelCache:${job.chapter.siteId}:${job.chapter.workId}:`;
+  const entries = [];
+  const remove = new Set();
+  const cacheEntries = await pretranslationCacheEntries();
+  const oldestAllowed = Date.now() - LIMITS.NOVEL_CACHE_TTL_MS;
+  for (const [key, created] of cacheEntries) {
+    if (key === job.cacheKey) continue;
+    if (created && created < oldestAllowed) remove.add(key);
+    else if (key.startsWith(prefix)) entries.push({ key, created });
   }
-  if (remove.length && stillWanted(job)) await chrome.storage.local.remove(remove);
+  entries.sort((a, b) => b.created - a.created);
+  for (const entry of entries.slice(LIMITS.NOVEL_MAX_CACHE_CHAPTERS - 1)) remove.add(entry.key);
+  if (!remove.size || !stillWanted(job)) return;
+  await chrome.storage.local.remove([...remove]);
+  for (const key of remove) pretranslationCacheDates.delete(key);
+  discardFinishedPretranslations(remove);
 }
 
 function pretranslationRecord(job, polished) {
@@ -128,6 +156,7 @@ function savePretranslationCache(job, polished) {
       throw new PageAccessError('INCOMPLETE_TRANSLATION', t('bg_next_chapter_incomplete'));
     }
     await chrome.storage.local.set({ [job.cacheKey]: record });
+    pretranslationCacheDates.set(job.cacheKey, record.createdAt);
     job.hasDraft = true;
     await prunePretranslationCache(job);
     return true;
@@ -283,6 +312,7 @@ async function runPretranslation(job) {
     if (job.translationKey && job.translationKey !== config.translationCacheKey(settings, job.targetCode, hostname)) {
       throw new PageAccessError('SETTINGS_CHANGED', t('bg_translation_settings_changed'));
     }
+    await pretranslationCacheWrites.catch(() => {});
     const cached = await readPretranslationCache(job);
     if (!pretranslationActive(job)) return;
     if (cached && pretranslationNovel.cacheMatchesSettings(cached, job.translationKey) &&
@@ -329,6 +359,9 @@ async function runPretranslation(job) {
     job.noteKey = job.hasDraft ? 'bg_next_chapter_polish_failed' : 'bg_next_chapter_failed';
     job.noteDetail = detail.message;
     if (!job.hasDraft) job.error = detail;
+  } finally {
+    job.segments = job.translations = job.glossary = job.context = job.sender = null;
+    job.translationRuntime = job.polishRuntime = job.polishRuntimeError = null;
   }
 }
 
@@ -384,30 +417,40 @@ async function saveChapterCache(message, sender) {
   }
   const chars = record.entries.reduce((sum, entry) => sum + entry.source.length, 0);
   if (chars > LIMITS.PAGE_MAX_CHARS) throw new PageAccessError('TEXT_TOO_LONG', t('bg_chapter_cache_too_long'));
-  let saved = false;
-  pretranslationCacheWrites = pretranslationCacheWrites.catch(() => {}).then(async () => {
+  const write = pretranslationCacheWrites.catch(() => {}).then(async () => {
     // A chapter has one slot; another language's paid translation keeps it until it expires.
     const values = await chrome.storage.local.get(request.cacheKey);
     const existing = pretranslationNovel.normalizeCacheRecord(values[request.cacheKey]);
     const expired = existing && Date.now() - existing.createdAt > LIMITS.NOVEL_CACHE_TTL_MS;
-    if (existing && !expired && existing.targetCode !== request.targetCode) return;
+    if (existing && !expired && existing.targetCode !== request.targetCode) return false;
+    if (pretranslationOwners.get(request.cacheKey)?.status === 'running') return false;
+    record.createdAt = Date.now();
     await chrome.storage.local.set({ [request.cacheKey]: record });
+    pretranslationCacheDates.set(request.cacheKey, record.createdAt);
+    discardFinishedPretranslations(new Set([request.cacheKey]));
     await prunePretranslationCache(request, () => true);
-    saved = true;
+    return true;
   });
-  await pretranslationCacheWrites;
-  return { saved };
+  pretranslationCacheWrites = write;
+  return { saved: await write };
 }
 
 async function getPretranslation(message, sender) {
   const request = pretranslationRequest(message, sender);
-  const job = pretranslationJobs.get(request.key);
   const translationKey = typeof message.translationKey === 'string' ? message.translationKey : null;
-  if (job && (translationKey === null || job.translationKey === translationKey)) return pretranslationSnapshot(job);
+  const matchingJob = () => {
+    const job = pretranslationJobs.get(request.key);
+    return job && (translationKey === null || job.translationKey === translationKey) ? job : null;
+  };
+  const before = matchingJob();
+  if (before && before.status !== 'ready') return pretranslationSnapshot(before);
   const cached = await readPretranslationCache(request);
+  const job = matchingJob();
+  if (job && job.status !== 'ready') return pretranslationSnapshot(job);
   if (!cached || (translationKey !== null && !pretranslationNovel.cacheMatchesSettings(cached, translationKey))) {
     return pretranslationSnapshot(null);
   }
+  if (job?.status === 'ready') return pretranslationSnapshot(job);
   const noteKey = cached.polished ? 'bg_chapter_cached' : 'bg_chapter_draft_cached';
   return {
     status: 'ready',

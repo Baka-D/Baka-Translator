@@ -105,6 +105,8 @@
       // The stored form: page.glossary has lost the "no gender" choice.
       const glossaryKey = novelUtils.glossaryKeyForWork(page.novel, targetCode);
       const stored = await app.storageGet([glossaryKey]);
+      if (runId !== page.runId) return;
+      app.assertPageRoute();
       const response = await app.sendRuntime({
         type: MSG.EXTRACT_TERMS,
         targetCode,
@@ -272,11 +274,11 @@
       const root = await waitForNovelRoot(chapter, 4000);
       if (!root || !isCurrent()) return;
       const targetCode = languages.normalizeTarget(settings.targetLang);
-      const saved = await readNovelCache(chapter, targetCode, isCurrent);
-      if (!isCurrent()) return;
       const key = app.translationKey(settings, targetCode);
-      const record = saved && novelUtils.cacheMatchesSettings(saved, key) ? saved : null;
       const pending = await app.getPretranslation(chapter, targetCode, key);
+      if (!isCurrent()) return;
+      const saved = await readNovelCache(chapter, targetCode, isCurrent);
+      let record = saved && novelUtils.cacheMatchesSettings(saved, key) ? saved : null;
       if (!isCurrent() || (!record && pending.status !== 'running')) return;
 
       if (record) {
@@ -286,8 +288,11 @@
         if (collected.targets.length === 0) return;
         const plan = app.buildPagePlan(collected.targets, Boolean(settings.bilingual));
         if (!novelUtils.mapCachedTranslations(plan.segments, record.entries).complete) {
-          await app.storageRemove(novelUtils.cacheKeyForChapter(chapter));
-          if (!isCurrent() || pending.status !== 'running') return;
+          if (pending.status !== 'running') {
+            await app.storageRemove(novelUtils.cacheKeyForChapter(chapter));
+            return;
+          }
+          record = null;
         }
       }
 

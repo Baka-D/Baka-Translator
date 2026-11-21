@@ -116,8 +116,14 @@ importScripts(
   chrome.runtime.getURL('background/worker-image-panel.js')
 );
 
+const NOVEL_STORAGE_MESSAGES = new Set([
+  MSG.TIDY_GLOSSARY, MSG.LOAD_NOVEL_CONTEXT, MSG.SAVE_NOVEL_GLOSSARY, MSG.GLOSSARY_EDIT,
+  MSG.PRETRANSLATE_CHAPTER, MSG.SAVE_CHAPTER_CACHE, MSG.GET_PRETRANSLATION, MSG.CANCEL_PRETRANSLATION
+]);
+
 async function handleMessage(message, sender) {
   await i18n.ready;
+  if (NOVEL_STORAGE_MESSAGES.has(message.type)) await ensureNovelNcodes();
   switch (message.type) {
     case MSG.GET_CONFIG:
       return getConfigSnapshot();
@@ -301,6 +307,7 @@ i18n.onChange(() => {
 
 // Chromium retains context menus across worker wakes, and emits onInstalled on extension reload.
 chrome.runtime.onInstalled.addListener(() => {
+  void ensureNovelNcodes().catch(() => {});
   queueContextMenuUpdate(async () => {
     await initializeStorage().catch(() => {});
     await setupContextMenus();
